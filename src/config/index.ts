@@ -11,3 +11,5 @@ export * from './abis/launchpad-presale';
 export * from './abis/token-factory';
 export * from './abis/token-locker';
 export * from './abis/erc20';
+export * from './admin';
+

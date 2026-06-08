@@ -4,7 +4,7 @@
  */
 
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
-import { PresaleFactory } from '@/config';
+import { PresaleFactory, ADMIN_ADDRESSES } from '@/config';
 import { useReadContract } from '@/lib/hooks';
 import type { Address } from 'viem';
 
@@ -57,9 +57,10 @@ export function useIsAdmin(address: Address | undefined) {
   const { factoryOwner, isLoading } = useFactoryOwner();
 
   const isAdmin = Boolean(
-    address &&
-    factoryOwner &&
-    address.toLowerCase() === factoryOwner.toLowerCase()
+    address && (
+      ADMIN_ADDRESSES.some(adminAddr => adminAddr.toLowerCase() === address.toLowerCase()) ||
+      (factoryOwner && address.toLowerCase() === factoryOwner.toLowerCase())
+    )
   );
 
   return {
