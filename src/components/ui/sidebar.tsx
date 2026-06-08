@@ -87,13 +87,6 @@ const SidebarContent = () => {
           </div>
 
           <div className="space-y-3">
-            <div
-              className={`${actionButtonClass} -rotate-[0.85deg] sm:-rotate-[0.35deg] bg-[#42C9FF] text-black cursor-default opacity-70 hover:translate-x-0 hover:translate-y-0 hover:[box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000]`}
-            >
-              <span className="flex items-center justify-center gap-2 leading-tight">
-                "ABEYCHAIN"
-              </span>
-            </div>
             <button
               onClick={() => disconnect()}
               type="button"
