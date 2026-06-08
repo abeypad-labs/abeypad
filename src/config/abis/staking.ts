@@ -1,9 +1,7 @@
-import { STAKING_CONTRACT_ADDRESSES_BY_CHAIN } from '../contracts';
-import { QF_CHAIN_ID } from '../chains';
+import { zeroAddress } from "viem";
 
 export const StakingContract = {
-    address: STAKING_CONTRACT_ADDRESSES_BY_CHAIN[QF_CHAIN_ID],
-    addressesByChain: STAKING_CONTRACT_ADDRESSES_BY_CHAIN,
+    address: zeroAddress,
     abi: [
         {
             "inputs": [

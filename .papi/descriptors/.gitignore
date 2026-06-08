@@ -1,6 +1,0 @@
-*
-!.gitignore
-!package.json
-!generated.json
-!dist/
-!dist/**

@@ -94,7 +94,7 @@ export default function NFTDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span>Price</span>
-                <span className="font-bold">{formatEther(mintPrice?.result as bigint ?? BigInt(0))} QF</span>
+                <span className="font-bold">{formatEther(mintPrice?.result as bigint ?? BigInt(0))} ABEY</span>
               </div>
               <div className="w-full bg-gray-200 border-2 border-black h-4 mt-4">
                 <div

@@ -60,11 +60,11 @@ export default function Home() {
           <div className="flex items-center justify-between gap-3">
             <Link to="/" className="inline-flex items-center gap-3">
               <img
-                src="/qfpad-logo.png"
-                alt="QFPad logo"
+                src="/abeypad-logo.png"
+                alt="AbeyPad logo"
                 className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
               />
-              <p className="text-xl font-black uppercase leading-none tracking-[0.18em]">QFPad</p>
+              <p className="text-xl font-black uppercase leading-none tracking-[0.18em]">AbeyPad</p>
             </Link>
 
             <nav className="hidden items-center gap-4 md:flex">
@@ -141,7 +141,7 @@ export default function Home() {
               MOON PROJECTS.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
-              Discover, back, and launch the most promising projects on the QF Network.
+              Discover, back, and launch the most promising projects on the Abeychain.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -180,7 +180,7 @@ export default function Home() {
                       })}`}
                 </p>
                 <p className="mt-2 text-sm font-black uppercase tracking-[0.14em]">
-                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} QF
+                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} ABEY
                 </p>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function Home() {
             Fund Smarter
           </h2>
           <p className="mt-5 max-w-2xl text-lg font-bold">
-            Turn your concept into a live on-chain raise with built-in token and NFT tooling on QF Network.
+            Turn your concept into a live on-chain raise with built-in token and NFT tooling on Abeychain.
           </p>
           <Link
             to="/dashboard/create"
@@ -276,11 +276,11 @@ export default function Home() {
       <footer className="border-t-[3px] border-black bg-[#111111] text-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-7 md:flex-row">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-center md:text-left">
-            &copy; {new Date().getFullYear()} QFPAD
+            &copy; {new Date().getFullYear()} ABEYPAD
           </p>
           <div className="flex gap-4">
             <a
-              href="https://x.com/qfpad_"
+              href="https://x.com/abeypad_"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center border-[2px] border-black bg-[#42C9FF] text-black transition-all hover:-translate-y-1"
@@ -288,7 +288,7 @@ export default function Home() {
               <XSocialIcon size={18} />
             </a>
             <a
-              href="https://t.me/qfpad"
+              href="https://t.me/abeypad"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center border-[2px] border-black bg-[#FF7F41] text-black transition-all hover:-translate-y-1"
@@ -296,7 +296,7 @@ export default function Home() {
               <TelegramIcon size={18} />
             </a>
             <a
-              href="https://portal.qfnetwork.xyz/?rpc=wss%3A%2F%2Fmainnet.qfnode.net#/explorer"
+              href="https://abeyscan.com"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center border-[2px] border-black bg-[#B8EF53] text-black transition-all hover:-translate-y-1"

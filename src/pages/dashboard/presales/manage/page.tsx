@@ -244,7 +244,7 @@ function ManagePresaleView({
   const saleAmount = useMemo(() => {
     if (!presale?.hardCap || !presale?.rate) return 0n;
     try {
-      // Rate is stored as scaled by 100 (e.g., 20000 = 200 tokens per QF)
+      // Rate is stored as scaled by 100 (e.g., 20000 = 200 tokens per ABEY)
       return (presale.hardCap * presale.rate) / 100n;
     } catch (error) {
       console.error("Error calculating sale amount:", error);

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-const QF_PRICE_API_ID = import.meta.env.VITE_QF_PRICE_API_ID?.trim();
-const QF_PRICE_ENDPOINT = QF_PRICE_API_ID
-  ? `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(QF_PRICE_API_ID)}&vs_currencies=usd`
+const ABEY_PRICE_API_ID = import.meta.env.VITE_QF_PRICE_API_ID?.trim();
+const ABEY_PRICE_ENDPOINT = ABEY_PRICE_API_ID
+  ? `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(ABEY_PRICE_API_ID)}&vs_currencies=usd`
   : null;
 const DEFAULT_REFRESH_INTERVAL_MS = 60_000;
 
@@ -19,20 +19,20 @@ export function useReactPriceUsd(
   const [priceUsd, setPriceUsd] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!QF_PRICE_API_ID || !QF_PRICE_ENDPOINT) {
+    if (!ABEY_PRICE_API_ID || !ABEY_PRICE_ENDPOINT) {
       setPriceUsd(null);
       return;
     }
 
     let cancelled = false;
 
-    const fetchQfPrice = async () => {
+    const fetchAbeyPrice = async () => {
       try {
-        const response = await fetch(QF_PRICE_ENDPOINT);
+        const response = await fetch(ABEY_PRICE_ENDPOINT);
         if (!response.ok) return;
 
         const data = (await response.json()) as PriceResponse;
-        const nextPrice = data?.[QF_PRICE_API_ID]?.usd;
+        const nextPrice = data?.[ABEY_PRICE_API_ID]?.usd;
 
         if (
           !cancelled &&
@@ -42,12 +42,12 @@ export function useReactPriceUsd(
           setPriceUsd(nextPrice);
         }
       } catch (error) {
-        console.error("Failed to fetch QF price:", error);
+        console.error("Failed to fetch ABEY price:", error);
       }
     };
 
-    fetchQfPrice();
-    const intervalId = window.setInterval(fetchQfPrice, refreshIntervalMs);
+    fetchAbeyPrice();
+    const intervalId = window.setInterval(fetchAbeyPrice, refreshIntervalMs);
 
     return () => {
       cancelled = true;

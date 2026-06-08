@@ -97,7 +97,7 @@ export default function AirdropPage() {
     },
   });
 
-  // Native QF balance
+  // Native ABEY balance
   const { data: reactBalance } = useBalance({
     address: address,
     query: {
@@ -170,7 +170,7 @@ export default function AirdropPage() {
 
   const displayDecimals = sendType === "erc20" ? tokenDecimals ?? 18 : 18;
   const displaySymbol =
-    sendType === "erc20" ? tokenSymbol ?? "tokens" : "QF";
+    sendType === "erc20" ? tokenSymbol ?? "tokens" : "ABEY";
 
   // Allowance check for ERC-20
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -372,7 +372,7 @@ export default function AirdropPage() {
                   />
                   <div>
                     <p className="font-black uppercase text-sm sm:text-base">
-                      QF
+                      ABEY
                     </p>
                     <p className="text-xs text-gray-600">Native currency</p>
                   </div>
@@ -435,7 +435,7 @@ export default function AirdropPage() {
           </Card>
         )}
 
-        {/* QF Balance (for native) */}
+        {/* ABEY Balance (for native) */}
         {sendType === "react" && reactBalance && (
           <Card className="before:hidden -rotate-[0.25deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
             <CardContent className="p-4">
@@ -443,13 +443,13 @@ export default function AirdropPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-gray-500 text-xs uppercase font-bold">
-                      Your QF Balance
+                      Your ABEY Balance
                     </p>
                     <p className="font-black text-lg">
                       {Number(
                         formatUnits(reactBalance.value, 18)
                       ).toLocaleString()}{" "}
-                      QF
+                      ABEY
                     </p>
                   </div>
                   <Coins className="w-8 h-8 text-[#42C9FF]" />

@@ -13,10 +13,10 @@ import { TokenFactory } from "@/config";
 import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { decodeEventLog, parseUnits } from "viem";
+import { parseEventLogs, parseUnits } from "viem";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/papi/hooks";
-import { Coins, ExternalLink, CheckCircle2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Coins, ExternalLink, CheckCircle2, LayoutDashboard, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
 const TokenType = {
@@ -24,15 +24,16 @@ const TokenType = {
   Mintable: 1,
   Burnable: 2,
   Taxable: 3,
-  NonMintable: 4
+  NonMintable: 4,
 } as const;
 
-type TokenType = typeof TokenType[keyof typeof TokenType];
+type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 export default function CreateTokenPage() {
   const { address } = useAccount();
   const { explorerUrl, tokenFactory } = useChainContracts();
   const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
+  const navigate = useNavigate();
 
   const [tokenType, setTokenType] = useState<TokenType>(TokenType.Plain);
   const [name, setName] = useState("");
@@ -42,31 +43,32 @@ export default function CreateTokenPage() {
   const [initialRecipient, setInitialRecipient] = useState("");
   const [taxWallet, setTaxWallet] = useState("");
   const [taxBps, setTaxBps] = useState("0");
-
   const [createdTokenAddress, setCreatedTokenAddress] = useState<string | null>(null);
 
-  // Track processed hashes to prevent duplicate toasts
   const processedHash = useRef<string | null>(null);
 
   useEffect(() => {
-    if (address) {
-      setInitialRecipient(address);
-    }
-  }, [address])
+    if (address) setInitialRecipient(address);
+  }, [address]);
 
-  const handleCreateToken = async () => {
+  const handleCreateToken = () => {
     setCreatedTokenAddress(null);
     processedHash.current = null;
-    
+
     const tokenParams = {
       name,
       symbol,
       decimals: parseInt(decimals),
       initialSupply: parseUnits(initialSupply, parseInt(decimals)),
-      initialRecipient: initialRecipient as `0x${string}`
+      initialRecipient: initialRecipient as `0x${string}`,
     };
 
-    let functionName: "createPlainToken" | "createMintableToken" | "createBurnableToken" | "createTaxableToken" | "createNonMintableToken";
+    let functionName:
+      | "createPlainToken"
+      | "createMintableToken"
+      | "createBurnableToken"
+      | "createTaxableToken"
+      | "createNonMintableToken";
     const args: unknown[] = [tokenParams];
 
     switch (tokenType) {
@@ -81,11 +83,7 @@ export default function CreateTokenPage() {
         break;
       case TokenType.Taxable: {
         functionName = "createTaxableToken";
-        const taxParams = {
-          taxWallet: taxWallet as `0x${string}`,
-          taxBps: parseInt(taxBps)
-        }
-        args.push(taxParams);
+        args.push({ taxWallet: taxWallet as `0x${string}`, taxBps: parseInt(taxBps) });
         break;
       }
       case TokenType.NonMintable:
@@ -96,20 +94,16 @@ export default function CreateTokenPage() {
         return;
     }
 
-    writeContract({
-      address: tokenFactory,
-      abi: TokenFactory.abi,
-      functionName,
-      args: args as never,
-    });
-  }
+    writeContract({ address: tokenFactory, abi: TokenFactory.abi, functionName, args: args as never });
+  };
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed, data: createTokenReceipt } =
-    useWaitForTransactionReceipt({
-      hash,
-    })
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    data: receipt,
+  } = useWaitForTransactionReceipt({ hash });
 
-  // Handle transaction states
+  // Handle write errors
   useEffect(() => {
     if (error) {
       toast.error(getFriendlyTxErrorMessage(error, "Token creation"));
@@ -117,61 +111,79 @@ export default function CreateTokenPage() {
     }
   }, [error, reset]);
 
+  // On confirmation: parse token address from receipt logs, toast, redirect
   useEffect(() => {
-    if (isConfirmed && createTokenReceipt && processedHash.current !== hash) {
-      processedHash.current = hash ?? null;
-      
-      // NOTE: PAPI receipts don't include EVM logs, so this array may be empty.
-      // When logs are unavailable we skip event decoding and show a generic success.
-      const logs = createTokenReceipt.logs ?? [];
-      const event = logs
-        .map((log: { data: `0x${string}`; topics: [`0x${string}`, ...`0x${string}`[]] }) => {
-          try {
-            return decodeEventLog({
-              abi: TokenFactory.abi,
-              data: log.data,
-              topics: log.topics,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            }) as any as { eventName: string; args: Record<string, unknown> };
-          } catch {
-            return null;
-          }
-        })
-        .find((decoded) => decoded?.eventName === 'TokenCreated');
+    if (!isConfirmed || !receipt || processedHash.current === hash) return;
+    processedHash.current = hash ?? null;
 
-      if (event) {
-        const tokenAddress = (event.args as unknown as { token: `0x${string}` }).token;
-        setCreatedTokenAddress(tokenAddress);
-        toast.success("Token created successfully!");
-        // Reset form
-        setName("");
-        setSymbol("");
-        setDecimals("18");
-        setInitialSupply("1000000");
-        setTaxWallet("");
-        setTaxBps("0");
-        reset();
-      } else {
-        toast.error("Could not find TokenCreated event in transaction logs.");
-      }
+    // Pull the deployed token address straight from the TokenCreated event —
+    // no extra RPC call needed, the address is in the receipt topics.
+    let newToken: string | null = null;
+    try {
+      const logs = parseEventLogs({
+        abi: TokenFactory.abi,
+        logs: receipt.logs,
+        eventName: "TokenCreated",
+      });
+      newToken = (logs[0]?.args as { token?: string })?.token ?? null;
+    } catch {
+      // parsing failed, proceed without the address
     }
-  }, [isConfirmed, createTokenReceipt, hash, reset]);
+
+    setCreatedTokenAddress(newToken);
+    toast.success("Token created! Redirecting to your dashboard…");
+
+    setName("");
+    setSymbol("");
+    setDecimals("18");
+    setInitialSupply("1000000");
+    setTaxWallet("");
+    setTaxBps("0");
+    reset();
+
+    setTimeout(() => navigate("/dashboard/user"), 2500);
+  }, [isConfirmed, receipt, hash, reset, navigate]);
+
+  const isBusy = isPending || isConfirming;
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
+      {/* Full-page mining overlay */}
+      {isConfirming && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="border-4 border-black bg-[#FFE38A] p-8 shadow-[8px_8px_0_rgba(0,0,0,1)] flex flex-col items-center gap-4 max-w-sm w-full mx-4">
+            <Loader2 className="w-12 h-12 animate-spin" />
+            <p className="font-black uppercase tracking-wider text-xl text-center">
+              Deploying Token…
+            </p>
+            <p className="text-sm text-gray-700 text-center">
+              Transaction submitted. Waiting for block confirmation.
+            </p>
+            {hash && (
+              <a
+                href={`${explorerUrl}/tx/${hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+              >
+                {hash.slice(0, 20)}…{hash.slice(-8)}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <div className="-rotate-[0.45deg] sm:-rotate-[0.2deg] border-4 border-black bg-[#42C9FF] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wider flex items-center gap-3">
             <Coins className="w-8 h-8" /> Create Token
           </h1>
-          <p className="text-sm text-gray-700 mt-2">
-            Deploy your own ERC-20 token on the blockchain.
-          </p>
+          <p className="text-sm text-gray-700 mt-2">Deploy your own ERC-20 token on the blockchain.</p>
         </div>
       </div>
 
-      {/* Success Message */}
+      {/* Success card */}
       {createdTokenAddress && (
         <Card className="before:hidden -rotate-[0.35deg] max-w-2xl mx-auto mb-8 border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
           <CardHeader className="border-b-2 border-black bg-[#90EE90] p-6">
@@ -188,7 +200,7 @@ export default function CreateTokenPage() {
               </code>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
-              <a 
+              <a
                 href={`${explorerUrl}/address/${createdTokenAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -205,7 +217,13 @@ export default function CreateTokenPage() {
                 </Button>
               </Link>
             </div>
-            <Button 
+            <Link to="/dashboard/user" className="block">
+              <Button className="w-full border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#1FB9E7]">
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Go to Dashboard
+              </Button>
+            </Link>
+            <Button
               onClick={() => setCreatedTokenAddress(null)}
               variant="outline"
               className="w-full border-2 border-black"
@@ -216,7 +234,7 @@ export default function CreateTokenPage() {
         </Card>
       )}
 
-      {/* Create Token Form */}
+      {/* Form */}
       {!createdTokenAddress && (
         <Card className="before:hidden rotate-[0.35deg] max-w-2xl mx-auto border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
           <CardHeader className="border-b-2 border-black bg-white p-6">
@@ -225,7 +243,10 @@ export default function CreateTokenPage() {
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
               <Label htmlFor="token-type" className="font-bold uppercase text-xs">Token Type</Label>
-              <Select onValueChange={(value) => setTokenType(parseInt(value) as TokenType)} defaultValue={TokenType.Plain.toString()}>
+              <Select
+                onValueChange={(v) => setTokenType(parseInt(v) as TokenType)}
+                defaultValue={TokenType.Plain.toString()}
+              >
                 <SelectTrigger id="token-type" className="border-2 border-black">
                   <SelectValue placeholder="Select token type" />
                 </SelectTrigger>
@@ -249,22 +270,21 @@ export default function CreateTokenPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="font-bold uppercase text-xs">Token Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="e.g. My Token" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
+                <Input
+                  id="name"
+                  placeholder="e.g. My Token"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="border-2 border-black"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="symbol" className="font-bold uppercase text-xs">Symbol</Label>
-                <Input 
-                  id="symbol" 
-                  placeholder="e.g. MTK" 
-                  value={symbol} 
-                  onChange={e => setSymbol(e.target.value)} 
+                <Input
+                  id="symbol"
+                  placeholder="e.g. MTK"
+                  value={symbol}
+                  onChange={(e) => setSymbol(e.target.value)}
                   className="border-2 border-black"
                 />
               </div>
@@ -273,23 +293,23 @@ export default function CreateTokenPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="decimals" className="font-bold uppercase text-xs">Decimals</Label>
-                <Input 
-                  id="decimals" 
-                  type="number" 
-                  placeholder="18" 
-                  value={decimals} 
-                  onChange={e => setDecimals(e.target.value)} 
+                <Input
+                  id="decimals"
+                  type="number"
+                  placeholder="18"
+                  value={decimals}
+                  onChange={(e) => setDecimals(e.target.value)}
                   className="border-2 border-black"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="initial-supply" className="font-bold uppercase text-xs">Initial Supply</Label>
-                <Input 
-                  id="initial-supply" 
-                  type="number" 
-                  placeholder="1000000" 
-                  value={initialSupply} 
-                  onChange={e => setInitialSupply(e.target.value)} 
+                <Input
+                  id="initial-supply"
+                  type="number"
+                  placeholder="1000000"
+                  value={initialSupply}
+                  onChange={(e) => setInitialSupply(e.target.value)}
                   className="border-2 border-black"
                 />
               </div>
@@ -297,11 +317,11 @@ export default function CreateTokenPage() {
 
             <div className="space-y-2">
               <Label htmlFor="initial-recipient" className="font-bold uppercase text-xs">Initial Recipient</Label>
-              <Input 
-                id="initial-recipient" 
-                placeholder="e.g. 0x..." 
-                value={initialRecipient} 
-                onChange={e => setInitialRecipient(e.target.value)} 
+              <Input
+                id="initial-recipient"
+                placeholder="e.g. 0x..."
+                value={initialRecipient}
+                onChange={(e) => setInitialRecipient(e.target.value)}
                 className="border-2 border-black font-mono text-sm"
               />
               <p className="text-xs text-gray-500">Defaults to your connected wallet address.</p>
@@ -312,34 +332,46 @@ export default function CreateTokenPage() {
                 <h3 className="font-black uppercase text-sm">Taxable Token Configuration</h3>
                 <div className="space-y-2">
                   <Label htmlFor="tax-wallet" className="font-bold uppercase text-xs">Tax Wallet</Label>
-                  <Input 
-                    id="tax-wallet" 
-                    placeholder="e.g. 0x..." 
-                    value={taxWallet} 
-                    onChange={e => setTaxWallet(e.target.value)} 
+                  <Input
+                    id="tax-wallet"
+                    placeholder="e.g. 0x..."
+                    value={taxWallet}
+                    onChange={(e) => setTaxWallet(e.target.value)}
                     className="border-2 border-black font-mono text-sm"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tax-bps" className="font-bold uppercase text-xs">Tax (in BPS, 1% = 100)</Label>
-                  <Input 
-                    id="tax-bps" 
-                    type="number" 
-                    placeholder="100" 
-                    value={taxBps} 
-                    onChange={e => setTaxBps(e.target.value)} 
+                  <Input
+                    id="tax-bps"
+                    type="number"
+                    placeholder="100"
+                    value={taxBps}
+                    onChange={(e) => setTaxBps(e.target.value)}
                     className="border-2 border-black"
                   />
                 </div>
               </div>
             )}
 
-            <Button 
-              onClick={handleCreateToken} 
-              disabled={isPending || isConfirming || !name || !symbol} 
-              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all"
+            <Button
+              onClick={handleCreateToken}
+              disabled={isBusy || !name || !symbol}
+              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isPending ? 'Confirm in Wallet...' : isConfirming ? 'Creating Token...' : 'Create Token'}
+              {isPending && (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Confirm in Wallet…
+                </>
+              )}
+              {isConfirming && (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deploying…
+                </>
+              )}
+              {!isBusy && "Create Token"}
             </Button>
           </CardContent>
         </Card>

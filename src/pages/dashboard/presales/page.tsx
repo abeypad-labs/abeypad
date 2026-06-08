@@ -68,7 +68,7 @@ function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: num
             <span className="font-bold">{progress}% Funded</span>
             <span className="text-gray-500">
               {Math.round(Number(formatUnits(presale.totalRaised, 18))).toLocaleString()} /{" "}
-              {Math.round(Number(formatUnits(presale.hardCap, 18))).toLocaleString()} QF
+              {Math.round(Number(formatUnits(presale.hardCap, 18))).toLocaleString()} ABEY
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />

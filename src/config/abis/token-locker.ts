@@ -1,9 +1,8 @@
-import { CONTRACT_ADDRESSES_BY_CHAIN } from '../contracts';
-import { QF_CHAIN_ID } from '../chains';
+import { CONTRACT_ADDRESSES } from "../contracts";
 
 export const TokenLocker = {
-    address: CONTRACT_ADDRESSES_BY_CHAIN[QF_CHAIN_ID].tokenLocker,
-    abi: [
+  address: CONTRACT_ADDRESSES.tokenLocker,
+  abi: [
     {
       "type": "function",
       "name": "extendLock",

@@ -1,77 +1,83 @@
-import { useQuery } from "@tanstack/react-query";
-import { getNativeBalance } from "@/lib/papi/balance";
-import { contractRead } from "@/lib/papi/contract-read";
-import { useWallet } from "@/lib/papi/wallet-context";
+import { useBalance as useWagmiBalance, useReadContracts } from "wagmi";
 import { erc20Abi, formatUnits, type Address } from "viem";
+import { useMemo } from "react";
 
-/**
- * Drop-in replacement for wagmi's useBalance.
- * Supports native QF balance and ERC20 token balance via `token` param.
- */
 export function useBalance({
-  address: _evmAddress,
+  address,
   token,
-}: { address?: string | Address; token?: Address; query?: Record<string, unknown> } = {}) {
-  const { ss58Address, address: evmAddress } = useWallet();
-
+}: { address?: Address; token?: Address; query?: Record<string, unknown> } = {}) {
   const isErc20 = !!token;
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ["balance", ss58Address, token ?? "native"],
-    queryFn: async () => {
-      if (isErc20) {
-        // ERC20 token balance via contract read
-        if (!evmAddress) return null;
-        const balance = (await contractRead({
-          address: token,
-          abi: erc20Abi,
-          functionName: "balanceOf",
-          args: [evmAddress],
-          callerAddress: ss58Address,
-        })) as bigint;
-
-        // Also fetch decimals and symbol
-        const [decimals, symbol] = await Promise.all([
-          contractRead({
-            address: token,
-            abi: erc20Abi,
-            functionName: "decimals",
-            callerAddress: ss58Address,
-          }) as Promise<number>,
-          contractRead({
-            address: token,
-            abi: erc20Abi,
-            functionName: "symbol",
-            callerAddress: ss58Address,
-          }) as Promise<string>,
-        ]);
-
-        return {
-          value: balance,
-          decimals,
-          symbol,
-          formatted: formatUnits(balance, decimals),
-        };
-      } else {
-        // Native QF balance
-        if (!ss58Address) return null;
-        const balanceInfo = await getNativeBalance(ss58Address);
-        return {
-          value: balanceInfo.free,
-          decimals: 18,
-          symbol: "QF",
-          formatted: formatUnits(balanceInfo.free, 18),
-        };
-      }
+  // Query native balance
+  const { data: nativeData, isLoading: isNativeLoading, error: nativeError, refetch: refetchNative } = useWagmiBalance({
+    address,
+    query: {
+      enabled: !isErc20 && !!address,
     },
-    enabled: isErc20 ? !!evmAddress : !!ss58Address,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
   });
 
+  // Query ERC20 balance
+  const { data: erc20Data, isLoading: isErc20Loading, error: erc20Error, refetch: refetchErc20 } = useReadContracts({
+    contracts: isErc20 && address ? [
+      {
+        address: token,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [address],
+      },
+      {
+        address: token,
+        abi: erc20Abi,
+        functionName: "decimals",
+      },
+      {
+        address: token,
+        abi: erc20Abi,
+        functionName: "symbol",
+      },
+    ] as const : [],
+    query: {
+      enabled: isErc20 && !!address,
+    },
+  });
+
+  const data = useMemo(() => {
+    if (isErc20) {
+      if (!erc20Data || erc20Data.length < 3) return undefined;
+      const r0 = erc20Data[0] as any;
+      const r1 = erc20Data[1] as any;
+      const r2 = erc20Data[2] as any;
+      if (!r0 || !r1 || !r2) return undefined;
+      if (r0.status === "failure" || r1.status === "failure" || r2.status === "failure") return undefined;
+      const balance = r0.result as bigint;
+      const decimals = r1.result as number;
+      const symbol = r2.result as string;
+      if (balance === undefined || decimals === undefined || symbol === undefined) return undefined;
+      return {
+        value: balance,
+        decimals,
+        symbol,
+        formatted: formatUnits(balance, decimals),
+      };
+    } else {
+      if (!nativeData) return undefined;
+      const val = nativeData.value;
+      const dec = nativeData.decimals;
+      const sym = nativeData.symbol;
+      const formatted = (nativeData as any).formatted ?? formatUnits(val, dec);
+      return {
+        value: val,
+        decimals: dec,
+        symbol: sym,
+        formatted,
+      };
+    }
+  }, [isErc20, erc20Data, nativeData]);
+
   return {
-    data: data ?? undefined,
-    isLoading,
-    refetch,
+    data,
+    isLoading: isErc20 ? isErc20Loading : isNativeLoading,
+    error: isErc20 ? erc20Error : nativeError,
+    refetch: isErc20 ? refetchErc20 : refetchNative,
   };
 }

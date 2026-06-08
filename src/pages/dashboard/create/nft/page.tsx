@@ -25,7 +25,7 @@ export default function CreateNftPage() {
     const [saleEnd, setSaleEnd] = useState("");
     const [walletLimit, setWalletLimit] = useState("");
     const [price, setPrice] = useState("");
-    const [paymentToken, setPaymentToken] = useState(""); // 0x0 for native QF
+    const [paymentToken, setPaymentToken] = useState(""); // 0x0 for native ABEY
 
     useEffect(() => {
         if (address) {
@@ -107,7 +107,7 @@ export default function CreateNftPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="payment-token">Payment Token Address</Label>
-                        <Input id="payment-token" placeholder="0x... (or leave empty for QF)" value={paymentToken} onChange={e => setPaymentToken(e.target.value)} />
+                        <Input id="payment-token" placeholder="0x... (or leave empty for ABEY)" value={paymentToken} onChange={e => setPaymentToken(e.target.value)} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">

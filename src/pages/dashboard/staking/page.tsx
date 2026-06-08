@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getStakingContractAddress, StakingContract } from "@/config";
-import { useConnectModal } from "@/lib/papi/hooks";
+import { StakingContract } from "@/config";
+import {
+  useAccount, useConnectModal, usePublicClient,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract
+} from "@/lib/papi/hooks";
 import {
   BarChart3,
   Gift,
@@ -14,25 +19,17 @@ import {
   erc20Abi,
   formatUnits,
   parseUnits,
+  zeroAddress,
   type Abi,
   type Address,
 } from "viem";
-import {
-  useAccount,
-  useChainId,
-  usePublicClient,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from "@/lib/papi/hooks";
 
 export default function StakingPage() {
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
-  const chainId = useChainId();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const stakingContractAddress = getStakingContractAddress(chainId);
+  const stakingContractAddress = zeroAddress; //todo
 
   const [activeTab, setActiveTab] = useState<"stake" | "unstake">("stake");
   const [stakeAmount, setStakeAmount] = useState("");
@@ -150,13 +147,13 @@ export default function StakingPage() {
 
   // Transaction receipts
   const { isSuccess: isStakingSuccess, isError: isStakingError } =
-    useWaitForTransactionReceipt({ hash: stakingHash });
+    useWaitForTransactionReceipt({ hash: stakingHash as `0x${string}` | undefined });
 
   const { isSuccess: isUnstakingSuccess, isError: isUnstakingError } =
-    useWaitForTransactionReceipt({ hash: unstakingHash });
+    useWaitForTransactionReceipt({ hash: unstakingHash as `0x${string}` | undefined });
 
   const { isSuccess: isClaimSuccess, isError: isClaimError } =
-    useWaitForTransactionReceipt({ hash: claimHash });
+    useWaitForTransactionReceipt({ hash: claimHash as `0x${string}` | undefined });
 
   // Format values
   const decimals = stakingTokenDecimals ?? 18;
@@ -164,7 +161,7 @@ export default function StakingPage() {
   const stakingTokenDisplaySymbol =
     typeof stakingTokenSymbol === "string" && stakingTokenSymbol.trim().length > 0
       ? stakingTokenSymbol
-      : "QFPAD";
+      : "ABEYPAD";
 
   const formattedWalletBalance = useMemo(() => {
     if (walletBalance === undefined || walletBalance === null) return "0";

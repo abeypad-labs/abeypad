@@ -35,8 +35,8 @@ export const presaleMetadataMap: Record<string, PresaleMetadata> = {
   "0x843ae255dd8945022107eeb888f90c5ecadd96a2": {
     category: "infrastructure",
     socials: {
-      twitter: "https://x.com/qfpad_",
-      telegram: "https://t.me/qfpad",
+      twitter: "https://x.com/abeypad_",
+      telegram: "https://t.me/abeypad",
       website: "https://portal.qfnetwork.xyz/?rpc=wss%3A%2F%2Fmainnet.qfnode.net#/explorer",
       discord: "",
     },

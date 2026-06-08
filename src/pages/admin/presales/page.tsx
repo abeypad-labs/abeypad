@@ -128,11 +128,11 @@ function PresaleCard({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <p className="text-gray-500 text-xs uppercase font-bold">Hard Cap</p>
-            <p className="font-bold">{formatEther(presale.hardCap)} QF</p>
+            <p className="font-bold">{formatEther(presale.hardCap)} ABEY</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs uppercase font-bold">Total Raised</p>
-            <p className="font-bold">{Math.round(Number(formatEther(presale.totalRaised))).toLocaleString()} QF</p>
+            <p className="font-bold">{Math.round(Number(formatEther(presale.totalRaised))).toLocaleString()} ABEY</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs uppercase font-bold">Progress</p>

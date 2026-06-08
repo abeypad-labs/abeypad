@@ -1,13 +1,13 @@
-import { getContractAddresses, getExplorerUrl } from "@/config";
+import { ABEY_EXPLORER_URL, CONTRACT_ADDRESSES } from "@/config";
 import { useChainId } from "@/lib/papi/hooks";
 
 export function useChainContracts() {
   const chainId = useChainId();
-  const contractAddresses = getContractAddresses(chainId);
+  const contractAddresses = CONTRACT_ADDRESSES;
 
   return {
     chainId,
-    explorerUrl: getExplorerUrl(chainId),
+    explorerUrl: ABEY_EXPLORER_URL,
     ...contractAddresses,
   };
 }

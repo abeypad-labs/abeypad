@@ -6,14 +6,16 @@ import { Progress } from "@/components/ui/progress";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
+import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
+import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, FileText, Lock, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, FileText, ImageIcon, Lock, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Address } from "viem";
-import { erc20Abi, formatUnits } from "viem";
+import { erc20Abi, erc721Abi, formatUnits } from "viem";
 import { useAccount, useReadContract } from "@/lib/papi/hooks";
 
 function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string}`; onPresaleClick: () => void }) {
@@ -83,6 +85,46 @@ function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string
   )
 }
 
+function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string }) {
+  const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
+    abi: erc721Abi,
+    address: collectionAddress,
+    functionName: 'symbol',
+  });
+  const { data: name, isLoading: isLoadingName } = useReadContract({
+    abi: erc721Abi,
+    address: collectionAddress,
+    functionName: 'name',
+  });
+
+  if (isLoadingSymbol || isLoadingName) {
+    return (
+      <div className="py-3 animate-pulse">
+        <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
+      <div className="flex-1 min-w-0">
+        <h3 className="font-black text-lg uppercase">
+          {(name as string) || 'Unknown Collection'} ({(symbol as string) || 'N/A'})
+        </h3>
+        <p className="text-xs text-gray-500 break-all font-mono">{collectionAddress}</p>
+      </div>
+      <div className="flex flex-wrap gap-2 flex-shrink-0">
+        <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
+          <a href={`${explorerUrl}/address/${collectionAddress}`} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="w-3 h-3 mr-1" /> Explorer
+          </a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
   const { presales, isLoading } = useLaunchpadPresales('all', false);
 
@@ -139,7 +181,7 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
             <span className="text-gray-500">
-              {Math.round(Number(formatUnits(presaleData.totalRaised, 18))).toLocaleString()} / {Math.round(Number(formatUnits(presaleData.hardCap, 18))).toLocaleString()} QF
+              {Math.round(Number(formatUnits(presaleData.totalRaised, 18))).toLocaleString()} / {Math.round(Number(formatUnits(presaleData.hardCap, 18))).toLocaleString()} ABEY
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />
@@ -220,13 +262,16 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 export default function UserDashboardPage() {
   const { address, isConnected } = useAccount();
   const { tokens: createdTokens, isLoading } = useUserTokens();
+  const { nfts: createdNFTs, isLoading: isLoadingNFTs } = useUserNFTs();
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
   const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
     address as Address | undefined
   );
+  const { explorerUrl } = useChainContracts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenPage, setTokenPage] = useState(0);
+  const [nftPage, setNftPage] = useState(0);
   const navigate = useNavigate();
 
   // Pagination for tokens (newest first)
@@ -236,6 +281,15 @@ export default function UserDashboardPage() {
   const paginatedTokens = tokenList.slice(
     tokenPage * TOKENS_PER_PAGE,
     (tokenPage + 1) * TOKENS_PER_PAGE
+  );
+
+  // Pagination for NFT collections (newest first)
+  const NFTS_PER_PAGE = 3;
+  const nftList = [...((createdNFTs as `0x${string}`[]) || [])].reverse();
+  const totalNFTPages = Math.ceil(nftList.length / NFTS_PER_PAGE);
+  const paginatedNFTs = nftList.slice(
+    nftPage * NFTS_PER_PAGE,
+    (nftPage + 1) * NFTS_PER_PAGE
   );
 
   // Filter presales owned by the user
@@ -350,6 +404,77 @@ export default function UserDashboardPage() {
               <Link to="/dashboard/create/token">
                 <Button className="border-4 border-black bg-[#22C55E] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
                   <Plus className="w-4 h-4 mr-1" /> Create Your First Token
+                </Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* My NFT Collections - Full Width */}
+      <Card className="rotate-[0.4deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <CardHeader className="border-b-2 border-black bg-[#FF7F41] p-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
+              <ImageIcon className="w-5 h-5" /> My NFT Collections
+            </CardTitle>
+            {nftList.length > 0 && (
+              <Link to="/dashboard/create/nft">
+                <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                  <Plus className="w-3 h-3 mr-1" /> New Collection
+                </Button>
+              </Link>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          {isLoadingNFTs ? (
+            <div className="space-y-3">
+              <div className="animate-pulse">
+                <div className="h-16 bg-gray-200 rounded mb-3"></div>
+                <div className="h-16 bg-gray-200 rounded mb-3"></div>
+                <div className="h-16 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ) : nftList.length > 0 ? (
+            <div className="space-y-3">
+              {paginatedNFTs.map((collection, index) => (
+                <div key={collection} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
+                  <NFTCollectionInfo collectionAddress={collection} explorerUrl={explorerUrl} />
+                </div>
+              ))}
+              {totalNFTPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setNftPage(p => Math.max(0, p - 1))}
+                    disabled={nftPage === 0}
+                    className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                  </Button>
+                  <span className="text-sm font-bold">
+                    Page {nftPage + 1} of {totalNFTPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setNftPage(p => Math.min(totalNFTPages - 1, p + 1))}
+                    disabled={nftPage >= totalNFTPages - 1}
+                    className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
+                  >
+                    Next <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any NFT collections yet.</p>
+              <Link to="/dashboard/create/nft">
+                <Button className="border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
+                  <Plus className="w-4 h-4 mr-1" /> Create Your First Collection
                 </Button>
               </Link>
             </div>

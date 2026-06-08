@@ -322,8 +322,8 @@ export function useLaunchpadPresales(filter: LaunchpadPresaleFilter = 'all', for
           saleTokenSymbol: saleTokenInfo?.symbol,
           saleTokenName: saleTokenInfo?.name,
           saleTokenDecimals: saleTokenInfo?.decimals,
-          paymentTokenSymbol: presale.isPaymentETH ? 'QF' : paymentTokenInfo?.symbol,
-          paymentTokenName: presale.isPaymentETH ? 'QF Network' : paymentTokenInfo?.name,
+          paymentTokenSymbol: presale.isPaymentETH ? 'ABEY' : paymentTokenInfo?.symbol,
+          paymentTokenName: presale.isPaymentETH ? 'Abeychain' : paymentTokenInfo?.name,
           paymentTokenDecimals: presale.isPaymentETH ? 18 : paymentTokenInfo?.decimals,
         });
       }
@@ -552,10 +552,10 @@ export function useLaunchpadPresale(presaleAddress: Address | undefined, forceRe
       }
     }
 
-    // Set native token values if payment is QF
+    // Set native token values if payment is ABEY
     if (presaleData.isPaymentETH) {
-      paymentTokenSymbol = 'QF';
-      paymentTokenName = 'QF Network';
+      paymentTokenSymbol = 'ABEY';
+      paymentTokenName = 'Abeychain';
       paymentTokenDecimals = 18;
     }
 

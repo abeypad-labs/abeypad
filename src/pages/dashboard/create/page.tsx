@@ -66,7 +66,7 @@ export default function CreateHubPage() {
       <section className="mb-8 sm:mb-12 text-right lg:text-left">
         <h1 className="text-3xl sm:text-4xl font-bold mb-4">Create</h1>
         <p className="text-base sm:text-lg text-gray-600 max-w-2xl ml-auto lg:ml-0">
-          Create new assets and utilities for the QF ecosystem.
+          Create new assets and utilities for the ABEY ecosystem.
         </p>
       </section>
 

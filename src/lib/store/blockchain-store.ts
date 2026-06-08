@@ -26,6 +26,12 @@ interface BlockchainStore {
     metadata: CacheMetadata;
   }>;
 
+  // User NFTs Cache
+  userNFTs: Record<string, {
+    tokens: Address[];
+    metadata: CacheMetadata;
+  }>;
+
   // User Locks Cache
   userLocks: Record<string, {
     lockIds: bigint[];
@@ -44,6 +50,11 @@ interface BlockchainStore {
   setUserTokensLoading: (address: string, isLoading: boolean) => void;
   getUserTokens: (address: string) => Address[] | null;
   isUserTokensStale: (address: string, maxAge?: number) => boolean;
+
+  // Actions for User NFTs
+  setUserNFTs: (address: string, tokens: Address[]) => void;
+  setUserNFTsLoading: (address: string, isLoading: boolean) => void;
+  getUserNFTs: (address: string) => Address[] | null;
 
   // Actions for User Locks
   setUserLocks: (address: string, lockIds: bigint[]) => void;
@@ -72,6 +83,7 @@ export const useBlockchainStore = create<BlockchainStore>()(
     (set, get) => ({
       // Initial state
       userTokens: {},
+      userNFTs: {},
       userLocks: {},
       presales: {
         addresses: [],
@@ -113,6 +125,37 @@ export const useBlockchainStore = create<BlockchainStore>()(
         const cached = get().userTokens[address.toLowerCase()];
         if (!cached) return true;
         return Date.now() - cached.metadata.timestamp > maxAge;
+      },
+
+      // User NFTs Actions
+      setUserNFTs: (address, tokens) =>
+        set((state) => ({
+          userNFTs: {
+            ...state.userNFTs,
+            [address.toLowerCase()]: {
+              tokens,
+              metadata: { timestamp: Date.now(), isLoading: false },
+            },
+          },
+        })),
+
+      setUserNFTsLoading: (address, isLoading) =>
+        set((state) => ({
+          userNFTs: {
+            ...state.userNFTs,
+            [address.toLowerCase()]: {
+              tokens: state.userNFTs[address.toLowerCase()]?.tokens || [],
+              metadata: {
+                timestamp: state.userNFTs[address.toLowerCase()]?.metadata.timestamp || 0,
+                isLoading,
+              },
+            },
+          },
+        })),
+
+      getUserNFTs: (address) => {
+        const cached = get().userNFTs[address.toLowerCase()];
+        return cached ? cached.tokens : null;
       },
 
       // User Locks Actions
@@ -227,6 +270,7 @@ export const useBlockchainStore = create<BlockchainStore>()(
       clearCache: () =>
         set({
           userTokens: {},
+          userNFTs: {},
           userLocks: {},
           presales: {
             addresses: [],
@@ -237,9 +281,11 @@ export const useBlockchainStore = create<BlockchainStore>()(
       clearUserCache: (address) =>
         set((state) => {
           const { [address.toLowerCase()]: _, ...restTokens } = state.userTokens;
+          const { [address.toLowerCase()]: _nft, ...restNFTs } = state.userNFTs;
           const { [address.toLowerCase()]: __, ...restLocks } = state.userLocks;
           return {
             userTokens: restTokens,
+            userNFTs: restNFTs,
             userLocks: restLocks,
           };
         }),
@@ -275,6 +321,12 @@ export const useBlockchainStore = create<BlockchainStore>()(
       partialize: (state) => ({
         userTokens: Object.fromEntries(
           Object.entries(state.userTokens).map(([key, value]) => [
+            key,
+            { ...value, metadata: { ...value.metadata, isLoading: false } },
+          ])
+        ),
+        userNFTs: Object.fromEntries(
+          Object.entries(state.userNFTs).map(([key, value]) => [
             key,
             { ...value, metadata: { ...value.metadata, isLoading: false } },
           ])

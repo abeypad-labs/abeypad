@@ -109,8 +109,8 @@ export function PresaleCard({ presale }: { presale: PresaleWithStatus }) {
     // Use a deterministic avatar based on the token address
     const logo = customLogo || `https://api.dicebear.com/7.x/rings/svg?seed=${presale.saleToken}`;
 
-    // Use payment token symbol if available, otherwise default to native QF
-    const currency = presale.paymentTokenSymbol || 'QF';
+    // Use payment token symbol if available, otherwise default to native ABEY
+    const currency = presale.paymentTokenSymbol || 'ABEY';
 
     const project: Project = {
         id: presale.address,
