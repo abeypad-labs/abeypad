@@ -6,7 +6,7 @@ import {
   type PresaleWithStatus,
 } from "@/lib/hooks/useLaunchpadPresales";
 import { formatUnits } from "viem";
-import { useAccount } from "@/lib/papi/hooks";
+import { useAccount } from "@/lib/hooks";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: number }) {

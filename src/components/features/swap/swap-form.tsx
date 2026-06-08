@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowDown } from 'lucide-react';
 import { useSwap } from '@/lib/hooks/useSwap';
-import { useAccount, useBalance } from '@/lib/papi/hooks';
+import { useAccount, useBalance } from '@/lib/hooks';
 import { formatUnits } from 'viem';
-import { useConnectModal } from '@/lib/papi/hooks';
+import { useConnectModal } from '@/lib/hooks';
 
 type Token = {
   address: `0x${string}`;
@@ -35,11 +35,11 @@ export function SwapForm({ market }: { market: Market }) {
   const { data: fromBalance } = useBalance({ address, token: fromToken.address });
   const { data: toBalance } = useBalance({ address, token: toToken.address });
 
-  const { 
-    toAmount: quoteAmount, 
-    swap, 
-    approve, 
-    needsApproval, 
+  const {
+    toAmount: quoteAmount,
+    swap,
+    approve,
+    needsApproval,
     isLoading,
     isSuccess
   } = useSwap({ fromToken, toToken, fromAmount });
@@ -88,13 +88,13 @@ export function SwapForm({ market }: { market: Market }) {
               <span className="font-bold text-sm">{fromToken.symbol}</span>
             </div>
           </div>
-          <p className="text-xs text-gray-500 text-right">Balance: {fromBalance ? `${parseFloat(formatUnits(fromBalance.value, fromBalance.decimals)).toFixed(4)} ${fromBalance.symbol}`: '0'}</p>
+          <p className="text-xs text-gray-500 text-right">Balance: {fromBalance ? `${parseFloat(formatUnits(fromBalance.value, fromBalance.decimals)).toFixed(4)} ${fromBalance.symbol}` : '0'}</p>
         </div>
 
         <div className="flex justify-center -my-3 z-10">
-            <Button variant="outline" size="icon" className="rounded-full bg-white" onClick={handleFlip}>
-                <ArrowDown className="h-4 w-4" />
-            </Button>
+          <Button variant="outline" size="icon" className="rounded-full bg-white" onClick={handleFlip}>
+            <ArrowDown className="h-4 w-4" />
+          </Button>
         </div>
 
         <div className="space-y-2">
@@ -112,7 +112,7 @@ export function SwapForm({ market }: { market: Market }) {
               <span className="font-bold text-sm">{toToken.symbol}</span>
             </div>
           </div>
-          <p className="text-xs text-gray-500 text-right">Balance: {toBalance ? `${parseFloat(formatUnits(toBalance.value, toBalance.decimals)).toFixed(4)} ${toBalance.symbol}`: '0'}</p>
+          <p className="text-xs text-gray-500 text-right">Balance: {toBalance ? `${parseFloat(formatUnits(toBalance.value, toBalance.decimals)).toFixed(4)} ${toBalance.symbol}` : '0'}</p>
         </div>
 
         {getButton()}
@@ -120,14 +120,14 @@ export function SwapForm({ market }: { market: Market }) {
         {isSuccess && <p className="text-green-500 text-center">Swap successful!</p>}
 
         <div className="text-xs text-gray-500 space-y-1">
-            <div className="flex justify-between">
-                <span>Price</span>
-                <span>1 {fromToken.symbol} = {market.price.toFixed(6)} {toToken.symbol}</span>
-            </div>
-            <div className="flex justify-between">
-                <span>Slippage Tolerance</span>
-                <span>0.5%</span>
-            </div>
+          <div className="flex justify-between">
+            <span>Price</span>
+            <span>1 {fromToken.symbol} = {market.price.toFixed(6)} {toToken.symbol}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Slippage Tolerance</span>
+            <span>0.5%</span>
+          </div>
         </div>
       </CardContent>
     </Card>

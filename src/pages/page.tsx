@@ -1,6 +1,6 @@
 import { TelegramIcon } from "@/components/ui/icons/telegram-icon";
 import { XIcon as XSocialIcon } from "@/components/ui/icons/x-icon";
-import { useConnectModal } from "@/lib/papi/hooks";
+import { useConnectModal } from "@/lib/hooks";
 import { useCountUp } from "@/lib/hooks/useCountUp";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
@@ -8,7 +8,7 @@ import { BookOpen, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { formatEther } from "viem";
-import { useAccount } from "@/lib/papi/hooks";
+import { useAccount } from "@/lib/hooks";
 
 const cardStyles = [
   { bg: "bg-[#42C9FF]", text: "text-black" },
@@ -102,9 +102,8 @@ export default function Home() {
 
           <div
             id="mobile-nav-menu"
-            className={`overflow-hidden transition-all duration-200 md:hidden ${
-              isMobileMenuOpen ? "mt-4 max-h-80 border-t-[3px] border-black pt-4" : "max-h-0"
-            }`}
+            className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? "mt-4 max-h-80 border-t-[3px] border-black pt-4" : "max-h-0"
+              }`}
           >
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
@@ -175,9 +174,9 @@ export default function Home() {
                   {totalRaisedUsd === null
                     ? "..."
                     : `$${totalRaisedUsd.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`}
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`}
                 </p>
                 <p className="mt-2 text-sm font-black uppercase tracking-[0.14em]">
                   {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} ABEY
@@ -239,9 +238,8 @@ export default function Home() {
                   style={{ animationDelay: `${0.12 + index * 0.12}s` }}
                 >
                   <article
-                    className={`${cardStyles[index % cardStyles.length].bg} ${
-                      cardStyles[index % cardStyles.length].text
-                    } neo-frame ${index % 2 === 0 ? "rotate-[0.8deg]" : "-rotate-[0.8deg]"} h-full p-7 transition-all hover:-translate-x-1 hover:-translate-y-1`}
+                    className={`${cardStyles[index % cardStyles.length].bg} ${cardStyles[index % cardStyles.length].text
+                      } neo-frame ${index % 2 === 0 ? "rotate-[0.8deg]" : "-rotate-[0.8deg]"} h-full p-7 transition-all hover:-translate-x-1 hover:-translate-y-1`}
                   >
                     <p className="mb-3 text-[11px] font-black uppercase tracking-[0.16em]">Featured</p>
                     <h3 className="text-2xl font-black uppercase leading-tight">

@@ -23,7 +23,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
-} from "@/lib/papi/hooks";
+} from "@/lib/hooks";
 import { erc20Abi } from "@/config";
 
 interface PresaleFormData {

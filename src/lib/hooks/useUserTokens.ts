@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from '@/lib/papi/hooks';
+import { useAccount, useReadContract } from '@/lib/hooks';
 import { TokenFactory } from '../../config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
 
@@ -6,7 +6,7 @@ export function useUserTokens() {
   const { address } = useAccount();
   const { tokenFactory } = useChainContracts();
 
-  const { data, isLoading, refetch } = useReadContract({
+  const { data, isLoading, isError, refetch } = useReadContract({
     abi: TokenFactory.abi,
     address: tokenFactory,
     functionName: 'tokensCreatedBy',
@@ -23,6 +23,7 @@ export function useUserTokens() {
   return {
     tokens: (data as `0x${string}`[] | undefined) ?? [],
     isLoading: !!address && isLoading,
+    isError,
     refetch,
   };
 }

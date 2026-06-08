@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Address } from "viem";
 import { erc20Abi, erc721Abi, formatUnits } from "viem";
-import { useAccount, useReadContract } from "@/lib/papi/hooks";
+import { useAccount, useReadContract } from "@/lib/hooks";
 
 function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string}`; onPresaleClick: () => void }) {
   const { address } = useAccount();
@@ -204,7 +204,7 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
   // Safe bigint to string conversion
   const lockIdString = lock.id !== undefined && lock.id !== null ? String(lock.id) : '0';
-  
+
   // Safe number conversions with fallbacks
   let lockTimestamp = 0;
   let unlockTimestamp = 0;
@@ -214,7 +214,7 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
   } catch (e) {
     console.error("Error converting lock timestamps:", e);
   }
-  
+
   const totalDuration = unlockTimestamp - lockTimestamp;
   const elapsed = now - lockTimestamp;
   const progress = totalDuration > 0 ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100)) : 0;
@@ -261,8 +261,8 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
 export default function UserDashboardPage() {
   const { address, isConnected } = useAccount();
-  const { tokens: createdTokens, isLoading } = useUserTokens();
-  const { nfts: createdNFTs, isLoading: isLoadingNFTs } = useUserNFTs();
+  const { tokens: createdTokens, isLoading, isError: isTokenError } = useUserTokens();
+  const { nfts: createdNFTs, isLoading: isLoadingNFTs, isError: isNFTError } = useUserNFTs();
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
   const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
@@ -364,6 +364,11 @@ export default function UserDashboardPage() {
                 <div className="h-16 bg-gray-200 rounded"></div>
               </div>
             </div>
+          ) : isTokenError ? (
+            <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
+              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
+              <p className="text-xs text-red-600">The TokenFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
+            </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
               {paginatedTokens.map((token, index) => (
@@ -435,6 +440,11 @@ export default function UserDashboardPage() {
                 <div className="h-16 bg-gray-200 rounded mb-3"></div>
                 <div className="h-16 bg-gray-200 rounded"></div>
               </div>
+            </div>
+          ) : isNFTError ? (
+            <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
+              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
+              <p className="text-xs text-red-600">The NFTFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
             </div>
           ) : nftList.length > 0 ? (
             <div className="space-y-3">

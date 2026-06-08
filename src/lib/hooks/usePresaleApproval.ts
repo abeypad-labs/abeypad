@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAccount, useReadContract, useWriteContract } from "@/lib/papi/hooks";
+import { useAccount, useReadContract, useWriteContract } from "@/lib/hooks";
 import { erc20Abi } from "@/config";
 import { type Address, maxUint256 } from "viem";
 

@@ -8,7 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Link, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { erc20Abi, formatUnits, type Abi, type Address } from "viem";
-import { useReadContract } from "@/lib/papi/hooks";
+import { useReadContract } from "@/lib/hooks";
 import { Lock, Search, ArrowRight, ExternalLink, Eye, Clock, CheckCircle2 } from "lucide-react";
 
 interface LockInfo {
@@ -138,11 +138,10 @@ function RecentLockCard({
 
     return (
         <Card className="before:hidden rotate-[0.25deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0 overflow-hidden">
-            <CardHeader className={`border-b-2 border-black p-4 ${
-                lockStatus === 'withdrawn' ? 'bg-gray-200' :
-                lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
-                'bg-[#FFE38A]'
-            }`}>
+            <CardHeader className={`border-b-2 border-black p-4 ${lockStatus === 'withdrawn' ? 'bg-gray-200' :
+                    lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
+                        'bg-[#FFE38A]'
+                }`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Lock className="w-4 h-4" />
@@ -150,14 +149,13 @@ function RecentLockCard({
                             Lock #{lockId.toString()}
                         </span>
                     </div>
-                    <span className={`text-xs font-bold uppercase px-2 py-1 border-2 border-black ${
-                        lockStatus === 'withdrawn' ? 'bg-gray-400 text-white' :
-                        lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
-                        'bg-yellow-500 text-black'
-                    }`}>
+                    <span className={`text-xs font-bold uppercase px-2 py-1 border-2 border-black ${lockStatus === 'withdrawn' ? 'bg-gray-400 text-white' :
+                            lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
+                                'bg-yellow-500 text-black'
+                        }`}>
                         {lockStatus === 'withdrawn' ? 'Withdrawn' :
-                         lockStatus === 'unlockable' ? 'Unlockable' :
-                         'Locked'}
+                            lockStatus === 'unlockable' ? 'Unlockable' :
+                                'Locked'}
                     </span>
                 </div>
             </CardHeader>
@@ -176,16 +174,16 @@ function RecentLockCard({
                         <p className="font-medium truncate">{lock.name}</p>
                     </div>
                 )}
-                
+
                 {!lock.withdrawn && (
                     <div className="space-y-1">
-                        <Progress 
-                            value={progress} 
+                        <Progress
+                            value={progress}
                             className={`h-2 border border-black ${lockStatus === 'unlockable' ? 'bg-green-100' : 'bg-gray-100'}`}
                         />
                         <p className="text-xs text-gray-500">
-                            {lockStatus === 'unlockable' 
-                                ? 'Ready to unlock' 
+                            {lockStatus === 'unlockable'
+                                ? 'Ready to unlock'
                                 : `Unlocks ${formatDistanceToNow(new Date(Number(lock.unlockDate) * 1000), { addSuffix: true })}`
                             }
                         </p>
@@ -249,7 +247,7 @@ export default function LocksPage() {
                 <Card className="before:hidden rotate-[0.25deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
                     <CardContent className="p-6 text-center">
                         <p className="text-xs text-gray-500 uppercase font-bold">Contract Address</p>
-                        <a 
+                        <a
                             href={`${explorerUrl}/address/${tokenLocker}`}
                             target="_blank"
                             rel="noopener noreferrer"

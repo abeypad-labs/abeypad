@@ -6,7 +6,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract
-} from "@/lib/papi/hooks";
+} from "@/lib/hooks";
 import {
   BarChart3,
   Gift,

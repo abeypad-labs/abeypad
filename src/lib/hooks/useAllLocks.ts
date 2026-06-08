@@ -2,7 +2,7 @@ import { TokenLocker } from '@/config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
 import { useMemo } from 'react';
 import { erc20Abi, formatUnits, type Address, type Abi } from 'viem';
-import { useReadContracts } from '@/lib/papi/hooks';
+import { useReadContracts } from '@/lib/hooks';
 import { useUserLocks } from './useUserLocks';
 
 interface LockResult {
@@ -106,7 +106,7 @@ export function useAllLocks(forceRefetch = false) {
 
         let formattedAmount = '0';
         try {
-          formattedAmount = lock.amount !== undefined 
+          formattedAmount = lock.amount !== undefined
             ? formatUnits(lock.amount, tokenDecimals)
             : '0';
         } catch (e) {

@@ -1,4 +1,4 @@
-import { useReadContract } from "@/lib/papi/hooks";
+import { useReadContract } from "@/lib/hooks";
 import { PresaleFactory } from "@/config";
 import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import type { Address } from "viem";

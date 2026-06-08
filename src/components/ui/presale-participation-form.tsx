@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { formatUnits, parseUnits } from "viem";
-import { useAccount, usePublicClient } from "@/lib/papi/hooks";
+import { useAccount, usePublicClient } from "@/lib/hooks";
 import { toast } from "sonner";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
@@ -310,12 +310,12 @@ export function PresaleParticipationForm({
         {/* Status Banner */}
         <div
           className={`p-3 text-center font-black uppercase tracking-wide text-sm ${isPresaleFinalized
-              ? "bg-[#C4F1BE] text-green-800"
-              : isPresaleCancelled
-                ? "bg-[#FFD1DC] text-red-800"
-                : presaleHasEnded
-                  ? "bg-[#FFE38A] text-yellow-900"
-                  : "bg-[#FFE38A] text-yellow-900"
+            ? "bg-[#C4F1BE] text-green-800"
+            : isPresaleCancelled
+              ? "bg-[#FFD1DC] text-red-800"
+              : presaleHasEnded
+                ? "bg-[#FFE38A] text-yellow-900"
+                : "bg-[#FFE38A] text-yellow-900"
             }`}
         >
           {isPresaleFinalized
@@ -360,10 +360,10 @@ export function PresaleParticipationForm({
             isPresaleCancelled
           }
           className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${isPresaleCancelled
-              ? "hidden"
-              : canClaimTokens
-                ? "bg-[#42C9FF] text-black"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            ? "hidden"
+            : canClaimTokens
+              ? "bg-[#42C9FF] text-black"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
         >
           {isClaimTokensPending || isClaimTokensConfirming
@@ -388,8 +388,8 @@ export function PresaleParticipationForm({
               !canClaimRefund || isClaimRefundPending || isClaimRefundConfirming
             }
             className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${canClaimRefund
-                ? "bg-[#FFD1DC] text-black"
-                : "bg-gray-300 text-gray-500"
+              ? "bg-[#FFD1DC] text-black"
+              : "bg-gray-300 text-gray-500"
               }`}
           >
             {isClaimRefundPending || isClaimRefundConfirming
@@ -464,19 +464,19 @@ export function PresaleParticipationForm({
           </div>
 
           {/* Amount Input */}
-      <div>
-        <label htmlFor="amount" className="mb-1 block font-medium">
-          Amount to Contribute ({presaleData.paymentTokenSymbol})
-        </label>
-        <Input
-          id="amount"
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="0.0"
-          className="w-full"
-        />
-      </div>
+          <div>
+            <label htmlFor="amount" className="mb-1 block font-medium">
+              Amount to Contribute ({presaleData.paymentTokenSymbol})
+            </label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.0"
+              className="w-full"
+            />
+          </div>
 
           {/* Expected Tokens */}
           {expectedTokens > 0n && (
@@ -491,30 +491,30 @@ export function PresaleParticipationForm({
               <p className="text-xs text-gray-500 mt-1">
                 Rate: {Number(presaleData.rate) / 100}{" "}
                 {presaleData.saleTokenSymbol} per{" "}
-          {presaleData.paymentTokenSymbol}
-        </p>
-      </div>
+                {presaleData.paymentTokenSymbol}
+              </p>
+            </div>
           )}
 
           {/* Contribute Button */}
-      <Button
-        type={needsApproval ? "button" : "submit"}
-        onClick={needsApproval ? approve : undefined}
-        disabled={
-          isPending ||
-          isConfirming ||
-          isApproving ||
+          <Button
+            type={needsApproval ? "button" : "submit"}
+            onClick={needsApproval ? approve : undefined}
+            disabled={
+              isPending ||
+              isConfirming ||
+              isApproving ||
               isContributionDisabled ||
-          !whitelistGateOpen ||
-          (needsApproval ? false : !canContribute)
-        }
+              !whitelistGateOpen ||
+              (needsApproval ? false : !canContribute)
+            }
             className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${isContributionDisabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#42C9FF] text-black"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-[#42C9FF] text-black"
               }`}
-      >
-        {getButtonText()}
-      </Button>
+          >
+            {getButtonText()}
+          </Button>
         </>
       )}
 

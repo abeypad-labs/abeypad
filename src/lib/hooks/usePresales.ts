@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { PresaleFactoryContract } from '@/config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
-import { useReadContract, useReadContracts } from '@/lib/papi/hooks';
+import { useReadContract, useReadContracts } from '@/lib/hooks';
 import { useBlockchainStore } from '@/lib/store/blockchain-store';
 import type { Address } from 'viem';
 

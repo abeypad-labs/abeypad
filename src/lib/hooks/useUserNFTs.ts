@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from '@/lib/papi/hooks';
+import { useAccount, useReadContract } from '@/lib/hooks';
 import { NFTFactoryContract } from '../../config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
 
@@ -6,7 +6,7 @@ export function useUserNFTs() {
   const { address } = useAccount();
   const { nftFactory } = useChainContracts();
 
-  const { data, isLoading, refetch } = useReadContract({
+  const { data, isLoading, isError, refetch } = useReadContract({
     abi: NFTFactoryContract.abi,
     address: nftFactory,
     functionName: 'tokensCreatedBy',
@@ -23,6 +23,7 @@ export function useUserNFTs() {
   return {
     nfts: (data as `0x${string}`[] | undefined) ?? [],
     isLoading: !!address && isLoading,
+    isError,
     refetch,
   };
 }

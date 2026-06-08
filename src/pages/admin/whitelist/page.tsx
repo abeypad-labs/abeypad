@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useReadContract } from "@/lib/papi/hooks";
+import { useReadContract } from "@/lib/hooks";
 import { useSetWhitelistedCreator } from "@/lib/hooks/useAdminActions";
 import { PresaleFactory } from "@/config";
 import { useChainContracts } from "@/lib/hooks/useChainContracts";
@@ -76,9 +76,8 @@ function WhitelistChecker() {
         </div>
         {addressToCheck && !isLoading && (
           <div
-            className={`p-4 border-2 border-black ${
-              isWhitelisted ? "bg-green-100" : "bg-red-100"
-            }`}
+            className={`p-4 border-2 border-black ${isWhitelisted ? "bg-green-100" : "bg-red-100"
+              }`}
           >
             <div className="flex items-center gap-3">
               {isWhitelisted ? (

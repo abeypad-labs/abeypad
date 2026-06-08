@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatEther } from "viem";
-import { useReadContracts, useWaitForTransactionReceipt, useWriteContract } from "@/lib/papi/hooks";
+import { useReadContracts, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
 
 export default function NFTDetailPage() {
   const { id: nftAddress } = useParams<{ id: `0x${string}` }>();

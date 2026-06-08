@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
-import { usePublicClient, useReadContract, useReadContracts } from '@/lib/papi/hooks';
+import { usePublicClient, useReadContract, useReadContracts } from '@/lib/hooks';
 import { erc20Abi, parseAbiItem, type Abi, type Address, type PublicClient } from 'viem';
 import { PresaleFactoryContract, LaunchpadPresaleContract } from '@/config';
 import {
@@ -212,7 +212,7 @@ export function useLaunchpadPresales(filter: LaunchpadPresaleFilter = 'all', for
           address: addr,
           functionName,
         } as const))
-      );
+    );
   }, [addressesToFetch]);
 
   const { data: presaleDataResults, isLoading: isLoadingPresaleData, refetch: refetchPresaleData } = useReadContracts({
@@ -657,10 +657,10 @@ export function useUserPresaleContribution(
       // Check if results are valid
       const hasValidResults = userDataResults.every(r => r.status === 'success');
       if (hasValidResults) {
-      return {
+        return {
           contribution: (userDataResults[0]?.result ?? cachedData?.contribution ?? 0n) as bigint,
           purchasedTokens: (userDataResults[1]?.result ?? cachedData?.purchasedTokens ?? 0n) as bigint,
-      };
+        };
       }
     }
 

@@ -2,7 +2,7 @@ import { LaunchpadPresaleContract } from '@/config';
 import { useLaunchpadPresaleStore } from '@/lib/store/launchpad-presale-store';
 import { useCallback } from 'react';
 import { type Address } from 'viem';
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from '@/lib/papi/hooks';
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from '@/lib/hooks';
 
 export interface ContributeParams {
   presaleAddress: Address;

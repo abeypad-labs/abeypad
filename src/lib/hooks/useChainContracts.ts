@@ -1,5 +1,5 @@
 import { ABEY_EXPLORER_URL, CONTRACT_ADDRESSES } from "@/config";
-import { useChainId } from "@/lib/papi/hooks";
+import { useChainId } from "@/lib/hooks";
 
 export function useChainContracts() {
   const chainId = useChainId();

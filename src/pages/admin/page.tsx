@@ -2,7 +2,7 @@ import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAccount } from "@/lib/papi/hooks";
+import { useAccount } from "@/lib/hooks";
 import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { useSetFeeRecipient } from "@/lib/hooks/useAdminActions";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";

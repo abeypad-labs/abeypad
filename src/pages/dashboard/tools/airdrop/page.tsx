@@ -16,7 +16,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
-} from "@/lib/papi/hooks";
+} from "@/lib/hooks";
 import {
   Send,
   Coins,
@@ -332,17 +332,15 @@ export default function AirdropPage() {
               <button
                 type="button"
                 onClick={() => setSendType("erc20")}
-                className={`-rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${
-                  sendType === "erc20"
+                className={`-rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${sendType === "erc20"
                     ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                     : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-4 h-4 flex-shrink-0 rounded-full border-2 border-black ${
-                      sendType === "erc20" ? "bg-black" : ""
-                    }`}
+                    className={`w-4 h-4 flex-shrink-0 rounded-full border-2 border-black ${sendType === "erc20" ? "bg-black" : ""
+                      }`}
                   />
                   <div>
                     <p className="font-black uppercase text-sm sm:text-base">
@@ -358,17 +356,15 @@ export default function AirdropPage() {
                   setSendType("react");
                   setTokenAddress("");
                 }}
-                className={`rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${
-                  sendType === "react"
+                className={`rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${sendType === "react"
                     ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                     : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-4 h-4 flex-shrink-0 rounded-full border-2 border-black ${
-                      sendType === "react" ? "bg-black" : ""
-                    }`}
+                    className={`w-4 h-4 flex-shrink-0 rounded-full border-2 border-black ${sendType === "react" ? "bg-black" : ""
+                      }`}
                   />
                   <div>
                     <p className="font-black uppercase text-sm sm:text-base">
@@ -423,8 +419,8 @@ export default function AirdropPage() {
                       <p className="font-black">
                         {tokenBalance !== undefined
                           ? `${Number(
-                              formatUnits(tokenBalance, tokenDecimals ?? 18)
-                            ).toLocaleString()} ${tokenSymbol}`
+                            formatUnits(tokenBalance, tokenDecimals ?? 18)
+                          ).toLocaleString()} ${tokenSymbol}`
                           : "Loading..."}
                       </p>
                     </div>
@@ -594,8 +590,8 @@ export default function AirdropPage() {
                 {sendType === "erc20" && !isValidTokenAddress
                   ? "Enter a valid token address"
                   : parsedRecipients.recipients.length === 0
-                  ? "Add valid recipients"
-                  : "Fix errors above to continue"}
+                    ? "Add valid recipients"
+                    : "Fix errors above to continue"}
               </p>
             )}
           </CardContent>

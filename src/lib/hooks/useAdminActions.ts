@@ -1,6 +1,6 @@
 import { PresaleFactory, LaunchpadPresaleContract } from '@/config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
-import { useWriteContract, useWaitForTransactionReceipt } from '@/lib/papi/hooks';
+import { useWriteContract, useWaitForTransactionReceipt } from '@/lib/hooks';
 import type { Address } from 'viem';
 
 /**

@@ -1,6 +1,6 @@
 import { ArrowRight, Box, CircleDollarSign, Factory, ImageIcon, Lock, Send, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAccount } from "@/lib/papi/hooks";
+import { useAccount } from "@/lib/hooks";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
 import type { Address } from "viem";
 
@@ -13,11 +13,11 @@ const getCreationOptions = (isWhitelisted: boolean | undefined) => [
   },
   ...(isWhitelisted
     ? [{
-        to: "/dashboard/create/presale",
-        title: "Create a Presale",
-        description: "Launch a presale for your token to raise funds.",
-        icon: Factory,
-      }]
+      to: "/dashboard/create/presale",
+      title: "Create a Presale",
+      description: "Launch a presale for your token to raise funds.",
+      icon: Factory,
+    }]
     : []),
   {
     to: "/dashboard/create/nft",
@@ -78,9 +78,8 @@ export default function CreateHubPage() {
               <Link
                 to={item.to}
                 key={`${item.to}-${item.title}`}
-                className={`border-[3px] border-black bg-white p-6 transition-all group [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 ${
-                  index % 2 === 0 ? "-rotate-[0.45deg]" : "rotate-[0.45deg]"
-                }`}
+                className={`border-[3px] border-black bg-white p-6 transition-all group [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 ${index % 2 === 0 ? "-rotate-[0.45deg]" : "rotate-[0.45deg]"
+                  }`}
               >
                 <item.icon className="w-8 h-8 mb-4 text-black group-hover:text-white" />
                 <h3 className="font-bold text-xl mb-2">{item.title}</h3>
@@ -100,9 +99,8 @@ export default function CreateHubPage() {
               <Link
                 to={item.to}
                 key={`${item.to}-${item.title}`}
-                className={`border-[3px] border-black bg-white p-6 transition-all group [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 ${
-                  index % 2 === 0 ? "rotate-[0.45deg]" : "-rotate-[0.45deg]"
-                }`}
+                className={`border-[3px] border-black bg-white p-6 transition-all group [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1 ${index % 2 === 0 ? "rotate-[0.45deg]" : "-rotate-[0.45deg]"
+                  }`}
               >
                 <item.icon className="w-8 h-8 mb-4 text-black group-hover:text-white" />
                 <h3 className="font-bold text-xl mb-2">{item.title}</h3>

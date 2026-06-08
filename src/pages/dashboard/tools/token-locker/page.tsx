@@ -17,7 +17,7 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
-} from "@/lib/papi/hooks";
+} from "@/lib/hooks";
 import {
   Lock,
   ExternalLink,
@@ -98,9 +98,8 @@ function LockProgressBar({
       </div>
       <Progress
         value={progress}
-        className={`h-3 border-2 border-black ${
-          isExpired ? "bg-green-200" : "bg-gray-200"
-        }`}
+        className={`h-3 border-2 border-black ${isExpired ? "bg-green-200" : "bg-gray-200"
+          }`}
       />
       <div className="text-center text-xs font-bold">
         {isExpired ? (
@@ -153,13 +152,12 @@ function LockCard({
   return (
     <Card className="border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0 overflow-hidden">
       <CardHeader
-        className={`border-b-2 border-black p-4 ${
-          isWithdrawn
+        className={`border-b-2 border-black p-4 ${isWithdrawn
             ? "bg-gray-200"
             : isUnlocked
-            ? "bg-[#90EE90]"
-            : "bg-[#FFE38A]"
-        }`}
+              ? "bg-[#90EE90]"
+              : "bg-[#FFE38A]"
+          }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

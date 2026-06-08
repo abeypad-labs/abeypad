@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAccount, useReadContract } from '@/lib/papi/hooks';
+import { useAccount, useReadContract } from '@/lib/hooks';
 import { TokenLocker } from '@/config';
 import { useChainContracts } from '@/lib/hooks/useChainContracts';
 import { useBlockchainStore } from '@/lib/store/blockchain-store';

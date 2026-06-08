@@ -5,7 +5,7 @@ import { NFTFactoryContract } from "@/config";
 import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { useReadContract } from "@/lib/papi/hooks";
+import { useReadContract } from "@/lib/hooks";
 
 export default function NFTsPage() {
   const [searchQuery, setSearchQuery] = useState("");

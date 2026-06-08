@@ -14,7 +14,7 @@ import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { parseEventLogs, parseUnits } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/papi/hooks";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
 import { Coins, ExternalLink, CheckCircle2, LayoutDashboard, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
@@ -131,7 +131,11 @@ export default function CreateTokenPage() {
     }
 
     setCreatedTokenAddress(newToken);
-    toast.success("Token created! Redirecting to your dashboard…");
+    if (newToken) {
+      toast.success("Token created! Redirecting to your dashboard…");
+    } else {
+      toast.error("Transaction succeeded but no token was created. The factory contract may not be deployed on this network.");
+    }
 
     setName("");
     setSymbol("");
@@ -141,7 +145,9 @@ export default function CreateTokenPage() {
     setTaxBps("0");
     reset();
 
-    setTimeout(() => navigate("/dashboard/user"), 2500);
+    if (newToken) {
+      setTimeout(() => navigate("/dashboard/user"), 2500);
+    }
   }, [isConfirmed, receipt, hash, reset, navigate]);
 
   const isBusy = isPending || isConfirming;

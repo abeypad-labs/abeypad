@@ -1,6 +1,6 @@
 import { erc20Abi, FactoryContract, PairContract } from "@/config";
 import { useMemo } from "react";
-import { useReadContracts } from "@/lib/papi/hooks";
+import { useReadContracts } from "@/lib/hooks";
 
 export function useMarkets() {
   const { data: allPairsLengthData } = useReadContracts({

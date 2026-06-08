@@ -1,4 +1,4 @@
-import { useReadContracts } from "@/lib/papi/hooks";
+import { useReadContracts } from "@/lib/hooks";
 import { LaunchpadNFTContract } from "@/config";
 import { formatEther } from "viem";
 import { Link } from "react-router-dom";

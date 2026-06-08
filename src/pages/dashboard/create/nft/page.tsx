@@ -8,7 +8,7 @@ import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { parseEther } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/papi/hooks";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
 export default function CreateNftPage() {

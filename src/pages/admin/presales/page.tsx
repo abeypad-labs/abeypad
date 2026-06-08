@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useAccount, useReadContract } from "@/lib/papi/hooks";
+import { useAccount, useReadContract } from "@/lib/hooks";
 import { useFeeRecipient } from "@/lib/utils/admin";
 import { useUpdatePresaleFees } from "@/lib/hooks/useAdminActions";
 import { useLaunchpadPresales, type PresaleWithStatus } from "@/lib/hooks/useLaunchpadPresales";
@@ -275,36 +275,32 @@ function AdminPresalesContent() {
         <Button
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
-          className={`border-2 border-black font-bold uppercase text-xs ${
-            filter === "all" ? "bg-black text-white" : ""
-          }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${filter === "all" ? "bg-black text-white" : ""
+            }`}
         >
           All ({presales?.length ?? 0})
         </Button>
         <Button
           variant={filter === "live" ? "default" : "outline"}
           onClick={() => setFilter("live")}
-          className={`border-2 border-black font-bold uppercase text-xs ${
-            filter === "live" ? "bg-green-500 text-white" : ""
-          }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${filter === "live" ? "bg-green-500 text-white" : ""
+            }`}
         >
           Live ({presales?.filter((p) => p.status === "live").length ?? 0})
         </Button>
         <Button
           variant={filter === "upcoming" ? "default" : "outline"}
           onClick={() => setFilter("upcoming")}
-          className={`border-2 border-black font-bold uppercase text-xs ${
-            filter === "upcoming" ? "bg-yellow-500 text-white" : ""
-          }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${filter === "upcoming" ? "bg-yellow-500 text-white" : ""
+            }`}
         >
           Upcoming ({presales?.filter((p) => p.status === "upcoming").length ?? 0})
         </Button>
         <Button
           variant={filter === "ended" ? "default" : "outline"}
           onClick={() => setFilter("ended")}
-          className={`border-2 border-black font-bold uppercase text-xs ${
-            filter === "ended" ? "bg-gray-500 text-white" : ""
-          }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${filter === "ended" ? "bg-gray-500 text-white" : ""
+            }`}
         >
           Ended (
           {presales?.filter((p) =>

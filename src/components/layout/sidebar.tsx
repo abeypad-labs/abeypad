@@ -2,7 +2,7 @@ import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
 import {
   useAccount,
   useBalance, useConnectModal, useDisconnect
-} from "@/lib/papi/hooks";
+} from "@/lib/hooks";
 import { useIsAdmin } from "@/lib/utils/admin";
 import {
   Layers,
