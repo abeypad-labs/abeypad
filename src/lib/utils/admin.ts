@@ -56,16 +56,18 @@ export function useFeeRecipient() {
 export function useIsAdmin(address: Address | undefined) {
   const { factoryOwner, isLoading } = useFactoryOwner();
 
-  const isAdmin = Boolean(
-    address && (
-      ADMIN_ADDRESSES.some(adminAddr => adminAddr.toLowerCase() === address.toLowerCase()) ||
-      (factoryOwner && address.toLowerCase() === factoryOwner.toLowerCase())
-    )
+  const isInStaticList = Boolean(
+    address && ADMIN_ADDRESSES.some(adminAddr => adminAddr.toLowerCase() === address.toLowerCase())
   );
 
+  const isAdmin = isInStaticList || Boolean(
+    address && factoryOwner && address.toLowerCase() === factoryOwner.toLowerCase()
+  );
+
+  // Don't block on the contract read if the static list already grants access
   return {
     isAdmin,
-    isLoading,
+    isLoading: isInStaticList ? false : isLoading,
     factoryOwner,
   };
 }

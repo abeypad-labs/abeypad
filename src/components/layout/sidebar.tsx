@@ -5,6 +5,7 @@ import {
 } from "@/lib/hooks";
 import { useIsAdmin } from "@/lib/utils/admin";
 import {
+  Globe,
   Layers,
   LayoutDashboard,
   Menu,
@@ -21,6 +22,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard/user", icon: LayoutDashboard },
   { name: "Launchpad", href: "/projects", icon: Rocket },
   { name: "Staking", href: "/dashboard/staking", icon: Layers },
+  { name: "Domains", href: "/domains", icon: Globe },
 ];
 
 const actionButtonClass =
