@@ -23,8 +23,8 @@ const REGISTERED_EVENT = parseAbiItem(
 export function useMyDomains(address?: Address) {
   const publicClient = usePublicClient();
 
-  // Fetch all names this address has ever registered by reading on-chain events.
-  // `registrant` is an indexed topic so eth_getLogs filters it server-side.
+  // Fetch all names this address has ever registered by reading on-chain events
+  // combined with locally stored names for instant feedback.
   const {
     data: labels = [],
     isLoading: isLoadingNames,
@@ -33,17 +33,43 @@ export function useMyDomains(address?: Address) {
     queryKey: ["ans-my-domains", address?.toLowerCase()],
     queryFn: async () => {
       if (!address || !publicClient) return [];
-      const logs = await publicClient.getLogs({
-        address: Registrar.address,
-        event: REGISTERED_EVENT,
-        args: { registrant: address },
-        fromBlock: 0n,
-        toBlock: "latest",
-      });
+
+      // 1. Get locally stored names for this address
+      const localKey = `ans-registered-names-${address.toLowerCase()}`;
+      let localNames: string[] = [];
+      try {
+        const stored = localStorage.getItem(localKey);
+        if (stored) {
+          localNames = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error("Error reading local domains:", e);
+      }
+
+      // 2. Query on-chain event logs
+      let eventNames: string[] = [];
+      try {
+        const logs = await publicClient.getLogs({
+          address: Registrar.address,
+          event: REGISTERED_EVENT,
+          args: { registrant: address },
+          fromBlock: 0n,
+          toBlock: "latest",
+        });
+        eventNames = logs
+          .map((l) => (l.args as { name?: string }).name?.toLowerCase())
+          .filter((n): n is string => !!n);
+      } catch (err) {
+        console.warn("Failed to fetch on-chain domain logs, relying on cache/local storage:", err);
+      }
+
+      // 3. Merge both sources and deduplicate
       const seen = new Set<string>();
-      return logs
-        .map((l) => (l.args as { name?: string }).name?.toLowerCase())
-        .filter((n): n is string => !!n && !seen.has(n) && !!seen.add(n));
+      const combined = [...localNames, ...eventNames]
+        .map(n => n.toLowerCase())
+        .filter((n) => !!n && !seen.has(n) && !!seen.add(n));
+
+      return combined;
     },
     enabled: !!address && !!publicClient,
     staleTime: 30_000,
@@ -95,9 +121,26 @@ export function useMyDomains(address?: Address) {
     refetchAddrs();
   }
 
-  // kept for backwards compat — on-chain fetch makes it a no-op
-  function addDomain(_label: string) {
-    refetchNames();
+  function addDomain(label: string) {
+    if (!address) return;
+    const normalized = label.trim().toLowerCase().replace(/\.abey$/, "");
+    if (!normalized) return;
+
+    const localKey = `ans-registered-names-${address.toLowerCase()}`;
+    try {
+      let existing: string[] = [];
+      const stored = localStorage.getItem(localKey);
+      if (stored) {
+        existing = JSON.parse(stored);
+      }
+      if (!existing.includes(normalized)) {
+        existing.push(normalized);
+        localStorage.setItem(localKey, JSON.stringify(existing));
+      }
+    } catch (e) {
+      console.error("Error saving local domain:", e);
+    }
+    refetch();
   }
 
   return { domains, isLoading, addDomain, refetch };

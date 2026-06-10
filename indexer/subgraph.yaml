@@ -1,0 +1,114 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+
+# NOTE: "abeychain-testnet" is a placeholder network name.
+# If Goldsky does not yet support Abeychain Testnet (chain ID 178), contact
+# support@goldsky.com to request onboarding for:
+#   Chain name:  Abeychain Testnet
+#   Chain ID:    178
+#   RPC URL:     https://testrpc.abeychain.com
+#   Explorer:    https://testnet.abeyscan.com
+#
+# Update the `network` field below once Goldsky confirms the network slug.
+
+dataSources:
+  # ── Registrar: handles domain registration, renewal, and release ──────────
+  - kind: ethereum
+    name: ANSRegistrar
+    network: abeychain
+    source:
+      address: "0x13b0e0fdAc877EB7822ca462231874425432D197"
+      abi: ANSRegistrar
+      # Update startBlock to the actual contract deployment block for faster sync.
+      # Find it at https://testnet.abeyscan.com/address/0x13b0e0fdAc877EB7822ca462231874425432D197
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - Account
+        - Registration
+        - Renewal
+        - Release
+      abis:
+        - name: ANSRegistrar
+          file: ./abis/ANSRegistrar.json
+      eventHandlers:
+        - event: "NameRegistered(string,indexed bytes32,indexed address,uint256)"
+          handler: handleNameRegistered
+        - event: "NameRenewed(string,indexed bytes32,uint256)"
+          handler: handleNameRenewed
+        - event: "NameReleased(string,indexed bytes32)"
+          handler: handleNameReleased
+      file: ./src/registrar.ts
+
+  # ── Registry: tracks node → owner / resolver / TTL ───────────────────────
+  - kind: ethereum
+    name: ANSRegistry
+    network: abeychain-testnet
+    source:
+      address: "0x90fCa1a109159f6AF312567dD253FfE8a9173f8e"
+      abi: ANSRegistry
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - Account
+      abis:
+        - name: ANSRegistry
+          file: ./abis/ANSRegistry.json
+      eventHandlers:
+        - event: "NewOwner(indexed bytes32,indexed bytes32,address)"
+          handler: handleNewOwner
+        - event: "NewResolver(indexed bytes32,address)"
+          handler: handleNewResolver
+        - event: "Transfer(indexed bytes32,address)"
+          handler: handleTransfer
+        - event: "NewTTL(indexed bytes32,uint64)"
+          handler: handleNewTTL
+      file: ./src/registry.ts
+
+  # ── Resolver: stores addr / reverseName / text / contenthash ─────────────
+  - kind: ethereum
+    name: ANSResolver
+    network: abeychain-testnet
+    source:
+      address: "0x59f78fe1955e228fD8A9Abc1FC38aC2e89E3d963"
+      abi: ANSResolver
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - TextRecord
+      abis:
+        - name: ANSResolver
+          file: ./abis/ANSResolver.json
+      eventHandlers:
+        - event: "AddrChanged(indexed bytes32,address)"
+          handler: handleAddrChanged
+        - event: "AddrCleared(indexed bytes32)"
+          handler: handleAddrCleared
+        - event: "NameChanged(indexed bytes32,string)"
+          handler: handleNameChanged
+        - event: "ContenthashChanged(indexed bytes32,bytes)"
+          handler: handleContenthashChanged
+      # setText call handler: captures the actual key string (indexed strings in
+      # TextChanged events are hashed and unrecoverable from logs alone).
+      # Requires the Abeychain node to expose transaction trace data.
+      # If traces are unavailable, remove callHandlers and use the TextChanged
+      # event handler in resolver.ts instead (see inline comment there).
+      callHandlers:
+        - function: "setText(bytes32,string,string)"
+          handler: handleSetText
+      file: ./src/resolver.ts

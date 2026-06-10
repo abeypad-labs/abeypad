@@ -1,0 +1,7 @@
+{
+  "extends": "@graphprotocol/graph-ts/types/assemblyscript.json",
+  "include": [
+    "./src/**/*.ts",
+    "./generated/**/*.ts"
+  ]
+}
