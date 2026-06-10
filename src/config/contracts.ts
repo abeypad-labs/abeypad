@@ -6,7 +6,7 @@ export const CONTRACT_ADDRESSES = {
     tokenFactory: "0x4b840A32914f48b8997970fB14f72E0E926bf87D" as Address,
     presaleFactory: "0x88C4973Dc2C9A1092525De1b627A3A14302dF6e7" as Address,
     nftFactory: "0x0274619238c6C9d136e37b095f50DF47F79a9Da0" as Address,
-    registry: "0xf5E0eF3D7a87f2bA4fAE46d27a935e0a30D68C38" as Address,
-    resolver: "0xC5Aef050Fc94cB2Ff7633166468ee4D4A1BDEDD1" as Address,
-    registrar: "0x86bBC2283b08aB43AECf47499468B1Df027DDCE9" as Address, // domain 
+    registry: "0x90fCa1a109159f6AF312567dD253FfE8a9173f8e" as Address,
+    resolver: "0x59f78fe1955e228fD8A9Abc1FC38aC2e89E3d963" as Address,
+    registrar: "0x13b0e0fdAc877EB7822ca462231874425432D197" as Address, // domain 
 };

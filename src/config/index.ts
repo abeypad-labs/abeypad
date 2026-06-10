@@ -12,4 +12,7 @@ export * from './abis/token-factory';
 export * from './abis/token-locker';
 export * from './abis/erc20';
 export * from './admin';
+export * from './abis/registrar';
+export * from './abis/registry';
+export * from './abis/resolver';
 

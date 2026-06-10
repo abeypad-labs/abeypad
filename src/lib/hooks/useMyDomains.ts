@@ -1,27 +1,11 @@
 import { Registrar } from "@/config/abis/registrar";
 import { Resolver } from "@/config/abis/resolver";
 import { namehash } from "@/lib/utils/namehash";
-import { useEffect, useState } from "react";
-import { type Abi, type Address, zeroAddress } from "viem";
-import { useReadContracts } from "wagmi";
+import { useQuery } from "@tanstack/react-query";
+import { parseAbiItem, type Abi, type Address, zeroAddress } from "viem";
+import { usePublicClient, useReadContracts } from "wagmi";
 
 const TLD = ".abey";
-
-function storageKey(address: Address) {
-  return `abeypad_domains_${address.toLowerCase()}`;
-}
-
-function loadNames(address: Address): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey(address)) ?? "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveNames(address: Address, names: string[]) {
-  localStorage.setItem(storageKey(address), JSON.stringify(names));
-}
 
 export interface OwnedDomain {
   label: string;
@@ -32,14 +16,38 @@ export interface OwnedDomain {
   resolvedAddr: Address | null;
 }
 
-export function useMyDomains(address?: Address) {
-  const [labels, setLabels] = useState<string[]>(() =>
-    address ? loadNames(address) : []
-  );
+const REGISTERED_EVENT = parseAbiItem(
+  "event NameRegistered(string name, bytes32 indexed node, address indexed registrant, uint256 expires)",
+);
 
-  useEffect(() => {
-    setLabels(address ? loadNames(address) : []);
-  }, [address]);
+export function useMyDomains(address?: Address) {
+  const publicClient = usePublicClient();
+
+  // Fetch all names this address has ever registered by reading on-chain events.
+  // `registrant` is an indexed topic so eth_getLogs filters it server-side.
+  const {
+    data: labels = [],
+    isLoading: isLoadingNames,
+    refetch: refetchNames,
+  } = useQuery({
+    queryKey: ["ans-my-domains", address?.toLowerCase()],
+    queryFn: async () => {
+      if (!address || !publicClient) return [];
+      const logs = await publicClient.getLogs({
+        address: Registrar.address,
+        event: REGISTERED_EVENT,
+        args: { registrant: address },
+        fromBlock: 0n,
+        toBlock: "latest",
+      });
+      const seen = new Set<string>();
+      return logs
+        .map((l) => (l.args as { name?: string }).name?.toLowerCase())
+        .filter((n): n is string => !!n && !seen.has(n) && !!seen.add(n));
+    },
+    enabled: !!address && !!publicClient,
+    staleTime: 30_000,
+  });
 
   const nodes = labels.map((l) => namehash(`${l}${TLD}`));
 
@@ -69,28 +77,28 @@ export function useMyDomains(address?: Address) {
     const expiry = expiryRaw ? new Date(Number(expiryRaw) * 1000) : null;
     const isExpired = expiry ? expiry < new Date() : false;
     const resolvedAddr = (addrResults?.[i]?.result as Address | undefined) ?? null;
-    const resolvedOrZero = resolvedAddr === zeroAddress ? null : resolvedAddr;
     return {
       label,
       fullName: `${label}${TLD}`,
       node,
       expiry,
       isExpired,
-      resolvedAddr: resolvedOrZero,
+      resolvedAddr: resolvedAddr === zeroAddress ? null : resolvedAddr,
     };
   });
 
-  function addDomain(label: string) {
-    if (!address) return;
-    const updated = [...new Set([...labels, label])];
-    setLabels(updated);
-    saveNames(address, updated);
-  }
+  const isLoading = isLoadingNames;
 
   function refetch() {
+    refetchNames();
     refetchExpiries();
     refetchAddrs();
   }
 
-  return { domains, addDomain, refetch };
+  // kept for backwards compat — on-chain fetch makes it a no-op
+  function addDomain(_label: string) {
+    refetchNames();
+  }
+
+  return { domains, isLoading, addDomain, refetch };
 }

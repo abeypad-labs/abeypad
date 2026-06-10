@@ -1,15 +1,13 @@
-import { Registrar } from "@/config/abis/registrar";
-import { Resolver } from "@/config/abis/resolver";
 import { CONTRACT_ADDRESSES } from "@/config/contracts";
 import {
   useAccount,
   useConnectModal,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useWriteContract,
+  useMyDomains,
 } from "@/lib/hooks";
-import { useMyDomains } from "@/lib/hooks/useMyDomains";
-import { namehash } from "@/lib/utils/namehash";
+import { useANSAvailable } from "@/lib/hooks/useANSAvailable";
+import { useANSFee } from "@/lib/hooks/useANSFee";
+import { useANSResolve } from "@/lib/hooks/useANSResolve";
+import { formatFee, parseANSError } from "@/lib/utils/ans";
 import {
   CheckCircle2,
   Clock,
@@ -17,12 +15,13 @@ import {
   Search,
   XCircle,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { formatEther, type Abi, type Address, zeroAddress } from "viem";
-import { usePublicClient, useWriteContract as useWriteContractWagmi } from "wagmi";
+import { type Abi, type Address, zeroAddress } from "viem";
+import { usePublicClient, useWriteContract } from "wagmi";
+import { Registrar } from "@/config/abis/registrar";
+import { Resolver } from "@/config/abis/resolver";
 
-const YEAR_IN_SECONDS = 365 * 24 * 60 * 60;
 const TLD = ".abey";
 
 const DURATION_OPTIONS = [
@@ -30,10 +29,6 @@ const DURATION_OPTIONS = [
   { label: "2 Years", years: 2 },
   { label: "3 Years", years: 3 },
 ];
-
-function isValidLabel(name: string) {
-  return /^[a-z0-9-]+$/.test(name) && name.length >= 3 && name.length <= 63;
-}
 
 function formatExpiry(date: Date): string {
   return date.toLocaleDateString(undefined, {
@@ -48,84 +43,25 @@ export default function DomainsPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const { writeContractAsync: writeContractAsync2 } = useWriteContractWagmi();
 
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [selectedYears, setSelectedYears] = useState(1);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSettingAddr, setIsSettingAddr] = useState(false);
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
-  const processedHash = useRef<string | null>(null);
 
   const { domains, addDomain, refetch: refetchDomains } = useMyDomains(address);
 
-  const duration = BigInt(selectedYears * YEAR_IN_SECONDS);
-  const isValid = isValidLabel(query);
-  const node = isValid ? namehash(`${query}${TLD}`) : undefined;
+  const { available: isAvailable, isLoading: isCheckingAvailability, validation } = useANSAvailable(query);
+  const { fee, isLoading: isFetchingFee } = useANSFee(query, selectedYears);
+  const { address: takenAddr, expiry: takenExpiryRaw } = useANSResolve(
+    !isAvailable && query.length >= 3 ? query : "",
+  );
 
-  // Availability check
-  const { data: isAvailable, isFetching: isCheckingAvailability } = useReadContract({
-    address: Registrar.address,
-    abi: Registrar.abi as Abi,
-    functionName: "available",
-    args: [query],
-    query: { enabled: isValid },
-  });
-
-  // Fee for selected duration
-  const { data: fee, isFetching: isFetchingFee } = useReadContract({
-    address: Registrar.address,
-    abi: Registrar.abi as Abi,
-    functionName: "feeFor",
-    args: [duration],
-    query: { enabled: isValid },
-  });
-
-  // Expiry of searched name (if taken)
-  const { data: expiryRaw } = useReadContract({
-    address: Registrar.address,
-    abi: Registrar.abi as Abi,
-    functionName: "expiryOf",
-    args: [query],
-    query: { enabled: isValid && isAvailable === false },
-  });
-
-  // Resolved address for searched name (if taken)
-  const { data: resolvedAddr } = useReadContract({
-    address: Resolver.address,
-    abi: Resolver.abi as Abi,
-    functionName: "addr",
-    args: node ? [node] : undefined,
-    query: { enabled: !!node && isAvailable === false },
-  });
-
-  const { isSuccess: isTxSuccess, isError: isTxError } =
-    useWaitForTransactionReceipt({ hash: txHash });
-
-  useEffect(() => {
-    if (isTxSuccess && txHash && processedHash.current !== txHash) {
-      console.log("[register] tx confirmed", txHash);
-      processedHash.current = txHash;
-      setIsRegistering(false);
-      setTxHash(undefined);
-      addDomain(query);
-      refetchDomains();
-      toast.success(`${query}${TLD} registered!`);
-      setSearch("");
-      setQuery("");
-    }
-  }, [isTxSuccess, txHash, query, addDomain, refetchDomains]);
-
-  useEffect(() => {
-    if (isTxError && txHash && processedHash.current !== txHash) {
-      console.error("[register] tx failed on-chain", txHash);
-      processedHash.current = txHash;
-      setIsRegistering(false);
-      setTxHash(undefined);
-      toast.error("Registration failed.");
-    }
-  }, [isTxError, txHash]);
+  const isValid = validation.valid;
+  const takenExpiry = takenExpiryRaw ? new Date(Number(takenExpiryRaw) * 1000) : null;
+  const takenResolvedAddr = takenAddr && takenAddr !== zeroAddress ? (takenAddr as Address) : null;
+  const formattedFee = fee > 0n ? formatFee(fee) : null;
 
   const handleSearch = () => {
     const normalized = search.trim().toLowerCase().replace(/\.abey$/, "");
@@ -133,84 +69,51 @@ export default function DomainsPage() {
   };
 
   const handleRegister = async () => {
-    console.log("[register] guard check", { address, query, isValid, isAvailable, fee: fee?.toString() });
-    if (!address || !query || !isValid || !isAvailable || !fee) return;
+    if (!address || !query || !isValid || !isAvailable || !fee || !publicClient) return;
+    const label = query;
+    const duration = BigInt(selectedYears * 365 * 24 * 60 * 60);
+    setIsRegistering(true);
     try {
-      setIsRegistering(true);
-      console.log("[register] calling contract", {
-        registrar: Registrar.address,
-        label: query,
-        duration: duration.toString(),
-        resolver: CONTRACT_ADDRESSES.resolver,
-        value: (fee as bigint).toString(),
-      });
-
-      // simulate first to surface revert reason before spending gas
-      if (publicClient) {
-        try {
-          await publicClient.simulateContract({
-            address: Registrar.address,
-            abi: Registrar.abi as Abi,
-            functionName: "register",
-            args: [query, duration, CONTRACT_ADDRESSES.resolver],
-            value: fee as bigint,
-            account: address,
-          });
-          console.log("[register] simulation OK");
-        } catch (simErr) {
-          console.error("[register] simulation revert", simErr);
-        }
-      }
-
       const hash = await writeContractAsync({
         address: Registrar.address,
         abi: Registrar.abi as Abi,
         functionName: "register",
-        args: [query, duration, CONTRACT_ADDRESSES.resolver],
-        value: fee as bigint,
+        args: [label, duration, CONTRACT_ADDRESSES.resolver],
+        value: fee,
       });
-      console.log("[register] tx submitted", hash);
-      setTxHash(hash as `0x${string}`);
-      toast.info("Confirm in your wallet…");
+      toast.info("Transaction submitted — waiting for confirmation…");
+      await publicClient.waitForTransactionReceipt({ hash });
+      addDomain(label);
+      refetchDomains();
+      toast.success(`${label}${TLD} registered!`);
+      setSearch("");
+      setQuery("");
     } catch (err: unknown) {
-      console.error("[register] error", err);
+      toast.error(parseANSError(err) || (err as { shortMessage?: string })?.shortMessage || "Registration failed");
+    } finally {
       setIsRegistering(false);
-      toast.error((err as { shortMessage?: string })?.shortMessage ?? "Registration failed");
     }
   };
 
   const handleSetAddr = async (label: string, domainNode: `0x${string}`) => {
-    console.log("[setAddr] called", { label, domainNode, address });
     if (!address || !publicClient) return;
+    setIsSettingAddr(true);
     try {
-      setIsSettingAddr(true);
-      const hash = await writeContractAsync2({
+      const hash = await writeContractAsync({
         address: Resolver.address,
         abi: Resolver.abi as Abi,
         functionName: "setAddr",
         args: [domainNode, address],
       });
-      console.log("[setAddr] tx submitted", hash);
-      await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
-      console.log("[setAddr] tx confirmed", hash);
+      await publicClient.waitForTransactionReceipt({ hash });
       refetchDomains();
       toast.success(`${label}${TLD} now resolves to your wallet.`);
     } catch (err: unknown) {
-      console.error("[setAddr] error", err);
       toast.error((err as { shortMessage?: string })?.shortMessage ?? "Failed to set address");
     } finally {
       setIsSettingAddr(false);
     }
   };
-
-  const formattedFee =
-    fee !== undefined
-      ? Number(formatEther(fee as bigint)).toLocaleString(undefined, { maximumFractionDigits: 6 })
-      : null;
-
-  const takenExpiry = expiryRaw ? new Date(Number(expiryRaw as bigint) * 1000) : null;
-  const takenResolvedAddr =
-    resolvedAddr && resolvedAddr !== zeroAddress ? (resolvedAddr as Address) : null;
 
   const hasResult = query.length > 0;
 
@@ -267,7 +170,7 @@ export default function DomainsPage() {
             <div className="-rotate-[0.25deg] border-[3px] border-black bg-[#FFE4E4] px-5 py-4 [box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000]">
               <p className="flex items-center gap-2 font-black">
                 <XCircle className="h-5 w-5 shrink-0" />
-                Invalid — 3–63 chars, lowercase letters, numbers, hyphens only.
+                {!validation.valid ? validation.reason : "Invalid name"}
               </p>
             </div>
           ) : isCheckingAvailability ? (
@@ -324,7 +227,7 @@ export default function DomainsPage() {
                         {isFetchingFee ? (
                           <Loader2 className="inline h-5 w-5 animate-spin" />
                         ) : formattedFee !== null ? (
-                          `${formattedFee} ABEY`
+                          formattedFee
                         ) : (
                           "—"
                         )}
@@ -333,7 +236,7 @@ export default function DomainsPage() {
                     <button
                       type="button"
                       onClick={handleRegister}
-                      disabled={isRegistering || isFetchingFee || !fee}
+                      disabled={isRegistering || isFetchingFee || fee === 0n}
                       className="-rotate-[0.3deg] border-[3px] border-black bg-[#FF7F41] px-6 py-3 text-sm font-black uppercase tracking-wider [box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,7px_7px_0_0_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:[box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000] flex items-center gap-2"
                     >
                       {isRegistering ? (
