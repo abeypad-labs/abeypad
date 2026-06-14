@@ -278,7 +278,7 @@ export default function Home() {
           </p>
           <div className="flex gap-4">
             <a
-              href="https://x.com/abeypad_"
+              href="https://x.com/abeypad"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center border-[2px] border-black bg-[#42C9FF] text-black transition-all hover:-translate-y-1"
@@ -294,7 +294,7 @@ export default function Home() {
               <TelegramIcon size={18} />
             </a>
             <a
-              href="https://abeyscan.com"
+              href="https://abeypad.gitbook.io/abeypad/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center border-[2px] border-black bg-[#B8EF53] text-black transition-all hover:-translate-y-1"
