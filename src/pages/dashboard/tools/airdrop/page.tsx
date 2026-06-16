@@ -344,9 +344,9 @@ export default function AirdropPage() {
                   />
                   <div>
                     <p className="font-black uppercase text-sm sm:text-base">
-                      ERC-20 Token
+                      ARC-20 Token
                     </p>
-                    <p className="text-xs text-gray-600">Any ERC-20 token</p>
+                    <p className="text-xs text-gray-600">Any ARC-20 token</p>
                   </div>
                 </div>
               </button>
