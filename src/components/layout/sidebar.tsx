@@ -68,24 +68,44 @@ const SidebarContent = () => {
           </div>
 
           <div className="mb-4">
-            <p className="text-3xl font-black leading-none">
-              {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-            </p>
-            <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
-            {(qfPriceUsd ?? 0) > 0 && (
-              <p className="mt-1 text-xs font-bold">
-                ~$
-                {valueUsd < 0.01 && valueUsd > 0
-                  ? valueUsd.toLocaleString(undefined, {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4,
-                  })
-                  : valueUsd.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-              </p>
+            {qfPriceUsd !== null && qfPriceUsd > 0 ? (
+              <>
+                <p className="text-3xl font-black leading-none">
+                  $
+                  {valueUsd < 0.01 && valueUsd > 0
+                    ? valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 4,
+                      maximumFractionDigits: 4,
+                    })
+                    : valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-black/60">USD Balance</p>
+                <p className="mt-2 text-xs font-bold font-mono">
+                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} ABEY
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-black leading-none">
+                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                </p>
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
+              </>
             )}
+
+            <div className="mt-4 border-t border-black/10 pt-3 flex items-center justify-between text-[11px] font-bold">
+              <span className="text-black/60 uppercase tracking-wider text-[9px] font-black">ABEY Price</span>
+              {qfPriceUsd !== null ? (
+                <span className="bg-[#B8EF53] border border-black px-1.5 py-0.5 rounded text-[10px] font-mono font-black shadow-[1px_1px_0_rgba(0,0,0,1)]">
+                  ${qfPriceUsd.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                </span>
+              ) : (
+                <span className="text-black/40 font-mono animate-pulse">Loading...</span>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3">

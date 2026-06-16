@@ -12,7 +12,7 @@ import {
 const AUTO_REFRESH_INTERVAL = 10000;
 
 const PRESALE_CREATED_EVENT = parseAbiItem(
-  'event PresaleCreated(address indexed creator, address indexed presale, address indexed saleToken, address paymentToken, bool requiresWhitelist)'
+  'event PresaleCreated(address indexed creator, address indexed presale, address indexed saleToken, address paymentToken)'
 );
 
 type WhitelistMap = Record<string, boolean>;
@@ -31,7 +31,7 @@ async function fetchAllWhitelistFlags(
   for (const log of logs) {
     const presaleAddr = (log.args?.presale as Address | undefined)?.toLowerCase();
     if (presaleAddr) {
-      map[presaleAddr] = Boolean(log.args?.requiresWhitelist);
+      map[presaleAddr] = false;
     }
   }
   return map;
@@ -50,8 +50,7 @@ async function fetchWhitelistFlag(
   });
 
   if (logs.length === 0) return false;
-  const latest = logs[logs.length - 1];
-  return Boolean(latest.args?.requiresWhitelist);
+  return false;
 }
 
 const presaleFactoryAbi = PresaleFactoryContract.abi as unknown as Abi;

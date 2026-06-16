@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { isAddress, type Address } from "viem";
-import { Users, Coins, Settings, ArrowRight } from "lucide-react";
+import { Users, Coins, Settings, ArrowRight, PlusCircle } from "lucide-react";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
 function AdminDashboardContent() {
@@ -135,7 +135,24 @@ function AdminDashboardContent() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-3 mb-8">
+      <div className="grid gap-6 md:grid-cols-4 mb-8">
+        <Link to="/admin/create-presale">
+          <Card className="before:hidden border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer bg-white">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-[#FF7F41] border-2 border-black">
+                  <PlusCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-black uppercase tracking-wider">Create Presale</p>
+                  <p className="text-sm text-gray-600">Deploy a presale contract</p>
+                </div>
+              </div>
+              <ArrowRight className="w-6 h-6" />
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link to="/admin/presales">
           <Card className="before:hidden border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer bg-white">
             <CardContent className="p-6 flex items-center justify-between">

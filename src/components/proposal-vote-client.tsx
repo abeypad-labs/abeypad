@@ -1,5 +1,3 @@
-
-
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -11,7 +9,6 @@ type Proposal = {
     votesAgainst: number;
     description: string;
     endTime: string;
-    // add other fields as needed
 };
 
 export default function ProposalVoteClient({ initialProposal }: { initialProposal: Proposal; }) {
@@ -91,8 +88,8 @@ export default function ProposalVoteClient({ initialProposal }: { initialProposa
                             <button
                                 onClick={() => setVoteDirection('for')}
                                 className={`p-8 text-3xl font-black uppercase border-4 border-black transition-all flex flex-col items-center justify-center ${voteDirection === 'for'
-                                        ? 'bg-[#B8EF53] text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -translate-x-1 -translate-y-1'
-                                        : 'bg-[#42C9FF] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1'
+                                    ? 'bg-[#B8EF53] text-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -translate-x-1 -translate-y-1'
+                                    : 'bg-[#42C9FF] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1'
                                     }`}
                             >
                                 VOTE FOR
@@ -101,8 +98,8 @@ export default function ProposalVoteClient({ initialProposal }: { initialProposa
                             <button
                                 onClick={() => setVoteDirection('against')}
                                 className={`p-8 text-3xl font-black uppercase border-4 border-black transition-all flex flex-col items-center justify-center ${voteDirection === 'against'
-                                        ? 'bg-[#FF7F41] text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -translate-x-1 -translate-y-1'
-                                        : 'bg-[#FFFF00] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1'
+                                    ? 'bg-[#FF7F41] text-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -translate-x-1 -translate-y-1'
+                                    : 'bg-[#FFFF00] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1'
                                     }`}
                             >
                                 VOTE AGAINST

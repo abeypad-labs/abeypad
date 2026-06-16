@@ -27,3 +27,4 @@ export { useANSRelease } from './useANSRelease';
 export { useANSSetAddr } from './useANSSetAddr';
 export { useANSSetText } from './useANSSetText';
 export { useWatchRegistrations } from './useWatchRegistrations';
+export { useSimulatedWrite } from './useSimulatedWrite';

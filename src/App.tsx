@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./AppLayout";
 import AdminDashboard from "./pages/admin/page";
+import AdminCreatePresalePage from "./pages/admin/create-presale/page";
 import AdminPresales from "./pages/admin/presales/page";
 import AdminWhitelist from "./pages/admin/whitelist/page";
 import CreateNftPage from "./pages/dashboard/create/nft/page";
@@ -48,6 +49,7 @@ function App() {
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/locks/:id" element={<LockDetailPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/create-presale" element={<AdminCreatePresalePage />} />
             <Route path="/admin/presales" element={<AdminPresales />} />
             <Route path="/admin/whitelist" element={<AdminWhitelist />} />
           </Route>

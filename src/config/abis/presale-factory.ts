@@ -72,12 +72,7 @@ export const PresaleFactory = {
                 }
               ]
             },
-            { "name": "owner", "type": "address", "internalType": "address" },
-            {
-              "name": "requiresWhitelist",
-              "type": "bool",
-              "internalType": "bool"
-            }
+            { "name": "owner", "type": "address", "internalType": "address" }
           ]
         }
       ],
@@ -203,12 +198,6 @@ export const PresaleFactory = {
           "type": "address",
           "indexed": false,
           "internalType": "address"
-        },
-        {
-          "name": "requiresWhitelist",
-          "type": "bool",
-          "indexed": false,
-          "internalType": "bool"
         }
       ],
       "anonymous": false

@@ -68,23 +68,32 @@ const SidebarContent = () => {
           </div>
 
           <div className="mb-4">
-            <p className="text-3xl font-black leading-none">
-              {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-            </p>
-            <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
-            {(qfPriceUsd ?? 0) > 0 && (
-              <p className="mt-1 text-xs font-bold">
-                ~$
-                {valueUsd < 0.01 && valueUsd > 0
-                  ? valueUsd.toLocaleString(undefined, {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4,
-                  })
-                  : valueUsd.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-              </p>
+            {qfPriceUsd !== null && qfPriceUsd > 0 ? (
+              <>
+                <p className="text-3xl font-black leading-none">
+                  $
+                  {valueUsd < 0.01 && valueUsd > 0
+                    ? valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 4,
+                      maximumFractionDigits: 4,
+                    })
+                    : valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-black/60">USD Balance</p>
+                <p className="mt-2 text-xs font-bold font-mono">
+                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} ABEY
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-black leading-none">
+                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                </p>
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
+              </>
             )}
           </div>
 

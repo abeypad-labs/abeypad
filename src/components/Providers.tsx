@@ -3,15 +3,15 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
-import { abey } from "viem/chains";
+import { ACTIVE_CHAIN } from "@/config";
 import { WagmiProvider, http } from "wagmi";
 
 const config = getDefaultConfig({
   appName: 'AbeyPad',
   projectId: '9ef8a1835f8d9515949514f77259f972',
-  chains: [abey],
+  chains: [ACTIVE_CHAIN],
   transports: {
-    [abey.id]: http(),
+    [ACTIVE_CHAIN.id]: http(),
   },
 });
 

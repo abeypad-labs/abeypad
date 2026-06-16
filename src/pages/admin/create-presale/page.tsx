@@ -1,22 +1,20 @@
+import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PresaleFactory } from "@/config";
+import { PresaleFactory, erc20Abi } from "@/config";
 import { useChainContracts } from "@/lib/hooks/useChainContracts";
-// LaunchpadService removed - data is now stored only on blockchain
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
-import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   decodeEventLog,
   parseEther,
   parseUnits,
   type Abi,
-  type Address,
   isAddress,
 } from "viem";
 import {
@@ -25,23 +23,22 @@ import {
   useWaitForTransactionReceipt,
   useSimulatedWrite,
 } from "@/lib/hooks";
-import { erc20Abi } from "@/config";
+import { ArrowLeft } from "lucide-react";
 
 interface PresaleFormData {
   saleToken: string;
   paymentToken: string;
   startTime: string;
   endTime: string;
-  saleAmount: string; // Total tokens to sell (replaces rate)
+  saleAmount: string;
   softCap: string;
   hardCap: string;
   minContribution: string;
   maxContribution: string;
   owner: string;
-  requiresWhitelist: boolean;
 }
 
-function CreatePresaleForm({
+function AdminCreatePresaleForm({
   formData,
   setFormData,
   onPresaleCreated,
@@ -64,10 +61,8 @@ function CreatePresaleForm({
     minContribution,
     maxContribution,
     owner,
-    requiresWhitelist,
   } = formData;
 
-  // Fetch sale token decimals
   const { data: saleTokenDecimals } = useReadContract({
     address: saleToken as `0x${string}` | undefined,
     abi: erc20Abi,
@@ -89,15 +84,6 @@ function CreatePresaleForm({
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleToggleWhitelist = (checked?: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      requiresWhitelist:
-        typeof checked === "boolean" ? checked : !prev.requiresWhitelist,
-    }));
-  };
-
-  // Pre-validate form inputs to prevent unnecessary RPC calls and provide clean feedback
   const validationError = useMemo(() => {
     if (!saleToken) return "Sale Token Address is required.";
     if (!isAddress(saleToken)) return "Invalid Sale Token Address format.";
@@ -109,7 +95,6 @@ function CreatePresaleForm({
     const start = new Date(startTime).getTime();
     const end = new Date(endTime).getTime();
     if (start >= end) return "End time must be after the start time.";
-    if (start < Date.now() - 60000) return "Start time cannot be in the past.";
 
     if (!saleAmount || Number(saleAmount) <= 0) return "Sale Amount must be greater than 0.";
     if (!hardCap || Number(hardCap) <= 0) return "Hard Cap must be greater than 0.";
@@ -133,7 +118,6 @@ function CreatePresaleForm({
     owner,
   ]);
 
-  // Construct contract creation parameters only when validation passes
   const params = useMemo(() => {
     if (validationError) return undefined;
 
@@ -176,7 +160,6 @@ function CreatePresaleForm({
     decimals,
   ]);
 
-  // Setup simulation-first contract writing hook
   const {
     write,
     isSimulating,
@@ -209,24 +192,14 @@ function CreatePresaleForm({
 
   return (
     <>
-      <div className="border-2 border-black bg-gray-50 p-4 sm:p-5 space-y-2">
+      <div className="border-2 border-black bg-[#FFF2D5] p-4 space-y-2">
         <p className="text-xs font-black uppercase tracking-wider text-gray-800">
-          Launchpad Custody & Fees
+          Admin Presale Creation
         </p>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-gray-700 leading-relaxed">
-          <li>
-            Deposit your sale tokens once—each presale contract holds custody
-            for contributors.
-          </li>
-          <li>
-            2% of the total token supply is routed to the launchpad
-            automatically, so approve a little extra before depositing.
-          </li>
-          <li>
-            3% of the native/payment tokens raised are collected when you
-            withdraw proceeds.
-          </li>
-        </ul>
+        <p className="text-sm text-gray-700">
+          You are creating a presale as admin — no whitelist check required.
+          The presale owner field can be set to any address.
+        </p>
       </div>
 
       {displayError && (
@@ -260,7 +233,7 @@ function CreatePresaleForm({
           />
         </div>
       </div>
-      {/* START / END TIME */}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="startTime">Start Time</Label>
@@ -272,7 +245,6 @@ function CreatePresaleForm({
             onChange={handleChange}
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="endTime">End Time</Label>
           <Input
@@ -284,145 +256,78 @@ function CreatePresaleForm({
           />
         </div>
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="saleAmount">Total Tokens for Sale</Label>
         <Input
           id="saleAmount"
           type="number"
-          placeholder="e.g. 1000000 (total tokens to sell)"
+          placeholder="e.g. 1000000"
           value={saleAmount}
           onChange={handleChange}
         />
-        <p className="text-xs text-gray-500 leading-relaxed">
-          Total number of tokens you want to sell. The rate will be
-          automatically calculated based on your Hard Cap.
-        </p>
-        {saleAmount &&
-          hardCap &&
-          Number(saleAmount) > 0 &&
-          Number(hardCap) > 0 && (
-            <div className="mt-2 rounded border border-black/20 bg-gray-50 p-3 text-xs">
-              <p className="font-semibold uppercase tracking-wide text-gray-700">
-                Calculated Rate
-              </p>
-              <p>
-                {(Number(saleAmount) / Number(hardCap)).toFixed(2)} tokens per{" "}
-                {paymentToken ? "payment token" : "ABEY"}
-              </p>
-            </div>
-          )}
+        {saleAmount && hardCap && Number(saleAmount) > 0 && Number(hardCap) > 0 && (
+          <div className="rounded border border-black/20 bg-gray-50 p-3 text-xs">
+            <p className="font-semibold uppercase tracking-wide text-gray-700">Calculated Rate</p>
+            <p>
+              {(Number(saleAmount) / Number(hardCap)).toFixed(2)} tokens per{" "}
+              {paymentToken ? "payment token" : "ABEY"}
+            </p>
+          </div>
+        )}
       </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="softCap">Soft Cap</Label>
-          <Input
-            id="softCap"
-            type="number"
-            placeholder="10"
-            value={softCap}
-            onChange={handleChange}
-          />
+          <Input id="softCap" type="number" placeholder="10" value={softCap} onChange={handleChange} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="hardCap">Hard Cap</Label>
-          <Input
-            id="hardCap"
-            type="number"
-            placeholder="100"
-            value={hardCap}
-            onChange={handleChange}
-          />
+          <Input id="hardCap" type="number" placeholder="100" value={hardCap} onChange={handleChange} />
         </div>
       </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="minContribution">Min Contribution</Label>
-          <Input
-            id="minContribution"
-            type="number"
-            placeholder="0.1"
-            value={minContribution}
-            onChange={handleChange}
-          />
+          <Input id="minContribution" type="number" placeholder="0.1" value={minContribution} onChange={handleChange} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="maxContribution">Max Contribution</Label>
-          <Input
-            id="maxContribution"
-            type="number"
-            placeholder="10"
-            value={maxContribution}
-            onChange={handleChange}
-          />
+          <Input id="maxContribution" type="number" placeholder="10" value={maxContribution} onChange={handleChange} />
         </div>
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="owner">Presale Owner</Label>
         <Input
           id="owner"
-          placeholder="0x..."
+          placeholder="0x... (defaults to your wallet)"
           value={owner}
           onChange={handleChange}
         />
       </div>
-      <div className="border-2 border-black bg-white p-4 sm:p-5 space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-wider text-gray-800">
-              Whitelist Access
-            </p>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {requiresWhitelist
-                ? "Only wallets you approve will be able to contribute. Perfect for private or KYC-based launches."
-                : "Anyone can contribute while the presale is live."}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold uppercase tracking-wide text-gray-600">
-              {requiresWhitelist ? "Enabled" : "Disabled"}
-            </span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={requiresWhitelist}
-                onChange={(event) =>
-                  handleToggleWhitelist(event.target.checked)
-                }
-              />
-              <div className="h-7 w-12 rounded-full border-2 border-black bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] transition-colors peer-checked:bg-black" />
-              <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-black transition-transform peer-checked:translate-x-5 peer-checked:bg-white" />
-            </label>
-          </div>
-        </div>
-        <p className="text-xs text-gray-600 leading-relaxed">
-          You can add or remove addresses from the whitelist as soon as your
-          presale is deployed.
-        </p>
-      </div>
+
       <Button
         onClick={handleCreatePresale}
         disabled={isSimulating || isWritePending}
-        className="w-full py-6 text-base font-bold uppercase tracking-wide"
+        className="w-full py-6 text-base font-black uppercase tracking-wider border-4 border-black bg-[#FF7F41] text-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#1E5BFF] hover:text-white"
       >
-        {isSimulating ? "Simulating..." : isWritePending ? "Creating Presale..." : "Create Presale"}
+        {isSimulating ? "Simulating..." : isWritePending ? "Creating Presale..." : "Create Presale (Admin)"}
       </Button>
     </>
   );
 }
 
-export default function CreatePresalePage() {
-  const [searchParams] = useSearchParams();
+function AdminCreatePresaleContent() {
   const navigate = useNavigate();
   const { address } = useAccount();
   const { setPresales } = useBlockchainStore();
-  const { isWhitelisted, isLoading: isLoadingWhitelist } =
-    useWhitelistedCreator(address as Address | undefined);
-  const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(
-    undefined
-  );
-  const [formData, setFormData] = useState({
-    saleToken: searchParams.get("token") ?? "",
+
+  const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(undefined);
+  const [formData, setFormData] = useState<PresaleFormData>({
+    saleToken: "",
     paymentToken: "",
     startTime: "",
     endTime: "",
@@ -432,16 +337,7 @@ export default function CreatePresalePage() {
     minContribution: "",
     maxContribution: "",
     owner: address ?? "",
-    requiresWhitelist: false,
   });
-
-  // Redirect to project submission if not whitelisted
-  useEffect(() => {
-    if (!isLoadingWhitelist && address && isWhitelisted === false) {
-      toast.info("Please submit a project first before creating a presale.");
-      navigate("/dashboard/create/project");
-    }
-  }, [isLoadingWhitelist, isWhitelisted, address, navigate]);
 
   const {
     data: receipt,
@@ -449,11 +345,6 @@ export default function CreatePresalePage() {
     isSuccess: isConfirmed,
   } = useWaitForTransactionReceipt({ hash: creationHash });
 
-  // Derive presale address from receipt instead of using state.
-  // NOTE: PAPI receipts don't include EVM logs, so decodeEventLog won't find
-  // the PresaleCreated event. When logs are empty we fall back to null and the
-  // success handler still fires (the presale is created, we just can't decode
-  // the address from logs). A future improvement could fetch logs via ETH-RPC.
   const newPresaleAddress = useMemo(() => {
     if (!receipt) return null;
     const logs = receipt.logs ?? [];
@@ -465,15 +356,11 @@ export default function CreatePresalePage() {
           data: log.data,
           topics: log.topics,
         });
-        if (
-          event.eventName === "PresaleCreated" &&
-          event.args &&
-          "presale" in event.args
-        ) {
+        if (event.eventName === "PresaleCreated" && event.args && "presale" in event.args) {
           return event.args.presale as `0x${string}`;
         }
       } catch {
-        // Not the event we're looking for
+        // not the event we want
       }
     }
     return null;
@@ -484,85 +371,70 @@ export default function CreatePresalePage() {
 
   useEffect(() => {
     if (isConfirming && !creationToastId.current) {
-      creationToastId.current = toast.loading("Presale creation confirming...");
+      creationToastId.current = toast.loading("Confirming presale creation...");
     } else if (!isConfirming && creationToastId.current) {
       toast.dismiss(creationToastId.current);
       creationToastId.current = null;
     }
   }, [isConfirming]);
 
-  // Database storage removed - presale data is now stored entirely on blockchain
-  const savePresaleToDatabase = useCallback(
-    async (presaleAddress: `0x${string}`, txHash: string) => {
-      // No-op: All presale data is now stored on blockchain and fetched via hooks
-      console.log(
-        "Presale created at address:",
-        presaleAddress,
-        "with tx:",
-        txHash
-      );
+  const handlePresaleCreated = useCallback(
+    (presaleAddress: `0x${string}`, txHash: string) => {
+      console.log("Admin presale created at:", presaleAddress, "tx:", txHash);
     },
     []
   );
 
   useEffect(() => {
-    if (
-      isConfirmed &&
-      newPresaleAddress &&
-      creationHash &&
-      !hasProcessedRef.current
-    ) {
+    if (isConfirmed && newPresaleAddress && creationHash && !hasProcessedRef.current) {
       hasProcessedRef.current = true;
       toast.success(
-        `Presale created successfully! Tx: ${creationHash.slice(
-          0,
-          10
-        )}...${creationHash.slice(-8)}`
+        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`
       );
-      // Invalidate the presales cache to force refetch
       setPresales([]);
-      // Save presale to Supabase with transaction hash
-      savePresaleToDatabase(newPresaleAddress, creationHash);
-      // Redirect to manage page
+      handlePresaleCreated(newPresaleAddress, creationHash);
       navigate(`/dashboard/presales/manage/${newPresaleAddress}`);
     }
-  }, [
-    isConfirmed,
-    newPresaleAddress,
-    creationHash,
-    setPresales,
-    savePresaleToDatabase,
-    navigate,
-  ]);
+  }, [isConfirmed, newPresaleAddress, creationHash, setPresales, handlePresaleCreated, navigate]);
 
-  // Show loading state while checking whitelist
-  if (isLoadingWhitelist || !address) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-black">
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="py-12 text-center">
-            <p className="text-lg text-gray-600">Checking access...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Don't render form if not whitelisted (redirect will happen)
-  if (isWhitelisted === false) {
-    return null;
-  }
+  // Handle case where tx confirmed but logs not decoded (PAPI limitation)
+  useEffect(() => {
+    if (isConfirmed && !newPresaleAddress && creationHash && !hasProcessedRef.current) {
+      hasProcessedRef.current = true;
+      toast.success(
+        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`
+      );
+      setPresales([]);
+      navigate("/admin/presales");
+    }
+  }, [isConfirmed, newPresaleAddress, creationHash, setPresales, navigate]);
 
   return (
-    <div className="container mx-auto px-4 py-12 text-black">
+    <div className="container mx-auto py-8 px-4">
+      <div className="mb-8">
+        <Link
+          to="/admin"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-black mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-bold">Back to Admin</span>
+        </Link>
+        <div className="border-b-4 border-black bg-[#FF7F41] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+          <h1 className="text-4xl font-black uppercase tracking-wider">Create Presale</h1>
+          <p className="text-sm text-gray-800 mt-2">
+            Admin-only presale creation — interacts directly with the PresaleFactory contract.
+          </p>
+        </div>
+      </div>
+
       <Card className="mx-auto max-w-3xl border-4 border-black pt-0 pb-6 shadow-[6px_6px_0_rgba(0,0,0,1)]">
         <CardHeader className="border-b-2 border-black bg-white pt-4">
-          <CardTitle className="text-2xl font-black uppercase tracking-wider text-center sm:text-left">
-            Create a new Presale
+          <CardTitle className="text-2xl font-black uppercase tracking-wider">
+            New Presale
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 sm:space-y-8">
-          <CreatePresaleForm
+          <AdminCreatePresaleForm
             formData={formData}
             setFormData={setFormData}
             onPresaleCreated={(hash) => setCreationHash(hash)}
@@ -570,5 +442,13 @@ export default function CreatePresalePage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AdminCreatePresalePage() {
+  return (
+    <AdminRoute>
+      <AdminCreatePresaleContent />
+    </AdminRoute>
   );
 }
