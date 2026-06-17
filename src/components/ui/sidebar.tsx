@@ -95,7 +95,7 @@ const SidebarContent = () => {
                 <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
               </>
             )}
-          </div>
+            </div>
 
           <div className="space-y-3">
             <button
