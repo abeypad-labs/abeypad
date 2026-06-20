@@ -320,7 +320,7 @@ export default function DomainsPage() {
               </h1>
             </div>
             <p className="mt-4 text-base font-bold text-black/80 max-w-2xl leading-relaxed">
-              Claim your unique web3 handle. Map simple names directly to your wallet address, manage your assets, and host decentralized sites on AbeyChain.
+              Claim your unique web3 handle. Map simple names directly to your wallet address, manage your assets, and host decentralized sites on Abeychain.
             </p>
           </div>
         </div>
