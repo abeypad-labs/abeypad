@@ -60,7 +60,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-3">
             <Link to="/" className="inline-flex items-center gap-3">
               <img
-                src="/abeypad-logo.png"
+                src="/abeypad.png"
                 alt="AbeyPad logo"
                 className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
               />
