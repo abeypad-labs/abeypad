@@ -140,7 +140,7 @@ export default function Home() {
               MOON PROJECTS.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
-              Discover, back, and launch the most promising projects on the Abeychain.
+              Fundraise, create tokens & NFTs, secure liquidity, distribute airdrops, and claim your .abey identity — all from one platform.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -153,7 +153,7 @@ export default function Home() {
                 to="/dashboard/create"
                 className="rotate-[0.9deg] sm:rotate-[0.35deg] border-[3px] border-black bg-[#FF7F41] px-6 py-4 text-sm font-black uppercase tracking-[0.15em] [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] transition-all hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
               >
-                Launch My Project
+                Launch a Project
               </Link>
             </div>
           </div>
