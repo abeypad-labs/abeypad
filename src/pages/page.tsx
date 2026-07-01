@@ -135,9 +135,9 @@ export default function Home() {
         <section className="mb-16 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="neo-frame bg-[#FFF2D5] p-8 sm:p-10 animate-fade-in-up animation-delay-200">
             <h1 className="text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
-              LAUNCH IDEAS.
+              The Builder Stack
               <br />
-              MOON PROJECTS.
+              for Abey.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
               Fundraise, create tokens & NFTs, secure liquidity, distribute airdrops, and claim your .abey identity — all from one platform.
