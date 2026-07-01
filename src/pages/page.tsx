@@ -134,7 +134,7 @@ export default function Home() {
 
         <section className="mb-16 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="neo-frame bg-[#FFF2D5] p-8 sm:p-10 animate-fade-in-up animation-delay-200">
-            <h1 className="text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+           <h1 className="text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
               The Builder Stack
               <br />
               for Abey.
