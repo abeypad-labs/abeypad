@@ -47,7 +47,7 @@ const SidebarContent = () => {
       <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src="/abeypad-logo.png"
+            src="/abeypad.png"
             alt="AbeyPad logo"
             className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
           />
@@ -231,7 +231,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
           <div className="relative z-10 flex h-16 flex-shrink-0 items-center justify-between border-b-[3px] border-black bg-[#F5CF85] px-4 lg:hidden">
             <Link to="/" className="flex items-center gap-2 text-black">
               <img
-                src="/abeypad-logo.png"
+                src="/abeypad.png"
                 alt="AbeyPad logo"
                 className="h-8 w-8 rounded-[10px] border-[2px] border-black object-cover"
               />
