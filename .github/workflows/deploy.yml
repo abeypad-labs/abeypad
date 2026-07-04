@@ -35,6 +35,18 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Verify built app entrypoint
+        run: |
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo "dist/index.html still references /src/main.tsx; Vite did not bundle the app entrypoint." >&2
+            exit 1
+          fi
+
+          if ! grep -Eq 'src="/assets/[^"]+\.js"' dist/index.html; then
+            echo "dist/index.html does not reference a bundled JavaScript asset." >&2
+            exit 1
+          fi
+
       - name: Configure SSH
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
