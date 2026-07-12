@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
 import { usePublicClient, useReadContract, useReadContracts } from '@/lib/hooks';
 import { erc20Abi, parseAbiItem, type Abi, type Address, type PublicClient } from 'viem';
-import { PresaleFactoryContract, LaunchpadPresaleContract } from '@/config';
+import { PresaleFactoryContract, LaunchpadPresaleContract, CONTRACT_ADDRESSES } from '@/config';
 import {
   useLaunchpadPresaleStore,
   type PresaleData,
@@ -75,7 +74,7 @@ export function useLaunchpadPresales(filter: LaunchpadPresaleFilter = 'all', for
   } = useLaunchpadPresaleStore();
 
   const publicClient = usePublicClient();
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
   const [whitelistMap, setWhitelistMap] = useState<WhitelistMap>({});
 
   useEffect(() => {
@@ -391,7 +390,7 @@ export function useLaunchpadPresale(presaleAddress: Address | undefined, forceRe
   } = useLaunchpadPresaleStore();
 
   const publicClient = usePublicClient();
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
   const cachedPresale = presaleAddress ? getPresale(presaleAddress) : null;
   const [requiresWhitelist, setRequiresWhitelist] = useState<boolean | undefined>(cachedPresale?.requiresWhitelist);
 

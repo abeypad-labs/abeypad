@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { TokenLocker } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
-import { format, formatDistanceToNow } from "date-fns";
-import { useParams, Link } from "react-router-dom";
-import { useMemo } from "react";
-import { erc20Abi, formatUnits, type Abi } from "viem";
+import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+// import { useChainContracts } from "@/lib/hooks/useChainContracts";
 import { useReadContract } from "@/lib/hooks";
-import { Lock, Clock, ExternalLink, ArrowLeft, User, Coins, Calendar, Timer, CheckCircle2, XCircle } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { ArrowLeft, Calendar, CheckCircle2, Clock, Coins, ExternalLink, Lock, Timer, User, XCircle } from "lucide-react";
+import { useMemo } from "react";
+import { Link, useParams } from "react-router-dom";
+import { erc20Abi, formatUnits, type Abi } from "viem";
 
 interface LockInfo {
     token: `0x${string}`;
@@ -22,7 +22,7 @@ interface LockInfo {
 }
 
 function LockProgressBar({ lockDate, unlockDate }: { lockDate: bigint; unlockDate: bigint }) {
-    const now = Date.now();
+    const now = new Date().getTime();
 
     // Safe number conversions
     let lockTimestamp = 0;
@@ -92,7 +92,8 @@ function LockProgressBar({ lockDate, unlockDate }: { lockDate: bigint; unlockDat
 
 export default function LockDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const { explorerUrl, tokenLocker } = useChainContracts();
+    const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+    const explorerUrl = abeychainDevnet.blockExplorers.default.url;
 
     // Safe BigInt conversion
     let lockId: bigint | undefined = undefined;
@@ -151,13 +152,13 @@ export default function LockDetailPage() {
             console.error("Error formatting amount:", e);
             return '...';
         }
-    }, [lock?.amount, tokenDecimals]);
+    }, [lock, tokenDecimals]);
 
     const lockStatus = useMemo(() => {
         if (!lock) return 'unknown';
         if (lock.withdrawn) return 'withdrawn';
         try {
-            const now = Date.now();
+            const now = new Date().getTime();
             const unlockTimestamp = lock.unlockDate ? Number(lock.unlockDate) * 1000 : 0;
             return unlockTimestamp > 0 && now >= unlockTimestamp ? 'unlockable' : 'locked';
         } catch (e) {
@@ -213,8 +214,8 @@ export default function LockDetailPage() {
             {/* Header */}
             <div className="mb-6 sm:mb-8">
                 <div className={`-rotate-[0.4deg] border-4 border-black p-4 sm:p-6 shadow-[4px_4px_0_rgba(0,0,0,1)] ${lockStatus === 'withdrawn' ? 'bg-gray-300' :
-                        lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
-                            'bg-[#FFE38A]'
+                    lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
+                        'bg-[#FFE38A]'
                     }`}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
@@ -225,8 +226,8 @@ export default function LockDetailPage() {
                             </h1>
                         </div>
                         <div className={`px-3 py-1.5 sm:px-4 sm:py-2 border-4 border-black font-black uppercase text-xs sm:text-sm self-start sm:self-auto ${lockStatus === 'withdrawn' ? 'bg-gray-500 text-white' :
-                                lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
-                                    'bg-yellow-500 text-black'
+                            lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
+                                'bg-yellow-500 text-black'
                             }`}>
                             {lockStatus === 'withdrawn' ? '✓ Withdrawn' :
                                 lockStatus === 'unlockable' ? 'Unlockable' :

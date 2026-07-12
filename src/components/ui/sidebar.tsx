@@ -1,11 +1,10 @@
-import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
 import {
   useAccount,
   useBalance, useConnectModal, useDisconnect
 } from "@/lib/hooks";
+import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
 import { useIsAdmin } from "@/lib/utils/admin";
 import {
-  Globe,
   Layers,
   LayoutDashboard,
   Menu,
@@ -13,16 +12,23 @@ import {
   Rocket,
   Shield,
   WalletMinimal,
+  type LucideIcon,
 } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { Address } from "viem";
 
-const navItems = [
+type NavItem = {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+};
+
+const navItems: NavItem[] = [
   { name: "Dashboard", href: "/dashboard/user", icon: LayoutDashboard },
   { name: "Launchpad", href: "/projects", icon: Rocket },
   { name: "Staking", href: "/dashboard/staking", icon: Layers },
-  { name: "Domains", href: "/domains", icon: Globe },
 ];
 
 const actionButtonClass =
@@ -95,7 +101,7 @@ const SidebarContent = () => {
                 <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
               </>
             )}
-            </div>
+          </div>
 
           <div className="space-y-3">
             <button
@@ -113,10 +119,11 @@ const SidebarContent = () => {
         <ul className="space-y-4">
           {navItems.map((item, index) => {
             const isActive = pathname === item.href;
+            const isDisabled = item.disabled;
             return (
               <li key={item.name}>
                 <Link
-                  to={item.href}
+                  to={isDisabled ? "#" : item.href}
                   className={`group flex items-center gap-3 border-[3px] border-black px-4 py-3 text-xs font-black uppercase tracking-[0.14em] transition-all ${isActive
                     ? "bg-[#B8EF53] text-black [box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] -translate-x-1 -translate-y-1"
                     : "bg-white text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"

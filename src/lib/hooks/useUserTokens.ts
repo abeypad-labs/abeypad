@@ -1,10 +1,9 @@
 import { useAccount, useReadContract } from '@/lib/hooks';
-import { TokenFactory } from '../../config';
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
+import { TokenFactory, CONTRACT_ADDRESSES } from '../../config';
 
 export function useUserTokens() {
   const { address } = useAccount();
-  const { tokenFactory } = useChainContracts();
+  const { tokenFactory } = CONTRACT_ADDRESSES;
 
   const { data, isLoading, isError, refetch } = useReadContract({
     abi: TokenFactory.abi,

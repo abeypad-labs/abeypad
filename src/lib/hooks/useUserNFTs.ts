@@ -1,10 +1,9 @@
 import { useAccount, useReadContract } from '@/lib/hooks';
-import { NFTFactoryContract } from '../../config';
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
+import { NFTFactoryContract, CONTRACT_ADDRESSES } from '../../config';
 
 export function useUserNFTs() {
   const { address } = useAccount();
-  const { nftFactory } = useChainContracts();
+  const { nftFactory } = CONTRACT_ADDRESSES;
 
   const { data, isLoading, isError, refetch } = useReadContract({
     abi: NFTFactoryContract.abi,

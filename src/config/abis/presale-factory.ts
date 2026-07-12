@@ -3,204 +3,295 @@ import { CONTRACT_ADDRESSES } from "../contracts";
 export const PresaleFactory = {
   address: CONTRACT_ADDRESSES.presaleFactory,
   abi: [
-    { "type": "constructor", "inputs": [], "stateMutability": "nonpayable" },
     {
-      "type": "function",
-      "name": "allPresales",
-      "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
-      "stateMutability": "view"
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
     },
     {
-      "type": "function",
-      "name": "createPresale",
       "inputs": [
         {
-          "name": "params",
-          "type": "tuple",
-          "internalType": "struct PresaleFactory.CreateParams",
           "components": [
             {
+              "internalType": "address",
               "name": "saleToken",
-              "type": "address",
-              "internalType": "address"
+              "type": "address"
             },
             {
+              "internalType": "address",
               "name": "paymentToken",
-              "type": "address",
-              "internalType": "address"
+              "type": "address"
             },
             {
-              "name": "config",
-              "type": "tuple",
-              "internalType": "struct PresaleConfig",
               "components": [
                 {
+                  "internalType": "uint64",
                   "name": "startTime",
-                  "type": "uint64",
-                  "internalType": "uint64"
+                  "type": "uint64"
                 },
                 {
+                  "internalType": "uint64",
                   "name": "endTime",
-                  "type": "uint64",
-                  "internalType": "uint64"
+                  "type": "uint64"
                 },
                 {
+                  "internalType": "uint256",
                   "name": "rate",
-                  "type": "uint256",
-                  "internalType": "uint256"
+                  "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
                   "name": "softCap",
-                  "type": "uint256",
-                  "internalType": "uint256"
+                  "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
                   "name": "hardCap",
-                  "type": "uint256",
-                  "internalType": "uint256"
+                  "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
                   "name": "minContribution",
-                  "type": "uint256",
-                  "internalType": "uint256"
+                  "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
                   "name": "maxContribution",
-                  "type": "uint256",
-                  "internalType": "uint256"
+                  "type": "uint256"
                 }
-              ]
+              ],
+              "internalType": "struct PresaleConfig",
+              "name": "config",
+              "type": "tuple"
             },
-            { "name": "owner", "type": "address", "internalType": "address" }
-          ]
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct PresaleFactory.CreateParams",
+          "name": "params",
+          "type": "tuple"
         }
       ],
+      "name": "createPresale",
       "outputs": [
-        { "name": "presale", "type": "address", "internalType": "address" }
-      ],
-      "stateMutability": "nonpayable"
-    },
-    {
-      "type": "function",
-      "name": "factoryOwner",
-      "inputs": [],
-      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "feeRecipient",
-      "inputs": [],
-      "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "presalesCreatedBy",
-      "inputs": [
-        { "name": "creator", "type": "address", "internalType": "address" }
-      ],
-      "outputs": [
-        { "name": "", "type": "address[]", "internalType": "address[]" }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "setFeeRecipient",
-      "inputs": [
-        { "name": "newRecipient", "type": "address", "internalType": "address" }
-      ],
-      "outputs": [],
-      "stateMutability": "nonpayable"
-    },
-    {
-      "type": "function",
-      "name": "setWhitelistedCreator",
-      "inputs": [
-        { "name": "creator", "type": "address", "internalType": "address" },
-        { "name": "whitelisted", "type": "bool", "internalType": "bool" }
-      ],
-      "outputs": [],
-      "stateMutability": "nonpayable"
-    },
-    {
-      "type": "function",
-      "name": "totalPresales",
-      "inputs": [],
-      "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "whitelistedCreators",
-      "inputs": [{ "name": "", "type": "address", "internalType": "address" }],
-      "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
-      "stateMutability": "view"
-    },
-    {
-      "type": "event",
-      "name": "CreatorWhitelisted",
-      "inputs": [
         {
-          "name": "creator",
-          "type": "address",
-          "indexed": true,
-          "internalType": "address"
-        },
-        {
-          "name": "whitelisted",
-          "type": "bool",
-          "indexed": false,
-          "internalType": "bool"
-        }
-      ],
-      "anonymous": false
-    },
-    {
-      "type": "event",
-      "name": "FeeRecipientUpdated",
-      "inputs": [
-        {
-          "name": "newRecipient",
-          "type": "address",
-          "indexed": true,
-          "internalType": "address"
-        }
-      ],
-      "anonymous": false
-    },
-    {
-      "type": "event",
-      "name": "PresaleCreated",
-      "inputs": [
-        {
-          "name": "creator",
-          "type": "address",
-          "indexed": true,
-          "internalType": "address"
-        },
-        {
+          "internalType": "address",
           "name": "presale",
-          "type": "address",
-          "indexed": true,
-          "internalType": "address"
-        },
-        {
-          "name": "saleToken",
-          "type": "address",
-          "indexed": true,
-          "internalType": "address"
-        },
-        {
-          "name": "paymentToken",
-          "type": "address",
-          "indexed": false,
-          "internalType": "address"
+          "type": "address"
         }
       ],
-      "anonymous": false
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "initialOwner",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "creator",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "presale",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "saleToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "paymentToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "presaleOwner",
+          "type": "address"
+        }
+      ],
+      "name": "PresaleCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "allPresales",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pendingOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "presaleOwner",
+          "type": "address"
+        }
+      ],
+      "name": "presalesByOwner",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalPresales",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     }
   ] as const
 } as const

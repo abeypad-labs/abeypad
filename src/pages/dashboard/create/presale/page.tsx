@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PresaleFactory } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
 // LaunchpadService removed - data is now stored only on blockchain
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
@@ -51,7 +50,7 @@ function CreatePresaleForm({
   onPresaleCreated: (hash: `0x${string}`) => void;
 }) {
   const { address } = useAccount();
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
 
   const {
     saleToken,
@@ -435,13 +434,7 @@ export default function CreatePresalePage() {
     requiresWhitelist: false,
   });
 
-  // Redirect to project submission if not whitelisted
-  useEffect(() => {
-    if (!isLoadingWhitelist && address && isWhitelisted === false) {
-      toast.info("Please submit a project first before creating a presale.");
-      navigate("/dashboard/create/project");
-    }
-  }, [isLoadingWhitelist, isWhitelisted, address, navigate]);
+  // Creation is permissionless by default; no whitelist restriction is enforced.
 
   const {
     data: receipt,

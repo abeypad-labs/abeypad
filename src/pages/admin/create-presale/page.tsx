@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PresaleFactory, erc20Abi } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { PresaleFactory, erc20Abi, CONTRACT_ADDRESSES } from "@/config";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -48,7 +47,7 @@ function AdminCreatePresaleForm({
   onPresaleCreated: (hash: `0x${string}`) => void;
 }) {
   const { address } = useAccount();
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
 
   const {
     saleToken,

@@ -3,30 +3,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { TokenLocker } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
-import { useAllLocks } from "@/lib/hooks/useAllLocks";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
-import { formatDistanceToNow, format } from "date-fns";
-import { useSearchParams, Link } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import { erc20Abi, maxUint256, parseUnits, type Abi } from "viem";
+import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
+import { useAllLocks } from "@/lib/hooks/useAllLocks";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { format, formatDistanceToNow } from "date-fns";
 import {
-  Lock,
   ExternalLink,
-  Plus,
   Eye,
+  Lock,
+  Plus,
+  Send,
   Timer,
   Unlock,
-  Send,
 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { erc20Abi, maxUint256, parseUnits, type Abi } from "viem";
 
 interface LockData {
   id: bigint;
@@ -49,7 +48,7 @@ function LockProgressBar({
   lockDate: bigint;
   unlockDate: bigint;
 }) {
-  const now = Date.now();
+  const now = new Date().getTime();
 
   // Safe number conversions
   let lockTimestamp = 0;
@@ -153,10 +152,10 @@ function LockCard({
     <Card className="border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0 overflow-hidden">
       <CardHeader
         className={`border-b-2 border-black p-4 ${isWithdrawn
-            ? "bg-gray-200"
-            : isUnlocked
-              ? "bg-[#90EE90]"
-              : "bg-[#FFE38A]"
+          ? "bg-gray-200"
+          : isUnlocked
+            ? "bg-[#90EE90]"
+            : "bg-[#FFE38A]"
           }`}
       >
         <div className="flex items-center justify-between">
@@ -259,7 +258,7 @@ function CreateLockModal({
 }) {
   const [searchParams] = useSearchParams();
   const { address } = useAccount();
-  const { tokenLocker } = useChainContracts();
+  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
 
   const {
     data: lockHash,
@@ -661,7 +660,7 @@ function ExtendLockModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const { tokenLocker } = useChainContracts();
+  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
   const [additionalDays, setAdditionalDays] = useState("");
   const {
     data: hash,
@@ -770,7 +769,7 @@ function TransferLockModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const { tokenLocker } = useChainContracts();
+  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
   const [newOwner, setNewOwner] = useState("");
   const {
     data: hash,
@@ -863,7 +862,8 @@ function TransferLockModal({
 
 export default function TokenLockerPage() {
   const { address } = useAccount();
-  const { explorerUrl, tokenLocker } = useChainContracts();
+  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [extendingLockId, setExtendingLockId] = useState<bigint | null>(null);
   const [transferringLockId, setTransferringLockId] = useState<bigint | null>(
@@ -903,7 +903,9 @@ export default function TokenLockerPage() {
       processedUnlockHash.current = unlockHash;
       toast.success("Tokens unlocked successfully!");
       refetchLocks();
-      setUnlockingId(null);
+      setTimeout(() => {
+        setUnlockingId(null);
+      }, 1000);
     }
   }, [isUnlockSuccess, unlockHash, refetchLocks]);
 

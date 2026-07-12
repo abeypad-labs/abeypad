@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { LaunchpadPresaleContract } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { LaunchpadPresaleContract, abeychainDevnet } from "@/config";
 import {
   useLaunchpadPresale,
   type PresaleWithStatus,
@@ -157,7 +156,7 @@ function ManagePresaleView({
   presale: PresaleWithStatus;
   refetchPresale: () => void;
 }) {
-  const { explorerUrl } = useChainContracts();
+  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
   const [singleWhitelist, setSingleWhitelist] = useState("");
   const [bulkWhitelist, setBulkWhitelist] = useState("");
   const [removeAddress, setRemoveAddress] = useState("");

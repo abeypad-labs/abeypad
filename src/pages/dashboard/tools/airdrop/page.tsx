@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AirdropMultisenderContract } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { AirdropMultisenderContract, CONTRACT_ADDRESSES } from "@/config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,7 +29,7 @@ import {
 export default function AirdropPage() {
   const [searchParams] = useSearchParams();
   const { address } = useAccount();
-  const { airdropMultisender } = useChainContracts();
+  const { airdropMultisender } = CONTRACT_ADDRESSES;
 
   const {
     data: sendHash,

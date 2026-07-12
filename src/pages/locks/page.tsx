@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { TokenLocker } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
 import { formatDistanceToNow } from "date-fns";
 import { Link, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
@@ -104,19 +103,19 @@ function RecentLockCard({
     const formattedAmount = useMemo(() => {
         if (!lock?.amount || tokenDecimals === undefined) return '...';
         return formatUnits(lock.amount, tokenDecimals);
-    }, [lock?.amount, tokenDecimals]);
+    }, [lock, tokenDecimals]);
 
     const lockStatus = useMemo(() => {
         if (!lock) return 'unknown';
         if (lock.withdrawn) return 'withdrawn';
-        const now = Date.now();
+        const now = new Date().getTime();;
         const unlockTimestamp = Number(lock.unlockDate) * 1000;
         return now >= unlockTimestamp ? 'unlockable' : 'locked';
     }, [lock]);
 
     const progress = useMemo(() => {
         if (!lock) return 0;
-        const now = Date.now();
+        const now = new Date().getTime();
         const lockTimestamp = Number(lock.lockDate) * 1000;
         const unlockTimestamp = Number(lock.unlockDate) * 1000;
         const totalDuration = unlockTimestamp - lockTimestamp;
@@ -139,8 +138,8 @@ function RecentLockCard({
     return (
         <Card className="before:hidden rotate-[0.25deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0 overflow-hidden">
             <CardHeader className={`border-b-2 border-black p-4 ${lockStatus === 'withdrawn' ? 'bg-gray-200' :
-                    lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
-                        'bg-[#FFE38A]'
+                lockStatus === 'unlockable' ? 'bg-[#90EE90]' :
+                    'bg-[#FFE38A]'
                 }`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -150,8 +149,8 @@ function RecentLockCard({
                         </span>
                     </div>
                     <span className={`text-xs font-bold uppercase px-2 py-1 border-2 border-black ${lockStatus === 'withdrawn' ? 'bg-gray-400 text-white' :
-                            lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
-                                'bg-yellow-500 text-black'
+                        lockStatus === 'unlockable' ? 'bg-green-600 text-white' :
+                            'bg-yellow-500 text-black'
                         }`}>
                         {lockStatus === 'withdrawn' ? 'Withdrawn' :
                             lockStatus === 'unlockable' ? 'Unlockable' :
@@ -205,7 +204,8 @@ function RecentLockCard({
 }
 
 export default function LocksPage() {
-    const { explorerUrl, tokenLocker } = useChainContracts();
+    const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+    const explorerUrl = abeychainDevnet.blockExplorers.default.url;
     const { data: totalLocksCount, isLoading: isLoadingTotal } = useReadContract({
         address: tokenLocker,
         abi: TokenLocker.abi as Abi,

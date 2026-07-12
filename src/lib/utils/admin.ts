@@ -1,10 +1,9 @@
 /**
  * Admin utility functions for authentication and authorization
- * Admin is determined by the factoryOwner on the PresaleFactory contract
+ * Admin is determined by the Ownable owner() on the PresaleFactory contract
  */
 
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
-import { PresaleFactory, ADMIN_ADDRESSES } from '@/config';
+import { PresaleFactory, ADMIN_ADDRESSES, CONTRACT_ADDRESSES } from '@/config';
 import { useReadContract } from '@/lib/hooks';
 import type { Address } from 'viem';
 
@@ -12,11 +11,11 @@ import type { Address } from 'viem';
  * Hook to get the factory owner address
  */
 export function useFactoryOwner() {
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
   const { data: factoryOwner, isLoading, refetch } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: 'factoryOwner',
+    functionName: 'owner',
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -33,11 +32,11 @@ export function useFactoryOwner() {
  * Hook to get the fee recipient address
  */
 export function useFeeRecipient() {
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
   const { data: feeRecipient, isLoading, refetch } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: 'feeRecipient',
+    functionName: 'owner',
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -60,13 +59,12 @@ export function useIsAdmin(address: Address | undefined) {
     address && ADMIN_ADDRESSES.some(adminAddr => adminAddr.toLowerCase() === address.toLowerCase())
   );
 
-  const isAdmin = isInStaticList || Boolean(
+  const isOnChainOwner = Boolean(
     address && factoryOwner && address.toLowerCase() === factoryOwner.toLowerCase()
   );
 
-  // Don't block on the contract read if the static list already grants access
   return {
-    isAdmin,
+    isAdmin: isInStaticList || isOnChainOwner,
     isLoading: isInStaticList ? false : isLoading,
     factoryOwner,
   };
@@ -89,43 +87,4 @@ export function useIsFeeRecipient(address: Address | undefined) {
     isLoading,
     feeRecipient,
   };
-}
-
-/**
- * Legacy function for backward compatibility - now always returns false
- * Use useIsAdmin hook instead for proper on-chain verification
- * @deprecated Use useIsAdmin hook instead
- */
-export function isAdmin(_address: string | undefined): boolean {
-  // This function is deprecated - admin check now happens on-chain
-  // Returning false to prevent accidental access
-  // The AdminRoute component should use useIsAdmin hook instead
-  console.warn('isAdmin() is deprecated. Use useIsAdmin() hook for on-chain verification.');
-  return false;
-}
-
-/**
- * Legacy function - deprecated
- * @deprecated Use useIsAdmin hook instead
- */
-export function useIsAdminLegacy(_address: string | undefined): boolean {
-  return isAdmin(_address);
-}
-
-/**
- * Legacy function - deprecated
- * @deprecated Admin check now happens on-chain
- */
-export function requireAdmin(_address: string | undefined): void {
-  console.warn('requireAdmin() is deprecated. Use on-chain admin verification instead.');
-  throw new Error('Unauthorized: Admin access requires on-chain verification');
-}
-
-/**
- * Legacy function - deprecated
- * @deprecated Admin addresses are now determined by factoryOwner on-chain
- */
-export function getAdminAddresses(): string[] {
-  console.warn('getAdminAddresses() is deprecated. Use useFactoryOwner() hook instead.');
-  return [];
 }

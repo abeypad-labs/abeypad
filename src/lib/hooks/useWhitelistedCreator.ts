@@ -1,13 +1,12 @@
 import { useReadContract } from "@/lib/hooks";
-import { PresaleFactory } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
 import type { Address } from "viem";
 
 /**
  * Hook to check if a creator address is whitelisted in the PresaleFactory
  */
 export function useWhitelistedCreator(creatorAddress: Address | undefined) {
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
   const { data: isWhitelisted, isLoading } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,

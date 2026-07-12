@@ -1,5 +1,4 @@
-import { TokenLocker } from '@/config';
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
+import { TokenLocker, CONTRACT_ADDRESSES } from '@/config';
 import { useMemo } from 'react';
 import { erc20Abi, formatUnits, type Address, type Abi } from 'viem';
 import { useReadContracts } from '@/lib/hooks';
@@ -19,7 +18,7 @@ interface LockResult {
 const AUTO_REFRESH_INTERVAL = 10000;
 
 export function useAllLocks(forceRefetch = false) {
-  const { tokenLocker } = useChainContracts();
+  const { tokenLocker } = CONTRACT_ADDRESSES;
   const { lockIds, isLoading: isLoadingLocks, refetch: refetchLocks } = useUserLocks(forceRefetch);
 
   const lockQueries = useMemo(() => {

@@ -9,8 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TokenFactory } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { TokenFactory, CONTRACT_ADDRESSES, abeychainDevnet } from "@/config";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { parseEventLogs, parseUnits } from "viem";
@@ -31,7 +30,8 @@ type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 export default function CreateTokenPage() {
   const { address } = useAccount();
-  const { explorerUrl, tokenFactory } = useChainContracts();
+  const { tokenFactory } = CONTRACT_ADDRESSES;
+  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
   const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
   const navigate = useNavigate();
 

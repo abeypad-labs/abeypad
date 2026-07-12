@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useReadContract } from "@/lib/hooks";
 import { useSetWhitelistedCreator } from "@/lib/hooks/useAdminActions";
-import { PresaleFactory } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -17,7 +16,7 @@ import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 function WhitelistChecker() {
   const [checkAddress, setCheckAddress] = useState("");
   const [addressToCheck, setAddressToCheck] = useState<Address | null>(null);
-  const { presaleFactory } = useChainContracts();
+  const { presaleFactory } = CONTRACT_ADDRESSES;
 
   const {
     data: isWhitelisted,
@@ -251,41 +250,26 @@ function RecentWhitelistEvents() {
         <div className="space-y-4">
           <div className="p-4 bg-gray-50 border-2 border-gray-200">
             <p className="text-sm text-gray-600">
-              <strong>How whitelisting works:</strong>
+              <strong>Legacy Whitelist Notes:</strong>
             </p>
             <ul className="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
               <li>
-                Whitelisted addresses can create presales directly without
-                submitting a project first
+                <strong>Permissionless Launchpad:</strong> Creators do not need to be whitelisted to create presales. Any user can deploy directly.
               </li>
               <li>
-                Non-whitelisted users must submit a project proposal before they
-                can create a presale
+                This whitelist mapping remains on-chain and can still be configured, but it is no longer enforced in the creation flow.
               </li>
               <li>
-                Only the factory owner can add or remove addresses from the
-                whitelist
-              </li>
-              <li>
-                Whitelist status is stored on-chain in the PresaleFactory
-                contract
+                Only the factory owner has the technical permission to invoke whitelist modifications on the smart contract.
               </li>
             </ul>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-[#90EE90] text-black font-bold">
-              Whitelisted
+              Legacy Status
             </Badge>
             <span className="text-sm text-gray-600">
-              Can create presales directly
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-[#FFB6C1] text-black font-bold">
-              Not Whitelisted
-            </Badge>
-            <span className="text-sm text-gray-600">
-              Must submit project first
+              Not enforced by frontend launchpad flow
             </span>
           </div>
         </div>
@@ -308,10 +292,10 @@ function AdminWhitelistContent() {
         </Link>
         <div className="border-b-4 border-black bg-[#90EE90] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-4xl font-black uppercase tracking-wider">
-            Whitelist Creators
+            Whitelist Creators <span className="text-xl font-bold opacity-75">(Legacy)</span>
           </h1>
           <p className="text-sm text-gray-700 mt-2">
-            Manage which addresses can create presales directly.
+            Legacy creator whitelist configuration. Presale creation is now permissionless and does not require whitelisting.
           </p>
         </div>
       </div>

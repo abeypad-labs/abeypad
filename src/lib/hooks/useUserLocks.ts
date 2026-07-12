@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { useAccount, useReadContract } from '@/lib/hooks';
-import { TokenLocker } from '@/config';
-import { useChainContracts } from '@/lib/hooks/useChainContracts';
+import { TokenLocker, CONTRACT_ADDRESSES } from '@/config';
 import { useBlockchainStore } from '@/lib/store/blockchain-store';
 
 const AUTO_REFRESH_INTERVAL = 10000;
 
 export function useUserLocks(forceRefetch = false) {
   const { address } = useAccount();
-  const { tokenLocker } = useChainContracts();
+  const { tokenLocker } = CONTRACT_ADDRESSES;
 
   const {
     getUserLocks,

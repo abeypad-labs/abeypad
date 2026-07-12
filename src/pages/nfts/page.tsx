@@ -1,15 +1,14 @@
 
 import { Input } from "@/components/ui/input";
 import { NFTCard } from "@/components/ui/nft-card";
-import { NFTFactoryContract } from "@/config";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
+import { CONTRACT_ADDRESSES, NFTFactoryContract } from "@/config";
+import { useReadContract } from "@/lib/hooks";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { useReadContract } from "@/lib/hooks";
 
 export default function NFTsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { nftFactory } = useChainContracts();
+  const nftFactory = CONTRACT_ADDRESSES.nftFactory;
 
   const { data: nfts, isLoading } = useReadContract({
     abi: NFTFactoryContract.abi,

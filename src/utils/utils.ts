@@ -5,6 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const ADMIN = "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED"
+
 type Token = { address: string; };
 
 export const sortTokens = <T extends Token>(tokenA: T, tokenB: T): [T, T] => {

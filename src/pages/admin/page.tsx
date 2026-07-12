@@ -7,7 +7,7 @@ import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { useSetFeeRecipient } from "@/lib/hooks/useAdminActions";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { isAddress, type Address } from "viem";
 import { Users, Coins, Settings, ArrowRight, PlusCircle } from "lucide-react";
@@ -20,23 +20,20 @@ function AdminDashboardContent() {
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales("all");
 
   const [newFeeRecipient, setNewFeeRecipient] = useState("");
+
+  const handleFeeRecipientConfirmed = useCallback(() => {
+    toast.success("Fee recipient updated successfully");
+    setNewFeeRecipient("");
+    refetchFeeRecipient();
+  }, [refetchFeeRecipient]);
+
   const {
     setFeeRecipient,
     isBusy: isSettingFeeRecipient,
-    isSuccess: isFeeRecipientSuccess,
     isError: isFeeRecipientError,
     error: feeRecipientError,
     reset: resetFeeRecipient,
-  } = useSetFeeRecipient();
-
-  useEffect(() => {
-    if (isFeeRecipientSuccess) {
-      toast.success("Fee recipient updated successfully");
-      setNewFeeRecipient("");
-      resetFeeRecipient();
-      refetchFeeRecipient();
-    }
-  }, [isFeeRecipientSuccess, resetFeeRecipient, refetchFeeRecipient]);
+  } = useSetFeeRecipient({ onConfirmed: handleFeeRecipientConfirmed });
 
   useEffect(() => {
     if (isFeeRecipientError && feeRecipientError) {
@@ -65,9 +62,6 @@ function AdminDashboardContent() {
       <div className="mb-8">
         <div className="border-b-4 border-black bg-[#FFE38A] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-4xl font-black uppercase tracking-wider">Admin Dashboard</h1>
-          <p className="text-sm text-gray-700 mt-2">
-            Manage presales, whitelisted creators, and platform settings.
-          </p>
         </div>
       </div>
 
@@ -178,8 +172,8 @@ function AdminDashboardContent() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="font-black uppercase tracking-wider">Whitelist Creators</p>
-                  <p className="text-sm text-gray-600">Add or remove whitelisted creators</p>
+                  <p className="font-black uppercase tracking-wider">Whitelist Creators </p>
+                  <p className="text-sm text-gray-600">Creator whitelist config</p>
                 </div>
               </div>
               <ArrowRight className="w-6 h-6" />

@@ -1,24 +1,19 @@
 import { ArrowRight, Box, CircleDollarSign, Factory, ImageIcon, Lock, Send, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAccount } from "@/lib/hooks";
-import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
-import type { Address } from "viem";
 
-const getCreationOptions = (isWhitelisted: boolean | undefined) => [
+const getCreationOptions = () => [
   {
     to: "/dashboard/create/token",
     title: "Create a new Token",
     description: "Deploy a standard, mintable, or taxable ARC20 token.",
     icon: CircleDollarSign,
   },
-  ...(isWhitelisted
-    ? [{
-      to: "/dashboard/create/presale",
-      title: "Create a Presale",
-      description: "Launch a presale for your token to raise funds.",
-      icon: Factory,
-    }]
-    : []),
+  {
+    to: "/dashboard/create/presale",
+    title: "Create a Presale",
+    description: "Launch a presale for your token to raise funds.",
+    icon: Factory,
+  },
   {
     to: "/dashboard/create/nft",
     title: "Create an NFT Collection",
@@ -55,11 +50,7 @@ const toolOptions = [
 ];
 
 export default function CreateHubPage() {
-  const { address } = useAccount();
-  const { isWhitelisted } = useWhitelistedCreator(
-    address as Address | undefined
-  );
-  const creationOptions = getCreationOptions(isWhitelisted);
+  const creationOptions = getCreationOptions();
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 text-black">

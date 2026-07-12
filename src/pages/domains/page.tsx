@@ -1,33 +1,33 @@
+import { abeychainDevnet } from "@/config";
+import { Registrar } from "@/config/abis/registrar";
+import { Resolver } from "@/config/abis/resolver";
 import { CONTRACT_ADDRESSES } from "@/config/contracts";
 import {
   useAccount,
   useConnectModal,
   useMyDomains,
 } from "@/lib/hooks";
-import { useChainContracts } from "@/lib/hooks/useChainContracts";
-import { validateName, formatFee, parseANSError } from "@/lib/utils/ans";
+import { formatFee, parseANSError, validateName } from "@/lib/utils/ans";
 import { namehash } from "@/lib/utils/namehash";
 import {
+  ArrowRight,
+  Check,
   CheckCircle2,
   Clock,
-  Loader2,
-  Search,
-  XCircle,
-  Sparkles,
-  ExternalLink,
-  Wallet,
-  Globe,
-  ArrowRight,
-  RefreshCw,
   Copy,
-  Check,
+  ExternalLink,
+  Globe,
+  Loader2,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Wallet,
+  XCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { type Abi, type Address, zeroAddress } from "viem";
 import { usePublicClient, useWriteContract } from "wagmi";
-import { Registrar } from "@/config/abis/registrar";
-import { Resolver } from "@/config/abis/resolver";
 
 const TLD = ".abey";
 
@@ -69,7 +69,7 @@ export default function DomainsPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const { explorerUrl } = useChainContracts();
+  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -345,11 +345,10 @@ export default function DomainsPage() {
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="search name"
                 disabled={isRegistering || pendingAddrLabel !== null}
-                className={`w-full border-[3px] border-r-0 border-black bg-white pl-12 pr-16 py-4 font-mono text-lg font-bold text-black placeholder:text-black/35 outline-none transition-colors ${
-                  isRegistering || pendingAddrLabel !== null
+                className={`w-full border-[3px] border-r-0 border-black bg-white pl-12 pr-16 py-4 font-mono text-lg font-bold text-black placeholder:text-black/35 outline-none transition-colors ${isRegistering || pendingAddrLabel !== null
                     ? "bg-gray-50 opacity-50 cursor-not-allowed"
                     : "focus:bg-[#FFFDF5]"
-                }`}
+                  }`}
               />
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 border-[2px] border-black bg-[#F5CF85] px-2 py-0.5 font-mono text-xs font-black [box-shadow:1.5px_1.5px_0_0_#000]">
                 {TLD}
@@ -377,11 +376,10 @@ export default function DomainsPage() {
                   type="button"
                   onClick={() => handleSuggestionClick(sug)}
                   disabled={isRegistering || pendingAddrLabel !== null}
-                  className={`border-[2px] border-black bg-white px-2 py-0.5 text-xs font-mono font-bold transition-all ${
-                    isRegistering || pendingAddrLabel !== null
+                  className={`border-[2px] border-black bg-white px-2 py-0.5 text-xs font-mono font-bold transition-all ${isRegistering || pendingAddrLabel !== null
                       ? "opacity-40 cursor-not-allowed"
                       : "hover:bg-[#FFFDF5] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-y-0 active:translate-x-0 hover:[box-shadow:2px_2px_0_0_#000]"
-                  }`}
+                    }`}
                 >
                   {sug}{TLD}
                 </button>
@@ -463,15 +461,14 @@ export default function DomainsPage() {
                           type="button"
                           onClick={() => setSelectedYears(opt.years)}
                           disabled={isRegistering || pendingAddrLabel !== null}
-                          className={`border-[2px] border-black px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] transition-all ${
-                            isRegistering || pendingAddrLabel !== null
+                          className={`border-[2px] border-black px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] transition-all ${isRegistering || pendingAddrLabel !== null
                               ? selectedYears === opt.years
                                 ? "bg-[#42C9FF] opacity-60 cursor-not-allowed"
                                 : "bg-gray-100 text-black/40 opacity-40 cursor-not-allowed"
                               : selectedYears === opt.years
-                              ? "bg-[#42C9FF] [box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000] -translate-x-0.5 -translate-y-0.5"
-                              : "bg-white [box-shadow:0_0_0_1px_#000,3px_3px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000] hover:-translate-x-0.5 hover:-translate-y-0.5"
-                          }`}
+                                ? "bg-[#42C9FF] [box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000] -translate-x-0.5 -translate-y-0.5"
+                                : "bg-white [box-shadow:0_0_0_1px_#000,3px_3px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000] hover:-translate-x-0.5 hover:-translate-y-0.5"
+                            }`}
                         >
                           {opt.label}
                         </button>
@@ -515,11 +512,10 @@ export default function DomainsPage() {
                       type="button"
                       onClick={handleRegister}
                       disabled={isRegistering || isFetchingFee || fee === 0n || pendingAddrLabel !== null}
-                      className={`border-[3px] border-black bg-[#FF7F41] px-8 py-4 text-base font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
-                        isRegistering || isFetchingFee || fee === 0n || pendingAddrLabel !== null
+                      className={`border-[3px] border-black bg-[#FF7F41] px-8 py-4 text-base font-black uppercase tracking-wider transition-all flex items-center gap-2 ${isRegistering || isFetchingFee || fee === 0n || pendingAddrLabel !== null
                           ? "opacity-50 cursor-not-allowed [box-shadow:none] translate-x-0 translate-y-0"
                           : "bg-[#FF7F41] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:-translate-x-0.5 hover:-translate-y-0.5"
-                      }`}
+                        }`}
                     >
                       {isRegistering ? (
                         <>
@@ -644,9 +640,8 @@ export default function DomainsPage() {
             {domains.map((domain, i) => (
               <div
                 key={domain.label}
-                className={`border-[3px] border-black p-5 [box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 ${
-                  i % 2 === 0 ? "rotate-[0.2deg]" : "-rotate-[0.2deg]"
-                } ${domain.isExpired ? "bg-[#FFE4E4]" : "bg-white"}`}
+                className={`border-[3px] border-black p-5 [box-shadow:0_0_0_1px_#000,5px_5px_0_0_#000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 ${i % 2 === 0 ? "rotate-[0.2deg]" : "-rotate-[0.2deg]"
+                  } ${domain.isExpired ? "bg-[#FFE4E4]" : "bg-white"}`}
               >
                 <div className="flex flex-col h-full justify-between gap-4">
                   <div>
@@ -707,11 +702,10 @@ export default function DomainsPage() {
                         type="button"
                         onClick={() => handleSetAddr(domain.label, domain.node)}
                         disabled={isRegistering || pendingAddrLabel !== null}
-                        className={`w-full border-[2px] border-black bg-[#42C9FF] py-2 text-xs font-black uppercase tracking-[0.12em] transition-all flex items-center justify-center gap-1.5 ${
-                          isRegistering || pendingAddrLabel !== null
+                        className={`w-full border-[2px] border-black bg-[#42C9FF] py-2 text-xs font-black uppercase tracking-[0.12em] transition-all flex items-center justify-center gap-1.5 ${isRegistering || pendingAddrLabel !== null
                             ? "opacity-40 cursor-not-allowed [box-shadow:none] translate-x-0 translate-y-0"
                             : "bg-[#42C9FF] [box-shadow:0_0_0_1px_#000,3px_3px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0 active:translate-y-0"
-                        }`}
+                          }`}
                       >
                         {pendingAddrLabel === domain.label ? (
                           <>
