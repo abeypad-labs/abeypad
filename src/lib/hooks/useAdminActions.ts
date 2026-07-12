@@ -25,8 +25,8 @@ export function useSetWhitelistedCreator() {
     writeContract({
       address: presaleFactory,
       abi: PresaleFactory.abi,
-      functionName: 'setWhitelistedCreator',
-      args: [creatorAddress, whitelisted],
+      functionName: 'setWhitelistedCreators',
+      args: [[creatorAddress], whitelisted],
     });
   };
 

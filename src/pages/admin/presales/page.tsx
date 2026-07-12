@@ -58,17 +58,21 @@ function PresaleCard({
   useEffect(() => {
     if (isSuccess) {
       toast.success("Fees updated successfully");
-      setShowFeeForm(false);
-      setNewTokenFeeBps("");
-      setNewProceedsFeeBps("");
-      reset();
+      queueMicrotask(() => {
+        setShowFeeForm(false);
+        setNewTokenFeeBps("");
+        setNewProceedsFeeBps("");
+        reset();
+      });
     }
   }, [isSuccess, reset]);
 
   useEffect(() => {
     if (isError && error) {
       toast.error(getFriendlyTxErrorMessage(error, "Update fees"));
-      reset();
+      queueMicrotask(() => {
+        reset();
+      });
     }
   }, [isError, error, reset]);
 

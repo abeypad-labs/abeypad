@@ -1,78 +1,78 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
+// import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
-import { useUserTokens } from "@/lib/hooks/useUserTokens";
 import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
-import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
+import { useUserTokens } from "@/lib/hooks/useUserTokens";
+// import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
 import { useMyDomains } from "@/lib/hooks/useMyDomains";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ChevronLeft, ChevronRight, Clock, ExternalLink, FileText, Globe, ImageIcon, Lock, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import type { Address } from "viem";
-import { erc20Abi, erc721Abi, formatUnits } from "viem";
-import { useAccount, useReadContract } from "@/lib/hooks";
+// import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { abeychainDevnet } from "@/config/chains";
+import { useAccount, useReadContract } from "@/lib/hooks";
+import { formatDistanceToNow } from "date-fns";
+import { ArrowRight, ChevronLeft, ChevronRight, Clock, ExternalLink, Globe, ImageIcon, Lock, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import type { Address } from "viem";
+import { erc721Abi, formatUnits } from "viem";
 
-function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string}`; onPresaleClick: () => void }) {
-  const { address } = useAccount();
-  const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
-    abi: erc20Abi,
-    address: tokenAddress,
-    functionName: 'symbol'
-  })
-  const { data: name, isLoading: isLoadingName } = useReadContract({
-    abi: erc20Abi,
-    address: tokenAddress,
-    functionName: 'name'
-  })
-  const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
-    address as Address | undefined
-  );
+// function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string}`; onPresaleClick: () => void }) {
+//   const { address } = useAccount();
+//   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
+//     abi: erc20Abi,
+//     address: tokenAddress,
+//     functionName: 'symbol'
+//   })
+//   const { data: name, isLoading: isLoadingName } = useReadContract({
+//     abi: erc20Abi,
+//     address: tokenAddress,
+//     functionName: 'name'
+//   })
+//   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
+//   //   address as Address | undefined
+//   // );
 
-  const isLoading = isLoadingSymbol || isLoadingName;
+//   const isLoading = isLoadingSymbol || isLoadingName;
 
-  if (isLoading) {
-    return (
-      <div className="py-3 animate-pulse">
-        <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    )
-  }
+//   if (isLoading) {
+//     return (
+//       <div className="py-3 animate-pulse">
+//         <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+//         <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+//       </div>
+//     )
+//   }
 
-  return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
-      <div className="flex-1 min-w-0">
-        <h3 className="font-black text-lg uppercase">
-          {name as string || 'Unknown Token'} ({symbol as string || 'N/A'})
-        </h3>
-        <p className="text-xs text-gray-500 break-all font-mono">{tokenAddress}</p>
-      </div>
-      <div className="flex flex-wrap gap-2 flex-shrink-0">
-        <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
-            Lock
-          </Link>
-        </Button>
-        <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <Link to={`/dashboard/tools/airdrop?token=${tokenAddress}`}>
-            Airdrop</Link>
-        </Button>
-        <Button size="sm" asChild className="border-2 border-black bg-[#42C9FF] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#1FB9E7]">
-          <Link to={`/dashboard/create/presale?token=${tokenAddress}`}>
-            <FileText className="w-3 h-3 mr-1" /> Presale
-          </Link>
-        </Button>
-      </div>
-    </div>
-  )
-}
+//   return (
+//     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
+//       <div className="flex-1 min-w-0">
+//         <h3 className="font-black text-lg uppercase">
+//           {name as string || 'Unknown Token'} ({symbol as string || 'N/A'})
+//         </h3>
+//         <p className="text-xs text-gray-500 break-all font-mono">{tokenAddress}</p>
+//       </div>
+//       <div className="flex flex-wrap gap-2 flex-shrink-0">
+//         <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
+//           <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
+//             Lock
+//           </Link>
+//         </Button>
+//         <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
+//           <Link to={`/dashboard/tools/airdrop?token=${tokenAddress}`}>
+//             Airdrop</Link>
+//         </Button>
+//         <Button size="sm" asChild className="border-2 border-black bg-[#42C9FF] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#1FB9E7]">
+//           <Link to={`/dashboard/create/presale?token=${tokenAddress}`}>
+//             <FileText className="w-3 h-3 mr-1" /> Presale
+//           </Link>
+//         </Button>
+//       </div>
+//     </div>
+//   )
+// }
 
 function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string }) {
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
@@ -254,23 +254,23 @@ export default function UserDashboardPage() {
   const { nfts: createdNFTs, isLoading: isLoadingNFTs, isError: isNFTError } = useUserNFTs();
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
-  const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
-    address as Address | undefined
-  );
+  // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
+  //   address as Address | undefined
+  // );
   const explorerUrl = abeychainDevnet.blockExplorers.default.url;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenPage, setTokenPage] = useState(0);
   const [nftPage, setNftPage] = useState(0);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // Pagination for tokens (newest first)
   const TOKENS_PER_PAGE = 3;
   const tokenList = [...((createdTokens as `0x${string}`[]) || [])].reverse();
   const totalTokenPages = Math.ceil(tokenList.length / TOKENS_PER_PAGE);
-  const paginatedTokens = tokenList.slice(
-    tokenPage * TOKENS_PER_PAGE,
-    (tokenPage + 1) * TOKENS_PER_PAGE
-  );
+  // const paginatedTokens = tokenList.slice(
+  //   tokenPage * TOKENS_PER_PAGE,
+  //   (tokenPage + 1) * TOKENS_PER_PAGE
+  // );
 
   // Pagination for NFT collections (newest first)
   const NFTS_PER_PAGE = 3;
@@ -356,11 +356,11 @@ export default function UserDashboardPage() {
             </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
-              {paginatedTokens.map((token, index) => (
+              {/* {paginatedTokens.map((token, index) => (
                 <div key={token} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
                   <TokenInfo tokenAddress={token} onPresaleClick={() => setIsModalOpen(true)} />
                 </div>
-              ))}
+              ))} */}
               {/* Pagination Controls */}
               {totalTokenPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">

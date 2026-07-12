@@ -1,17 +1,16 @@
 import { AdminRoute } from "@/components/admin/AdminRoute";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { CONTRACT_ADDRESSES, PresaleFactory } from "@/config";
 import { useReadContract } from "@/lib/hooks";
 import { useSetWhitelistedCreator } from "@/lib/hooks/useAdminActions";
-import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { ArrowLeft, Check, Search, UserMinus, UserPlus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { isAddress, type Address } from "viem";
-import { ArrowLeft, UserPlus, UserMinus, Check, X, Search } from "lucide-react";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
 function WhitelistChecker() {
   const [checkAddress, setCheckAddress] = useState("");
@@ -25,7 +24,7 @@ function WhitelistChecker() {
   } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: "whitelistedCreators",
+    functionName: "isWhitelistedCreator",
     args: addressToCheck ? [addressToCheck] : undefined,
     query: {
       enabled: Boolean(addressToCheck),
@@ -131,7 +130,7 @@ function WhitelistManager() {
   useEffect(() => {
     if (isAddSuccess) {
       toast.success("Creator added to whitelist");
-      setAddAddress("");
+      // setAddAddress("");
       resetAdd();
     }
   }, [isAddSuccess, resetAdd]);
@@ -146,7 +145,6 @@ function WhitelistManager() {
   useEffect(() => {
     if (isRemoveSuccess) {
       toast.success("Creator removed from whitelist");
-      setRemoveAddress("");
       resetRemove();
     }
   }, [isRemoveSuccess, resetRemove]);
@@ -166,12 +164,18 @@ function WhitelistManager() {
     addCreator(addAddress as Address, true);
   };
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
     if (!removeAddress || !isAddress(removeAddress)) {
       toast.error("Please enter a valid address");
       return;
     }
-    removeCreator(removeAddress as Address, false);
+    try {
+      removeCreator(removeAddress as Address, false);
+      toast.success("Creator removed from whitelist");
+      setRemoveAddress("");
+    } catch (err) {
+      toast.error(getFriendlyTxErrorMessage(err, "Whitelist update"));
+    }
   };
 
   return (
@@ -236,48 +240,6 @@ function WhitelistManager() {
   );
 }
 
-function RecentWhitelistEvents() {
-  // This could be expanded to fetch CreatorWhitelisted events from the factory
-  // For now, show a placeholder
-  return (
-    <Card className="border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
-      <CardHeader className="border-b-2 border-black bg-[#FFF2D5] p-6">
-        <CardTitle className="font-black uppercase tracking-wider">
-          Whitelist Information
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <div className="p-4 bg-gray-50 border-2 border-gray-200">
-            <p className="text-sm text-gray-600">
-              <strong>Legacy Whitelist Notes:</strong>
-            </p>
-            <ul className="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-              <li>
-                <strong>Permissionless Launchpad:</strong> Creators do not need to be whitelisted to create presales. Any user can deploy directly.
-              </li>
-              <li>
-                This whitelist mapping remains on-chain and can still be configured, but it is no longer enforced in the creation flow.
-              </li>
-              <li>
-                Only the factory owner has the technical permission to invoke whitelist modifications on the smart contract.
-              </li>
-            </ul>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-[#90EE90] text-black font-bold">
-              Legacy Status
-            </Badge>
-            <span className="text-sm text-gray-600">
-              Not enforced by frontend launchpad flow
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function AdminWhitelistContent() {
   return (
     <div className="container mx-auto py-8 px-4">
@@ -292,11 +254,8 @@ function AdminWhitelistContent() {
         </Link>
         <div className="border-b-4 border-black bg-[#90EE90] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-4xl font-black uppercase tracking-wider">
-            Whitelist Creators <span className="text-xl font-bold opacity-75">(Legacy)</span>
+            Whitelist Creators
           </h1>
-          <p className="text-sm text-gray-700 mt-2">
-            Legacy creator whitelist configuration. Presale creation is now permissionless and does not require whitelisting.
-          </p>
         </div>
       </div>
 
@@ -309,9 +268,6 @@ function AdminWhitelistContent() {
       <div className="mb-8">
         <WhitelistManager />
       </div>
-
-      {/* Info */}
-      <RecentWhitelistEvents />
     </div>
   );
 }

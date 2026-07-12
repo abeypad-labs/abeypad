@@ -10,7 +10,7 @@ export function useWhitelistedCreator(creatorAddress: Address | undefined) {
   const { data: isWhitelisted, isLoading } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: "whitelistedCreators",
+    functionName: "isWhitelistedCreator",
     args: creatorAddress ? [creatorAddress] : undefined,
     query: {
       enabled: Boolean(creatorAddress),

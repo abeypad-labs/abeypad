@@ -3,26 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PresaleFactory, erc20Abi, CONTRACT_ADDRESSES } from "@/config";
+import { CONTRACT_ADDRESSES, PresaleFactory, erc20Abi } from "@/config";
+import {
+  useAccount,
+  useReadContract,
+  useSimulatedWrite,
+  useWaitForTransactionReceipt,
+} from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   decodeEventLog,
+  isAddress,
   parseEther,
   parseUnits,
   type Abi,
-  isAddress,
 } from "viem";
-import {
-  useAccount,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useSimulatedWrite,
-} from "@/lib/hooks";
-import { ArrowLeft } from "lucide-react";
 
 interface PresaleFormData {
   saleToken: string;
@@ -191,27 +191,6 @@ function AdminCreatePresaleForm({
 
   return (
     <>
-      <div className="border-2 border-black bg-[#FFF2D5] p-4 space-y-2">
-        <p className="text-xs font-black uppercase tracking-wider text-gray-800">
-          Admin Presale Creation
-        </p>
-        <p className="text-sm text-gray-700">
-          You are creating a presale as admin — no whitelist check required.
-          The presale owner field can be set to any address.
-        </p>
-      </div>
-
-      {displayError && (
-        <div className="border-4 border-black bg-red-50 p-4 space-y-1 shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <p className="text-xs font-black uppercase tracking-wider text-red-700">
-            Form / Simulation Status
-          </p>
-          <p className="text-sm text-red-800 font-medium">
-            {displayError}
-          </p>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="saleToken">Sale Token Address</Label>
@@ -220,6 +199,7 @@ function AdminCreatePresaleForm({
             placeholder="0x..."
             value={saleToken}
             onChange={handleChange}
+            required={true}
           />
         </div>
         <div className="space-y-2">
@@ -379,7 +359,7 @@ function AdminCreatePresaleContent() {
 
   const handlePresaleCreated = useCallback(
     (presaleAddress: `0x${string}`, txHash: string) => {
-      console.log("Admin presale created at:", presaleAddress, "tx:", txHash);
+      console.log("Presale created at:", presaleAddress, "tx:", txHash);
     },
     []
   );
@@ -420,9 +400,6 @@ function AdminCreatePresaleContent() {
         </Link>
         <div className="border-b-4 border-black bg-[#FF7F41] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-4xl font-black uppercase tracking-wider">Create Presale</h1>
-          <p className="text-sm text-gray-800 mt-2">
-            Admin-only presale creation — interacts directly with the PresaleFactory contract.
-          </p>
         </div>
       </div>
 
