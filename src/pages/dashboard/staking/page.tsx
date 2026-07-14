@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StakingContract } from "@/config";
+import { SecureStakeVaultContract } from "@/config";
+import { MyMyMy } from "@/config/abis/MyMyMy";
 import {
   useAccount, useConnectModal, usePublicClient,
   useReadContract,
@@ -19,9 +20,8 @@ import {
   erc20Abi,
   formatUnits,
   parseUnits,
-  zeroAddress,
   type Abi,
-  type Address,
+  type Address
 } from "viem";
 
 export default function StakingPage() {
@@ -29,7 +29,7 @@ export default function StakingPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const stakingContractAddress = zeroAddress; //todo
+  const SecureStakeVaultContractAddress = SecureStakeVaultContract.address
 
   const [activeTab, setActiveTab] = useState<"stake" | "unstake">("stake");
   const [stakeAmount, setStakeAmount] = useState("");
@@ -54,19 +54,18 @@ export default function StakingPage() {
 
   // Read staking token address
   const { data: stakingTokenAddress } = useReadContract({
-    address: stakingContractAddress,
-    abi: StakingContract.abi as Abi,
-    functionName: "stakingToken",
+    address: SecureStakeVaultContract.address as Address,
+    abi: SecureStakeVaultContract.abi as Abi,
+    functionName: "stakeToken",
   });
 
   // Read rewards token address
   const { data: rewardsTokenAddress } = useReadContract({
-    address: stakingContractAddress,
-    abi: StakingContract.abi as Abi,
-    functionName: "rewardsToken",
+    address: SecureStakeVaultContract.address as Address,
+    abi: SecureStakeVaultContract.abi as Abi,
+    functionName: "rewardToken",
   });
 
-  // Read staking token info
   const { data: stakingTokenSymbol } = useReadContract({
     abi: erc20Abi,
     address: stakingTokenAddress as Address,
@@ -98,10 +97,10 @@ export default function StakingPage() {
 
   // Read user's wallet balance of staking token
   const { data: walletBalance, refetch: refetchWalletBalance } = useReadContract({
-    abi: erc20Abi,
-    address: stakingTokenAddress as Address,
+    abi: MyMyMy.abi as Abi,
+    address: MyMyMy.address as Address,
     functionName: "balanceOf",
-    args: address ? [address] : undefined,
+    args: [address as Address],
     query: { enabled: !!address && !!stakingTokenAddress },
   });
 
@@ -110,23 +109,23 @@ export default function StakingPage() {
     abi: erc20Abi,
     address: stakingTokenAddress as Address,
     functionName: "allowance",
-    args: address ? [address, stakingContractAddress] : undefined,
+    args: address ? [address, SecureStakeVaultContractAddress] : undefined,
     query: { enabled: !!address && !!stakingTokenAddress },
   });
 
   // Read user's staked balance
   const { data: stakedBalance, refetch: refetchStakedBalance } = useReadContract({
-    address: stakingContractAddress,
-    abi: StakingContract.abi as Abi,
-    functionName: "balanceOf",
+    address: SecureStakeVaultContract.address,
+    abi: SecureStakeVaultContract.abi as Abi,
+    functionName: "getRewardBalance",
     args: address ? [address] : undefined,
     query: { enabled: !!address },
   });
 
   // Read total amount staked in contract
   const { data: totalStaked, refetch: refetchTotalStaked } = useReadContract({
-    address: stakingContractAddress,
-    abi: StakingContract.abi as Abi,
+    address: SecureStakeVaultContractAddress,
+    abi: SecureStakeVaultContract.abi as Abi,
     functionName: "totalSupply",
     query: {
       refetchInterval: 5000,
@@ -135,8 +134,8 @@ export default function StakingPage() {
 
   // Read pending rewards
   const { data: pendingRewards, refetch: refetchPendingRewards } = useReadContract({
-    address: stakingContractAddress,
-    abi: StakingContract.abi as Abi,
+    address: SecureStakeVaultContractAddress,
+    abi: SecureStakeVaultContract.abi as Abi,
     functionName: "pendingRewards",
     args: address ? [address] : undefined,
     query: {
@@ -192,6 +191,43 @@ export default function StakingPage() {
     } catch { return 0; }
   }, [pendingRewards, rewardDecimals]);
 
+  const formattedPendingRewards = useMemo(
+    () => animatedPendingRewards.toLocaleString(undefined, { maximumFractionDigits: 6 }),
+    [animatedPendingRewards]
+  );
+
+  // Check if approval is needed
+  const needsApproval = useMemo(() => {
+    if (!stakeAmount || allowance === undefined || allowance === null) return false;
+    try {
+      const amount = parseUnits(stakeAmount, decimals);
+      return (allowance as bigint) < amount;
+    } catch { return false; }
+  }, [stakeAmount, allowance, decimals]);
+
+  // Has claimable rewards
+  const hasClaimableRewards = useMemo(() => {
+    if (pendingRewards === undefined || pendingRewards === null) return false;
+    return (pendingRewards as bigint) > 0n;
+  }, [pendingRewards]);
+
+  // Insufficient balance checks
+  const hasInsufficientStakeBalance = useMemo(() => {
+    if (!stakeAmount || walletBalance === undefined || walletBalance === null) return false;
+    try {
+      const amount = parseUnits(stakeAmount, decimals);
+      return amount > (walletBalance as bigint);
+    } catch { return false; }
+  }, [stakeAmount, walletBalance, decimals]);
+
+  const hasInsufficientUnstakeBalance = useMemo(() => {
+    if (!unstakeAmount || stakedBalance === undefined || stakedBalance === null) return false;
+    try {
+      const amount = parseUnits(unstakeAmount, decimals);
+      return amount > (stakedBalance as bigint);
+    } catch { return false; }
+  }, [unstakeAmount, stakedBalance, decimals]);
+
   useEffect(() => {
     const targetValue = pendingRewardsValue;
     const startValue = animatedPendingRewardsRef.current;
@@ -243,43 +279,6 @@ export default function StakingPage() {
       }
     };
   }, [pendingRewardsValue]);
-
-  const formattedPendingRewards = useMemo(
-    () => animatedPendingRewards.toLocaleString(undefined, { maximumFractionDigits: 6 }),
-    [animatedPendingRewards]
-  );
-
-  // Check if approval is needed
-  const needsApproval = useMemo(() => {
-    if (!stakeAmount || allowance === undefined || allowance === null) return false;
-    try {
-      const amount = parseUnits(stakeAmount, decimals);
-      return (allowance as bigint) < amount;
-    } catch { return false; }
-  }, [stakeAmount, allowance, decimals]);
-
-  // Has claimable rewards
-  const hasClaimableRewards = useMemo(() => {
-    if (pendingRewards === undefined || pendingRewards === null) return false;
-    return (pendingRewards as bigint) > 0n;
-  }, [pendingRewards]);
-
-  // Insufficient balance checks
-  const hasInsufficientStakeBalance = useMemo(() => {
-    if (!stakeAmount || walletBalance === undefined || walletBalance === null) return false;
-    try {
-      const amount = parseUnits(stakeAmount, decimals);
-      return amount > (walletBalance as bigint);
-    } catch { return false; }
-  }, [stakeAmount, walletBalance, decimals]);
-
-  const hasInsufficientUnstakeBalance = useMemo(() => {
-    if (!unstakeAmount || stakedBalance === undefined || stakedBalance === null) return false;
-    try {
-      const amount = parseUnits(unstakeAmount, decimals);
-      return amount > (stakedBalance as bigint);
-    } catch { return false; }
-  }, [unstakeAmount, stakedBalance, decimals]);
 
   // Handle staking success/error
   useEffect(() => {
@@ -376,7 +375,7 @@ export default function StakingPage() {
           address: stakingTokenAddress as Address,
           abi: erc20Abi,
           functionName: "approve",
-          args: [stakingContractAddress, amount],
+          args: [SecureStakeVaultContractAddress, amount],
         });
 
         const approvalReceipt = await publicClient.waitForTransactionReceipt({
@@ -395,8 +394,8 @@ export default function StakingPage() {
       setIsStaking(true);
 
       const hash = await writeContractAsync({
-        address: stakingContractAddress,
-        abi: StakingContract.abi as Abi,
+        address: SecureStakeVaultContractAddress,
+        abi: SecureStakeVaultContract.abi as Abi,
         functionName: "stake",
         args: [amount],
       });
@@ -419,8 +418,8 @@ export default function StakingPage() {
       const amount = parseUnits(unstakeAmount, decimals);
 
       const hash = await writeContractAsync({
-        address: stakingContractAddress,
-        abi: StakingContract.abi as Abi,
+        address: SecureStakeVaultContractAddress,
+        abi: SecureStakeVaultContract.abi as Abi,
         functionName: "withdraw",
         args: [amount],
       });
@@ -441,8 +440,8 @@ export default function StakingPage() {
       setIsClaiming(true);
 
       const hash = await writeContractAsync({
-        address: stakingContractAddress,
-        abi: StakingContract.abi as Abi,
+        address: SecureStakeVaultContractAddress,
+        abi: SecureStakeVaultContract.abi as Abi,
         functionName: "getReward",
         args: [],
       });
@@ -468,6 +467,25 @@ export default function StakingPage() {
     }
   };
 
+  // contract methods
+
+  // stake
+  // harvest
+  // unstake
+  // emergency unstake
+  // realtimeRewardPerBlock
+  // startOwnershipTransfer
+  // acceptOwnership
+
+  // **only owner**
+  // setStakeLimits
+  // setStakeDuration
+  // setPenaltyBps
+  // withdrawBNB
+  // withdrawUnrelatedToken
+  // fundRewards
+  // withdrawExcessRewardToken
+
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 text-black">
       {/* Header Banner */}
@@ -481,12 +499,8 @@ export default function StakingPage() {
                 </h1>
               </div>
               <p className="mt-4 max-w-3xl text-base sm:text-lg font-bold text-black/80">
-                Stake {stakingTokenDisplaySymbol} and earn {rewardsTokenSymbol || "rewards"} from a cleaner,
-                faster staking panel.
+                Stake {stakingTokenDisplaySymbol} and earn {rewardsTokenSymbol || "rewards"}.
               </p>
-            </div>
-            <div className="inline-flex rotate-[0.6deg] self-start border-[3px] border-black bg-[#B8EF53] px-4 py-2 text-xs font-black uppercase tracking-[0.14em]">
-              Live Rewards
             </div>
           </div>
         </div>
@@ -516,7 +530,6 @@ export default function StakingPage() {
             <Card className="before:hidden rotate-[0.3deg] py-0 border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
               <CardHeader className="border-b-2 border-black bg-[#F5CF85] p-4">
                 <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2">
-                  <Wallet className="w-5 h-5" />
                   Your Position
                 </CardTitle>
               </CardHeader>
@@ -574,21 +587,6 @@ export default function StakingPage() {
 
           {/* Stake/Unstake Form */}
           <div className="lg:col-span-2 space-y-4">
-            <Card className="before:hidden -rotate-[0.25deg] py-0 border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
-              <CardContent className="p-4 sm:p-6 bg-[#FFF8EC]">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase font-bold text-gray-500">Total Staked</p>
-                    <p className="text-3xl sm:text-4xl font-black text-gray-900">{formattedTotalStaked}</p>
-                    <p className="text-sm text-gray-500">{stakingTokenDisplaySymbol}</p>
-                  </div>
-                  <span className="inline-flex h-11 w-11 items-center justify-center border-[3px] border-black bg-[#B8EF53]">
-                    <BarChart3 className="w-6 h-6 text-black shrink-0" />
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="before:hidden rotate-[0.3deg] py-0 border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
               <CardHeader className="border-b-2 border-black bg-[#FFF2D5] p-0">
                 <div className="flex">
@@ -618,17 +616,13 @@ export default function StakingPage() {
                     <div>
                       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <label className="text-xs font-black uppercase tracking-[0.14em]">Amount to Stake</label>
-                        <div className="inline-flex items-center gap-2 border-[2px] border-black bg-[#FFF2D5] px-2 py-1 text-[11px] font-black uppercase tracking-[0.12em]">
-                          <span className="text-black/60">Balance</span>
-                          <span className="font-mono text-black">{formattedWalletBalance}</span>
-                          <button
-                            type="button"
-                            onClick={handleMaxStake}
-                            className="border-[2px] border-black bg-[#42C9FF] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] hover:bg-[#31BEEB]"
-                          >
-                            MAX
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={handleMaxStake}
+                          className="border-[2px] border-black bg-[#42C9FF] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] hover:bg-[#31BEEB]"
+                        >
+                          MAX
+                        </button>
                       </div>
                       <div className="border-[2px] border-black bg-white px-4 py-3 [box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000]">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -640,12 +634,6 @@ export default function StakingPage() {
                             inputMode="decimal"
                             className="min-w-0 flex-1 border-0 bg-transparent p-0 text-xl font-black text-black placeholder:text-black/40 outline-none ring-0 focus:outline-none focus:ring-0 sm:text-2xl"
                           />
-                          <span
-                            title={stakingTokenDisplaySymbol}
-                            className="max-w-[7rem] shrink-0 truncate border-[2px] border-black bg-[#FFE38A] px-2 py-1 text-[10px] font-black uppercase leading-none tracking-[0.12em] sm:max-w-[9rem] sm:px-3 sm:text-xs"
-                          >
-                            {stakingTokenDisplaySymbol}
-                          </span>
                         </div>
                       </div>
                       {hasInsufficientStakeBalance && (
@@ -686,17 +674,13 @@ export default function StakingPage() {
                     <div>
                       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <label className="text-xs font-black uppercase tracking-[0.14em]">Amount to Unstake</label>
-                        <div className="inline-flex items-center gap-2 border-[2px] border-black bg-[#FFF2D5] px-2 py-1 text-[11px] font-black uppercase tracking-[0.12em]">
-                          <span className="text-black/60">Staked</span>
-                          <span className="font-mono text-black">{formattedStakedBalance}</span>
-                          <button
-                            type="button"
-                            onClick={handleMaxUnstake}
-                            className="border-[2px] border-black bg-[#FF7F41] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] hover:bg-[#F06A56]"
-                          >
-                            MAX
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={handleMaxUnstake}
+                          className="border-[2px] border-black bg-[#FF7F41] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] hover:bg-[#F06A56]"
+                        >
+                          MAX
+                        </button>
                       </div>
                       <div className="border-[2px] border-black bg-white px-4 py-3 [box-shadow:0_0_0_1px_#000,4px_4px_0_0_#000]">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -708,12 +692,6 @@ export default function StakingPage() {
                             inputMode="decimal"
                             className="min-w-0 flex-1 border-0 bg-transparent p-0 text-xl font-black text-black placeholder:text-black/40 outline-none ring-0 focus:outline-none focus:ring-0 sm:text-2xl"
                           />
-                          <span
-                            title={stakingTokenDisplaySymbol}
-                            className="max-w-[7rem] shrink-0 truncate border-[2px] border-black bg-[#FFD9BE] px-2 py-1 text-[10px] font-black uppercase leading-none tracking-[0.12em] sm:max-w-[9rem] sm:px-3 sm:text-xs"
-                          >
-                            {stakingTokenDisplaySymbol}
-                          </span>
                         </div>
                       </div>
                       {hasInsufficientUnstakeBalance && (
