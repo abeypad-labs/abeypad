@@ -8,6 +8,7 @@ export const CONTRACT_ADDRESSES = {
     stakeToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address,// MyMyMy Token
     rewardToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address, // MyMyMy Token
     nftFactory: "0xC5Aef050Fc94cB2Ff7633166468ee4D4A1BDEDD1" as Address,
+    staking: "0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9" as Address,
     registry: "" as Address,
     resolver: "" as Address,
     registrar: "" as Address,

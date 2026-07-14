@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SecureStakeVaultContract } from "@/config";
+import { StakingContract } from "@/config";
 import { MyMyMy } from "@/config/abis/MyMyMy";
 import {
   useAccount, useConnectModal, usePublicClient,
@@ -28,7 +28,6 @@ export default function StakingPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
-  const SecureStakeVaultContractAddress = SecureStakeVaultContract.address
 
   const [activeTab, setActiveTab] = useState<"stake" | "unstake">("stake");
   const [stakeAmount, setStakeAmount] = useState("");
@@ -48,96 +47,139 @@ export default function StakingPage() {
   const rewardsAnimationFrameRef = useRef<number | null>(null);
   const animatedPendingRewardsRef = useRef(0);
 
-  const [animatedPendingRewards, setAnimatedPendingRewards] = useState(0);
   const [isPendingRewardsAnimating, setIsPendingRewardsAnimating] = useState(false);
 
-  // Read staking token address
-  const { data: stakingTokenAddress } = useReadContract({
-    address: SecureStakeVaultContract.address as Address,
-    abi: SecureStakeVaultContract.abi as Abi,
-    functionName: "stakeToken",
+  // fixed methods
+  // getters + important state
+  const { data: rewardsToken } = useReadContract({
+    address: StakingContract.address,
+    abi: StakingContract.abi,
+    functionName: "rewardsToken",
+  });
+  const { data: stakingToken } = useReadContract({
+    address: StakingContract.address,
+    abi: StakingContract.abi,
+    functionName: "stakingToken",
+  });
+  const { data: rewardsPerToken } = useReadContract({
+    address: StakingContract.address,
+    abi: StakingContract.abi,
+    functionName: "rewardPerToken",
   });
 
-  // Read rewards token address
-  const { data: rewardsTokenAddress } = useReadContract({
-    address: SecureStakeVaultContract.address as Address,
-    abi: SecureStakeVaultContract.abi as Abi,
-    functionName: "rewardToken",
+  const { data: getRewardsForDuration } = useReadContract({
+    address: StakingContract.address,
+    abi: StakingContract.abi,
+    functionName: "getRewardForDuration",
   });
 
-  const { data: stakingTokenSymbol } = useReadContract({
-    abi: erc20Abi,
-    address: stakingTokenAddress as Address,
-    functionName: "symbol",
-    query: { enabled: !!stakingTokenAddress },
+  const { data: isWhiteListed } = useReadContract({
+    address: StakingContract.address as Address,
+    abi: StakingContract.abi as Abi,
+    functionName: "isWhitelisted",
+    args: [address]
   });
 
-  const { data: stakingTokenDecimals } = useReadContract({
-    abi: erc20Abi,
-    address: stakingTokenAddress as Address,
-    functionName: "decimals",
-    query: { enabled: !!stakingTokenAddress },
-  });
+  console.log({ rewardsToken, stakingToken, rewardsPerToken, getRewardsForDuration, isWhiteListed })
 
-  // Read rewards token info
-  const { data: rewardsTokenSymbol } = useReadContract({
-    abi: erc20Abi,
-    address: rewardsTokenAddress as Address,
-    functionName: "symbol",
-    query: { enabled: !!rewardsTokenAddress },
-  });
+  // setters
+  const handleFixedStake = async () => {
+    if (!address || !stakingToken || !stakeAmount) return;
+    try {
+      const amount = parseUnits(stakeAmount, decimals);
 
-  const { data: rewardsTokenDecimals } = useReadContract({
-    abi: erc20Abi,
-    address: rewardsTokenAddress as Address,
-    functionName: "decimals",
-    query: { enabled: !!rewardsTokenAddress },
-  });
+      if (amount <= 0n) {
+        toast.error("Enter an amount greater than 0.");
+        return;
+      }
+
+      if (!publicClient) {
+        toast.error("Could not access network client. Please retry.");
+        return;
+      }
+
+      const currentAllowance = (allowance as bigint | undefined) ?? 0n;
+
+      if (currentAllowance < amount) {
+        setIsApproving(true);
+        toast.info(`Approving ${stakingTokenDisplaySymbol}...`);
+
+        const approvalTxHash = await writeContractAsync({
+          address: stakingToken as Address,
+          abi: MyMyMy.abi,
+          functionName: "approve",
+          args: [StakingContract.address, amount],
+        });
+
+        const approvalReceipt = await publicClient.waitForTransactionReceipt({
+          hash: approvalTxHash as `0x${string}`,
+        });
+
+        if (approvalReceipt.status !== "success") {
+          throw new Error("Approval transaction failed.");
+        }
+
+        await refetchAllowance();
+        setIsApproving(false);
+        toast.success("Approval confirmed. Confirm staking to continue.");
+      }
+
+      setIsStaking(true);
+      const hash = await writeContractAsync({
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
+        functionName: "stake",
+        args: [amount],
+      });
+      setStakingHash(hash);
+      toast.info("Staking tokens...");
+    } catch (err: unknown) {
+      setIsApproving(false);
+      setIsStaking(false);
+      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
+      toast.error(message);
+    }
+  };
 
   // Read user's wallet balance of staking token
   const { data: walletBalance, refetch: refetchWalletBalance } = useReadContract({
     abi: MyMyMy.abi as Abi,
-    address: MyMyMy.address as Address,
+    address: stakingToken as Address,
     functionName: "balanceOf",
     args: [address as Address],
-    query: { enabled: !!address && !!stakingTokenAddress },
+    query: { enabled: !!address && !!stakingToken },
   });
 
   // Read allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     abi: erc20Abi,
-    address: stakingTokenAddress as Address,
+    address: stakingToken as Address,
     functionName: "allowance",
-    args: address ? [address, SecureStakeVaultContractAddress] : undefined,
-    query: { enabled: !!address && !!stakingTokenAddress },
+    args: address ? [address, StakingContract.address] : undefined,
+    query: { enabled: !!address && !!stakingToken },
   });
 
   // Read user's staked balance
   const { data: stakedBalance, refetch: refetchStakedBalance } = useReadContract({
-    address: SecureStakeVaultContract.address,
-    abi: SecureStakeVaultContract.abi as Abi,
-    functionName: "getRewardBalance",
+    address: StakingContract.address,
+    abi: StakingContract.abi as Abi,
+    functionName: "balanceOf",
     args: address ? [address] : undefined,
     query: { enabled: !!address },
   });
 
-  // Read total amount staked in contract
-  const { data: totalStaked, refetch: refetchTotalStaked } = useReadContract({
-    address: SecureStakeVaultContractAddress,
-    abi: SecureStakeVaultContract.abi as Abi,
-    functionName: "totalSupply",
-    query: {
-      refetchInterval: 5000,
-    },
+  console.log({
+    raw: stakedBalance,
+    formatted: stakedBalance
+      ? formatUnits(stakedBalance as bigint, 18)
+      : null,
   });
-
-  console.log("total staked", totalStaked);
 
   // Read pending rewards
   const { data: pendingRewards, refetch: refetchPendingRewards } = useReadContract({
-    address: SecureStakeVaultContractAddress,
-    abi: SecureStakeVaultContract.abi as Abi,
-    functionName: "pendingRewards",
+    address: StakingContract.address,
+    abi: StakingContract.abi as Abi,
+    functionName: "earned",
     args: address ? [address] : undefined,
     query: {
       enabled: !!address,
@@ -156,33 +198,23 @@ export default function StakingPage() {
     useWaitForTransactionReceipt({ hash: claimHash as `0x${string}` | undefined });
 
   // Format values
-  const decimals = stakingTokenDecimals ?? 18;
-  const rewardDecimals = rewardsTokenDecimals ?? 18;
-  const stakingTokenDisplaySymbol =
-    typeof stakingTokenSymbol === "string" && stakingTokenSymbol.trim().length > 0
-      ? stakingTokenSymbol
-      : "ABEYPAD";
+  const decimals = 18;
+  const rewardDecimals = 18;
+  const stakingTokenDisplaySymbol = "ABEYPAD";
 
   const formattedWalletBalance = useMemo(() => {
     if (walletBalance === undefined || walletBalance === null) return "0";
     try {
-      return Number(formatUnits(walletBalance as bigint, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+      return Number(formatUnits(walletBalance as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 6 });
     } catch { return "0"; }
   }, [walletBalance, decimals]);
 
   const formattedStakedBalance = useMemo(() => {
-    if (stakedBalance === undefined || stakedBalance === null) return "0";
+    return Number(stakedBalance)
     try {
-      return Number(formatUnits(stakedBalance as bigint, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+      return Number(formatUnits(stakedBalance as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 18 });
     } catch { return "0"; }
   }, [stakedBalance, decimals]);
-
-  // const formattedTotalStaked = useMemo(() => {
-  //   if (totalStaked === undefined || totalStaked === null) return "0";
-  //   try {
-  //     return Number(formatUnits(totalStaked as bigint, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
-  //   } catch { return "0"; }
-  // }, [totalStaked, decimals]);
 
   const pendingRewardsValue = useMemo(() => {
     if (pendingRewards === undefined || pendingRewards === null) return 0;
@@ -192,16 +224,24 @@ export default function StakingPage() {
     } catch { return 0; }
   }, [pendingRewards, rewardDecimals]);
 
-  const formattedPendingRewards = useMemo(
-    () => animatedPendingRewards.toLocaleString(undefined, { maximumFractionDigits: 6 }),
-    [animatedPendingRewards]
-  );
+  const formattedPendingRewards = useMemo(() => {
+    if (rewardsPerToken == null) return "0";
+    try {
+      return Number(
+        formatUnits(rewardsPerToken as bigint, 18)
+      ).toLocaleString(undefined, {
+        maximumFractionDigits: 6,
+      });
+    } catch {
+      return "0";
+    }
+  }, [rewardsPerToken, rewardDecimals]);
 
   // Check if approval is needed
   const needsApproval = useMemo(() => {
     if (!stakeAmount || allowance === undefined || allowance === null) return false;
     try {
-      const amount = parseUnits(stakeAmount, decimals);
+      const amount = parseUnits(stakeAmount, 18);
       return (allowance as bigint) < amount;
     } catch { return false; }
   }, [stakeAmount, allowance, decimals]);
@@ -235,16 +275,12 @@ export default function StakingPage() {
 
     if (Math.abs(targetValue - startValue) < Number.EPSILON) {
       animatedPendingRewardsRef.current = targetValue;
-      setAnimatedPendingRewards(targetValue);
-      setIsPendingRewardsAnimating(false);
       return;
     }
 
     if (rewardsAnimationFrameRef.current) {
       cancelAnimationFrame(rewardsAnimationFrameRef.current);
     }
-
-    setIsPendingRewardsAnimating(true);
 
     const duration = 1800;
     let startTime: number | null = null;
@@ -259,7 +295,6 @@ export default function StakingPage() {
       const nextValue = startValue + (targetValue - startValue) * easedProgress;
 
       animatedPendingRewardsRef.current = nextValue;
-      setAnimatedPendingRewards(nextValue);
 
       if (progress < 1) {
         rewardsAnimationFrameRef.current = requestAnimationFrame(animate);
@@ -267,7 +302,7 @@ export default function StakingPage() {
       }
 
       animatedPendingRewardsRef.current = targetValue;
-      setAnimatedPendingRewards(targetValue);
+      // setAnimatedPendingRewards(targetValue);
       setIsPendingRewardsAnimating(false);
       rewardsAnimationFrameRef.current = null;
     };
@@ -290,11 +325,10 @@ export default function StakingPage() {
       setStakeAmount("");
       refetchWalletBalance();
       refetchStakedBalance();
-      refetchTotalStaked();
       refetchPendingRewards();
       toast.success("Staking successful!");
     }
-  }, [isStakingSuccess, stakingHash, refetchWalletBalance, refetchStakedBalance, refetchTotalStaked, refetchPendingRewards]);
+  }, [isStakingSuccess, stakingHash, refetchWalletBalance, refetchStakedBalance, refetchPendingRewards]);
 
   useEffect(() => {
     if (isStakingError && stakingHash && processedStakingHash.current !== stakingHash) {
@@ -314,11 +348,10 @@ export default function StakingPage() {
       setUnstakeAmount("");
       refetchWalletBalance();
       refetchStakedBalance();
-      refetchTotalStaked();
       refetchPendingRewards();
       toast.success("Withdrawal successful!");
     }
-  }, [isUnstakingSuccess, unstakingHash, refetchWalletBalance, refetchStakedBalance, refetchTotalStaked, refetchPendingRewards]);
+  }, [isUnstakingSuccess, unstakingHash, refetchWalletBalance, refetchStakedBalance, refetchPendingRewards]);
 
   useEffect(() => {
     if (isUnstakingError && unstakingHash && processedUnstakingHash.current !== unstakingHash) {
@@ -350,67 +383,6 @@ export default function StakingPage() {
     }
   }, [isClaimError, claimHash]);
 
-  const handleStake = async () => {
-    if (!address || !stakingTokenAddress || !stakeAmount) return;
-
-    try {
-      const amount = parseUnits(stakeAmount, decimals);
-
-      if (amount <= 0n) {
-        toast.error("Enter an amount greater than 0.");
-        return;
-      }
-
-      if (!publicClient) {
-        toast.error("Could not access network client. Please retry.");
-        return;
-      }
-
-      const currentAllowance = (allowance as bigint | undefined) ?? 0n;
-
-      if (currentAllowance < amount) {
-        setIsApproving(true);
-        toast.info(`Approving ${stakingTokenDisplaySymbol}...`);
-
-        const approvalTxHash = await writeContractAsync({
-          address: stakingTokenAddress as Address,
-          abi: erc20Abi,
-          functionName: "approve",
-          args: [SecureStakeVaultContractAddress, amount],
-        });
-
-        const approvalReceipt = await publicClient.waitForTransactionReceipt({
-          hash: approvalTxHash as `0x${string}`,
-        });
-
-        if (approvalReceipt.status !== "success") {
-          throw new Error("Approval transaction failed.");
-        }
-
-        await refetchAllowance();
-        setIsApproving(false);
-        toast.success("Approval confirmed. Confirm staking to continue.");
-      }
-
-      setIsStaking(true);
-
-      const hash = await writeContractAsync({
-        address: SecureStakeVaultContractAddress,
-        abi: SecureStakeVaultContract.abi as Abi,
-        functionName: "stake",
-        args: [amount],
-      });
-
-      setStakingHash(hash);
-      toast.info("Staking tokens...");
-    } catch (err: unknown) {
-      setIsApproving(false);
-      setIsStaking(false);
-      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
-      toast.error(message);
-    }
-  };
-
   const handleUnstake = async () => {
     if (!address || !unstakeAmount) return;
 
@@ -419,8 +391,8 @@ export default function StakingPage() {
       const amount = parseUnits(unstakeAmount, decimals);
 
       const hash = await writeContractAsync({
-        address: SecureStakeVaultContractAddress,
-        abi: SecureStakeVaultContract.abi as Abi,
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
         functionName: "withdraw",
         args: [amount],
       });
@@ -441,8 +413,8 @@ export default function StakingPage() {
       setIsClaiming(true);
 
       const hash = await writeContractAsync({
-        address: SecureStakeVaultContractAddress,
-        abi: SecureStakeVaultContract.abi as Abi,
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
         functionName: "getReward",
         args: [],
       });
@@ -468,25 +440,6 @@ export default function StakingPage() {
     }
   };
 
-  // contract methods
-
-  // stake
-  // harvest
-  // unstake
-  // emergency unstake
-  // realtimeRewardPerBlock
-  // startOwnershipTransfer
-  // acceptOwnership
-
-  // **only owner**
-  // setStakeLimits
-  // setStakeDuration
-  // setPenaltyBps
-  // withdrawBNB
-  // withdrawUnrelatedToken
-  // fundRewards
-  // withdrawExcessRewardToken
-
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 text-black">
       {/* Header Banner */}
@@ -500,7 +453,7 @@ export default function StakingPage() {
                 </h1>
               </div>
               <p className="mt-4 max-w-3xl text-base sm:text-lg font-bold text-black/80">
-                Stake {stakingTokenDisplaySymbol} and earn {rewardsTokenSymbol || "rewards"}.
+                Stake ${stakingTokenDisplaySymbol} and earn {"rewards"}.
               </p>
             </div>
           </div>
@@ -543,10 +496,10 @@ export default function StakingPage() {
                 <div className="p-4 border-2 border-black bg-[#FFF6E5]">
                   <p className="text-xs uppercase font-bold text-gray-500">Staked Balance</p>
                   <p className="text-2xl font-black text-gray-900">{formattedStakedBalance}</p>
-                  <p className="text-sm text-gray-500">{stakingTokenDisplaySymbol}</p>
+                  <p className="text-sm text-gray-500">{"sABEYPAD"}</p>
                 </div>
                 <div className="p-4 border-2 border-black bg-[#ECF9E9]">
-                  <p className="text-xs uppercase font-bold text-gray-500">Pending Rewards</p>
+                  <p className="text-xs uppercase font-bold text-gray-500">Reward Per Token</p>
                   <p
                     className={`text-2xl font-black transition-all duration-700 ${isPendingRewardsAnimating
                       ? "text-emerald-700 scale-[1.03] animate-pulse"
@@ -555,7 +508,7 @@ export default function StakingPage() {
                   >
                     {formattedPendingRewards}
                   </p>
-                  <p className="text-sm text-gray-500">{rewardsTokenSymbol || "Tokens"}</p>
+                  <p className="text-sm text-gray-500">sABEY</p>
                 </div>
               </CardContent>
             </Card>
@@ -577,7 +530,7 @@ export default function StakingPage() {
                     ) : (
                       <>
                         <Gift className="w-5 h-5 mr-2" />
-                        Claim {formattedPendingRewards} {rewardsTokenSymbol}
+                        Claim {formattedPendingRewards} {"$Reward"}
                       </>
                     )}
                   </Button>
@@ -643,7 +596,7 @@ export default function StakingPage() {
                     </div>
 
                     <Button
-                      onClick={handleStake}
+                      onClick={handleFixedStake}
                       disabled={isApproving || isStaking || !stakeAmount || hasInsufficientStakeBalance}
                       className={`-rotate-[0.25deg] w-full py-6 text-black font-black uppercase tracking-wider border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all disabled:opacity-50 ${needsApproval ? "bg-[#FFE38A] hover:bg-[#FFDA73]" : "bg-[#B8EF53] hover:bg-[#A6DD4A]"
                         }`}

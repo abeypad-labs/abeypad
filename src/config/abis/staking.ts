@@ -1,10 +1,17 @@
+import type { Abi, Address } from "viem";
 
-export const SecureStakeVaultContract = {
-    address: "0x09f74C9693f98780EAE30c71aD24f519EA7De71f",
+export const StakingContract = {
+    address: "0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9" as Address,
     abi: [
         {
-            "inputs": [],
-            "name": "acceptOwnership",
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "addToWhitelist",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -12,103 +19,273 @@ export const SecureStakeVaultContract = {
         {
             "inputs": [
                 {
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
+                },
+                {
                     "internalType": "uint256",
-                    "name": "index",
+                    "name": "value",
                     "type": "uint256"
                 }
             ],
-            "name": "emergencyUnstake",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
+            "name": "approve",
+            "outputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
                 }
             ],
-            "name": "fundRewards",
-            "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
         },
         {
             "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "index",
-                    "type": "uint256"
-                }
-            ],
-            "name": "harvest",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address payable",
+                    "internalType": "address",
                     "name": "_owner",
                     "type": "address"
                 },
                 {
                     "internalType": "address",
-                    "name": "_stakeToken",
+                    "name": "_rewardsToken",
                     "type": "address"
                 },
                 {
                     "internalType": "address",
-                    "name": "_rewardToken",
+                    "name": "_stakingToken",
                     "type": "address"
                 },
                 {
-                    "internalType": "uint256",
-                    "name": "_minimumStakeToken",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "_maxStakeableToken",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "_rewardsTokenRateAggregator",
+                    "type": "address"
                 }
             ],
             "stateMutability": "nonpayable",
             "type": "constructor"
         },
         {
-            "anonymous": false,
+            "inputs": [],
+            "name": "CannotStakeZero",
+            "type": "error"
+        },
+        {
             "inputs": [
                 {
-                    "indexed": true,
                     "internalType": "address",
-                    "name": "staker",
+                    "name": "attemptedToken",
+                    "type": "address"
+                }
+            ],
+            "name": "CannotWithdrawStakingToken",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "CannotWithdrawZero",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "spender",
                     "type": "address"
                 },
                 {
-                    "indexed": true,
                     "internalType": "uint256",
-                    "name": "index",
+                    "name": "allowance",
                     "type": "uint256"
                 },
                 {
-                    "indexed": false,
                     "internalType": "uint256",
-                    "name": "returnedAmount",
-                    "type": "uint256"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "penaltyAmount",
+                    "name": "needed",
                     "type": "uint256"
                 }
             ],
-            "name": "EmergencyUnstake",
-            "type": "event"
+            "name": "ERC20InsufficientAllowance",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "balance",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "needed",
+                    "type": "uint256"
+                }
+            ],
+            "name": "ERC20InsufficientBalance",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "approver",
+                    "type": "address"
+                }
+            ],
+            "name": "ERC20InvalidApprover",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                }
+            ],
+            "name": "ERC20InvalidReceiver",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "ERC20InvalidSender",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
+                }
+            ],
+            "name": "ERC20InvalidSpender",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "EnforcedPause",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "exit",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "ExpectedPause",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "updateTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "int256",
+                    "name": "currentRewardTokenRate",
+                    "type": "int256"
+                }
+            ],
+            "name": "InvalidPriceFeed",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "available",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "required",
+                    "type": "uint256"
+                }
+            ],
+            "name": "NotEnoughRewards",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "NotWhitelisted",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnableInvalidOwner",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnableUnauthorizedAccount",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "ReentrancyGuardReentrantCall",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "currentTime",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "availableTime",
+                    "type": "uint256"
+                }
+            ],
+            "name": "RewardsNotAvailableYet",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "token",
+                    "type": "address"
+                }
+            ],
+            "name": "SafeERC20FailedOperation",
+            "type": "error"
         },
         {
             "anonymous": false,
@@ -116,24 +293,31 @@ export const SecureStakeVaultContract = {
                 {
                     "indexed": true,
                     "internalType": "address",
-                    "name": "staker",
+                    "name": "owner",
                     "type": "address"
                 },
                 {
                     "indexed": true,
-                    "internalType": "uint256",
-                    "name": "index",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
                 },
                 {
                     "indexed": false,
                     "internalType": "uint256",
-                    "name": "amount",
+                    "name": "value",
                     "type": "uint256"
                 }
             ],
-            "name": "Harvest",
+            "name": "Approval",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "getReward",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         },
         {
             "anonymous": false,
@@ -141,26 +325,7 @@ export const SecureStakeVaultContract = {
                 {
                     "indexed": true,
                     "internalType": "address",
-                    "name": "oldOwner",
-                    "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address"
-                }
-            ],
-            "name": "OwnershipTransferStarted",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
-                    "internalType": "address",
-                    "name": "oldOwner",
+                    "name": "previousOwner",
                     "type": "address"
                 },
                 {
@@ -174,38 +339,46 @@ export const SecureStakeVaultContract = {
             "type": "event"
         },
         {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "penaltyBps",
-                    "type": "uint256"
-                }
-            ],
-            "name": "PenaltyUpdated",
-            "type": "event"
+            "inputs": [],
+            "name": "pause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         },
         {
             "anonymous": false,
             "inputs": [
                 {
                     "indexed": false,
-                    "internalType": "uint256[4]",
-                    "name": "rewardApyBps",
-                    "type": "uint256[4]"
-                }
-            ],
-            "name": "RewardApyUpdated",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
                     "internalType": "address",
-                    "name": "funder",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "Paused",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "rebalance",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "reclaim",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "token",
                     "type": "address"
                 },
                 {
@@ -215,92 +388,121 @@ export const SecureStakeVaultContract = {
                     "type": "uint256"
                 }
             ],
-            "name": "RewardsFunded",
+            "name": "Recovered",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "tokenAddress",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "tokenAmount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "recoverERC20",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "releaseRewards",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "removeFromWhitelist",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "reward",
+                    "type": "uint256"
+                }
+            ],
+            "name": "RewardAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "user",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "reward",
+                    "type": "uint256"
+                }
+            ],
+            "name": "RewardPaid",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "apy",
+                    "type": "uint256"
+                }
+            ],
+            "name": "RewardYieldSet",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "timestampAvailable",
+                    "type": "uint256"
+                }
+            ],
+            "name": "RewardsMadeAvailable",
             "type": "event"
         },
         {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "newPenaltyBps",
+                    "name": "rewardApy",
                     "type": "uint256"
                 }
             ],
-            "name": "setPenaltyBps",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "first",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "second",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "third",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "fourth",
-                    "type": "uint256"
-                }
-            ],
-            "name": "setRewardApyBps",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "first",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "second",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "third",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "fourth",
-                    "type": "uint256"
-                }
-            ],
-            "name": "setStakeDuration",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "_min",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "_max",
-                    "type": "uint256"
-                }
-            ],
-            "name": "setStakeLimits",
+            "name": "setRewardYieldForYear",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -310,11 +512,6 @@ export const SecureStakeVaultContract = {
                 {
                     "internalType": "uint256",
                     "name": "amount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "timeperiod",
                     "type": "uint256"
                 }
             ],
@@ -329,85 +526,178 @@ export const SecureStakeVaultContract = {
                 {
                     "indexed": true,
                     "internalType": "address",
-                    "name": "staker",
+                    "name": "user",
                     "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "internalType": "uint256",
-                    "name": "index",
-                    "type": "uint256"
                 },
                 {
                     "indexed": false,
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
-                },
+                }
+            ],
+            "name": "Staked",
+            "type": "event"
+        },
+        {
+            "inputs": [
                 {
-                    "indexed": false,
                     "internalType": "uint256",
                     "name": "reward",
                     "type": "uint256"
                 }
             ],
-            "name": "StakeCreated",
-            "type": "event"
+            "name": "supplyRewards",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         },
         {
-            "anonymous": false,
             "inputs": [
                 {
-                    "indexed": false,
-                    "internalType": "uint256[4]",
-                    "name": "duration",
-                    "type": "uint256[4]"
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
                 }
             ],
-            "name": "StakeDurationUpdated",
-            "type": "event"
+            "name": "transfer",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
         },
         {
             "anonymous": false,
             "inputs": [
                 {
-                    "indexed": false,
-                    "internalType": "uint256",
-                    "name": "minimumStakeToken",
-                    "type": "uint256"
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
                 },
                 {
                     "indexed": false,
                     "internalType": "uint256",
-                    "name": "maxStakeableToken",
+                    "name": "value",
                     "type": "uint256"
                 }
             ],
-            "name": "StakeLimitsUpdated",
+            "name": "Transfer",
             "type": "event"
         },
         {
             "inputs": [
                 {
-                    "internalType": "address payable",
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "transferFrom",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
                     "name": "newOwner",
                     "type": "address"
                 }
             ],
-            "name": "startOwnershipTransfer",
+            "name": "transferOwnership",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
         },
         {
+            "inputs": [],
+            "name": "unpause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "Unpaused",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "WhitelistAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "WhitelistRemoved",
+            "type": "event"
+        },
+        {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "index",
+                    "name": "amount",
                     "type": "uint256"
                 }
             ],
-            "name": "unstake",
+            "name": "withdraw",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -418,14 +708,8 @@ export const SecureStakeVaultContract = {
                 {
                     "indexed": true,
                     "internalType": "address",
-                    "name": "staker",
+                    "name": "user",
                     "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "internalType": "uint256",
-                    "name": "index",
-                    "type": "uint256"
                 },
                 {
                     "indexed": false,
@@ -434,87 +718,27 @@ export const SecureStakeVaultContract = {
                     "type": "uint256"
                 }
             ],
-            "name": "Unstake",
+            "name": "Withdrawn",
             "type": "event"
         },
         {
-            "inputs": [],
-            "name": "withdrawBNB",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                }
-            ],
-            "name": "withdrawExcessRewardToken",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "token",
+                    "name": "owner",
                     "type": "address"
                 },
                 {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "spender",
+                    "type": "address"
                 }
             ],
-            "name": "withdrawUnrelatedToken",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "stateMutability": "payable",
-            "type": "receive"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "name": "Duration",
+            "name": "allowance",
             "outputs": [
                 {
                     "internalType": "uint256",
                     "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "getRewardBalance",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "balance",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "reserved",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "available",
                     "type": "uint256"
                 }
             ],
@@ -525,11 +749,11 @@ export const SecureStakeVaultContract = {
             "inputs": [
                 {
                     "internalType": "address",
-                    "name": "user",
+                    "name": "account",
                     "type": "address"
                 }
             ],
-            "name": "getUserStakeCount",
+            "name": "balanceOf",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -542,7 +766,26 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "MAX_DURATION",
+            "name": "decimals",
+            "outputs": [
+                {
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "earned",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -555,7 +798,39 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "MAX_PENALTY_BPS",
+            "name": "getRewardForDuration",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "isWhitelisted",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "lastUpdateTime",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -568,25 +843,12 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "maxStakeableToken",
+            "name": "name",
             "outputs": [
                 {
-                    "internalType": "uint256",
+                    "internalType": "string",
                     "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "minimumStakeToken",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
             "stateMutability": "view",
@@ -597,258 +859,21 @@ export const SecureStakeVaultContract = {
             "name": "owner",
             "outputs": [
                 {
-                    "internalType": "address payable",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "penaltyBps",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "pendingOwner",
-            "outputs": [
-                {
-                    "internalType": "address payable",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "PERCENT_DIVIDER",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "user",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "index",
-                    "type": "uint256"
-                }
-            ],
-            "name": "realtimeRewardPerBlock",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "name": "RewardApyBps",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "rewardToken",
-            "outputs": [
-                {
-                    "internalType": "contract IERC20Metadata",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "rewardTokenDecimals",
-            "outputs": [
-                {
-                    "internalType": "uint8",
-                    "name": "",
-                    "type": "uint8"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
                     "internalType": "address",
                     "name": "",
                     "type": "address"
                 }
             ],
-            "name": "Stakers",
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "paused",
             "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "totalStakedTokenUser",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "totalUnstakedTokenUser",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "totalClaimedRewardTokenUser",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "stakeCount",
-                    "type": "uint256"
-                },
                 {
                     "internalType": "bool",
-                    "name": "alreadyExists",
-                    "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
                     "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "name": "StakersID",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "name": "stakersRecord",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "unstaketime",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "staketime",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "amount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "rewardTokenAmount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "reward",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "lastharvesttime",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "remainingreward",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "harvestreward",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "persecondreward",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "penaltyamount",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "bool",
-                    "name": "withdrawan",
-                    "type": "bool"
-                },
-                {
-                    "internalType": "bool",
-                    "name": "unstaked",
                     "type": "bool"
                 }
             ],
@@ -857,10 +882,81 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "stakeToken",
+            "name": "rewardPerToken",
             "outputs": [
                 {
-                    "internalType": "contract IERC20Metadata",
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewardPerTokenStored",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewardRate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "rewards",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewardsAvailableDate",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewardsToken",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
                     "name": "",
                     "type": "address"
                 }
@@ -870,12 +966,12 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "stakeTokenDecimals",
+            "name": "rewardsTokenRateAggregator",
             "outputs": [
                 {
-                    "internalType": "uint8",
+                    "internalType": "contract IChainlinkAggregator",
                     "name": "",
-                    "type": "uint8"
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -883,7 +979,7 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "totalActiveStakedToken",
+            "name": "rewardsTokenRateDecimals",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -896,7 +992,33 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "totalClaimedRewardToken",
+            "name": "stakingToken",
+            "outputs": [
+                {
+                    "internalType": "contract IERC20",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "symbol",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "targetRewardApy",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -909,7 +1031,7 @@ export const SecureStakeVaultContract = {
         },
         {
             "inputs": [],
-            "name": "totalReservedRewards",
+            "name": "totalSupply",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -921,8 +1043,14 @@ export const SecureStakeVaultContract = {
             "type": "function"
         },
         {
-            "inputs": [],
-            "name": "totalStakedToken",
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "userRewardPerTokenPaid",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -934,44 +1062,24 @@ export const SecureStakeVaultContract = {
             "type": "function"
         },
         {
-            "inputs": [],
-            "name": "totalStakers",
-            "outputs": [
+            "inputs": [
                 {
-                    "internalType": "uint256",
+                    "internalType": "address",
                     "name": "",
-                    "type": "uint256"
+                    "type": "address"
                 }
             ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "totalUnStakedToken",
+            "name": "whitelist",
             "outputs": [
                 {
-                    "internalType": "uint256",
+                    "internalType": "bool",
                     "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "YEAR",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
+                    "type": "bool"
                 }
             ],
             "stateMutability": "view",
             "type": "function"
         }
-    ]
+    ] as Abi
 } as const;
 

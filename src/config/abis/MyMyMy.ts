@@ -1,5 +1,7 @@
+import type { Abi, Address } from "viem";
+
 export const MyMyMy = {
-    address: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e",
+    address: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address,
     abi: [
         {
             "inputs": [
@@ -627,5 +629,5 @@ export const MyMyMy = {
             "stateMutability": "view",
             "type": "function"
         }
-    ]
+    ] as Abi
 } as const;
