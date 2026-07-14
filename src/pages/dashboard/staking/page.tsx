@@ -9,7 +9,6 @@ import {
   useWriteContract
 } from "@/lib/hooks";
 import {
-  BarChart3,
   Gift,
   Loader2,
   Wallet
@@ -132,6 +131,8 @@ export default function StakingPage() {
     },
   });
 
+  console.log("total staked", totalStaked);
+
   // Read pending rewards
   const { data: pendingRewards, refetch: refetchPendingRewards } = useReadContract({
     address: SecureStakeVaultContractAddress,
@@ -176,12 +177,12 @@ export default function StakingPage() {
     } catch { return "0"; }
   }, [stakedBalance, decimals]);
 
-  const formattedTotalStaked = useMemo(() => {
-    if (totalStaked === undefined || totalStaked === null) return "0";
-    try {
-      return Number(formatUnits(totalStaked as bigint, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
-    } catch { return "0"; }
-  }, [totalStaked, decimals]);
+  // const formattedTotalStaked = useMemo(() => {
+  //   if (totalStaked === undefined || totalStaked === null) return "0";
+  //   try {
+  //     return Number(formatUnits(totalStaked as bigint, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+  //   } catch { return "0"; }
+  // }, [totalStaked, decimals]);
 
   const pendingRewardsValue = useMemo(() => {
     if (pendingRewards === undefined || pendingRewards === null) return 0;

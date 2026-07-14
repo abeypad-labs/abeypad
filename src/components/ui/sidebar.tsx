@@ -88,7 +88,6 @@ const SidebarContent = () => {
                       maximumFractionDigits: 2,
                     })}
                 </p>
-                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-black/60">USD Balance</p>
                 <p className="mt-2 text-xs font-bold font-mono">
                   {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} ABEY
                 </p>
