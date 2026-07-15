@@ -11,7 +11,8 @@ import {
 import {
   Gift,
   Loader2,
-  Wallet
+  Wallet,
+  AlertTriangle
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -158,7 +159,7 @@ export default function StakingPage() {
         address: StakingContract.address,
         abi: StakingContract.abi as Abi,
         functionName: "stake",
-        args: [BigInt(1e4)],
+        args: [amount],
       });
 
       console.log(hash);
@@ -172,30 +173,7 @@ export default function StakingPage() {
     }
   };
 
-  // getReward()
-  const getReward = async () => {
-    if (!address) return
 
-    try {
-      // const amount = parseUnits(stakeAmount, decimals);
-
-      const hash = await writeContractAsync({
-        address: StakingContract.address,
-        abi: StakingContract.abi as Abi,
-        functionName: "getReward",
-        args: [BigInt(1e4)],
-      });
-
-      console.log(hash);
-      toast.info("Getting Reward tokens...");
-    } catch (err: unknown) {
-      setIsApproving(false);
-      setIsStaking(false);
-      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
-      toast.error(message);
-    }
-
-  };
 
   // Transaction receipts
   const { isSuccess: isStakingSuccess, isError: isStakingError } =
@@ -219,11 +197,24 @@ export default function StakingPage() {
     } catch { return "0"; }
   }, [walletBalance, decimals]);
 
+  const preciseWalletBalance = useMemo(() => {
+    if (walletBalance === undefined || walletBalance === null) return "0";
+    try {
+      return formatUnits(walletBalance as bigint, 18);
+    } catch { return "0"; }
+  }, [walletBalance, decimals]);
+
   const formattedStakedBalance = useMemo(() => {
     if (stakedBalance === undefined || stakedBalance === null) return "0";
-    return Number(stakedBalance)
     try {
       return Number(formatUnits(stakedBalance as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 6 });
+    } catch { return "0"; }
+  }, [stakedBalance, decimals]);
+
+  const preciseStakedBalance = useMemo(() => {
+    if (stakedBalance === undefined || stakedBalance === null) return "0";
+    try {
+      return formatUnits(stakedBalance as bigint, 18);
     } catch { return "0"; }
   }, [stakedBalance, decimals]);
 
@@ -236,17 +227,24 @@ export default function StakingPage() {
   }, [pendingRewards, rewardDecimals]);
 
   const formattedPendingRewards = useMemo(() => {
-    if (rewardsPerToken == null) return "0";
+    if (pendingRewards === undefined || pendingRewards === null) return "0";
     try {
       return Number(
-        formatUnits(getRewardsForDuration as bigint, 18)
+        formatUnits(pendingRewards as bigint, 18)
       ).toLocaleString(undefined, {
         maximumFractionDigits: 6,
       });
     } catch {
       return "0";
     }
-  }, [rewardsPerToken, rewardDecimals]);
+  }, [pendingRewards, rewardDecimals]);
+
+  const precisePendingRewards = useMemo(() => {
+    if (pendingRewards === undefined || pendingRewards === null) return "0";
+    try {
+      return formatUnits(pendingRewards as bigint, 18);
+    } catch { return "0"; }
+  }, [pendingRewards, rewardDecimals]);
 
   // Check if approval is needed
   const needsApproval = useMemo(() => {
@@ -394,28 +392,29 @@ export default function StakingPage() {
     }
   }, [isClaimError, claimHash]);
 
-  // const handleUnstake = async () => {
-  //   if (!address || !unstakeAmount) return;
+  // Withdraw staked tokens
+  const handleUnstake = async () => {
+    if (!address || !unstakeAmount) return;
 
-  //   try {
-  //     setIsUnstaking(true);
-  //     const amount = parseUnits(unstakeAmount, decimals);
+    try {
+      setIsUnstaking(true);
+      const amount = parseUnits(unstakeAmount, decimals);
 
-  //     const hash = await writeContractAsync({
-  //       address: StakingContract.address,
-  //       abi: StakingContract.abi as Abi,
-  //       functionName: "withdraw",
-  //       args: [amount],
-  //     });
+      const hash = await writeContractAsync({
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
+        functionName: "withdraw",
+        args: [amount],
+      });
 
-  //     setUnstakingHash(hash);
-  //     toast.info("Withdrawing tokens...");
-  //   } catch (err: unknown) {
-  //     setIsUnstaking(false);
-  //     const message = (err as { shortMessage?: string })?.shortMessage || "Withdrawal failed";
-  //     toast.error(message);
-  //   }
-  // };
+      setUnstakingHash(hash);
+      toast.info("Withdrawing tokens...");
+    } catch (err: unknown) {
+      setIsUnstaking(false);
+      const message = (err as { shortMessage?: string })?.shortMessage || "Withdrawal failed";
+      toast.error(message);
+    }
+  };
 
   const handleClaim = async () => {
     if (!address) return;
@@ -488,6 +487,20 @@ export default function StakingPage() {
             </Button>
           </CardContent>
         </Card>
+      ) : !isWhiteListed ? (
+        <Card className="before:hidden -rotate-[0.25deg] py-0 border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] max-w-2xl mx-auto bg-white">
+          <CardContent className="p-8 sm:p-12 text-center space-y-6">
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="h-6 w-6 text-yellow-500 mr-4" />
+                <div>
+                  <p className="font-bold">Not Whitelisted</p>
+                  <p className="text-gray-600">You need to be whitelisted by the admin to participate in staking.</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* User Stats */}
@@ -502,15 +515,17 @@ export default function StakingPage() {
                 <div className="p-4 border-2 border-black bg-[#EAF7FF]">
                   <p className="text-xs uppercase font-bold text-gray-500">Wallet Balance</p>
                   <p className="text-2xl font-black text-gray-900">{formattedWalletBalance}</p>
+                  <p className="text-xs text-gray-500 mt-1">{preciseWalletBalance}</p>
                   <p className="text-sm text-gray-500">{stakingTokenDisplaySymbol}</p>
                 </div>
                 <div className="p-4 border-2 border-black bg-[#FFF6E5]">
                   <p className="text-xs uppercase font-bold text-gray-500">Staked Balance</p>
                   <p className="text-2xl font-black text-gray-900">{formattedStakedBalance}</p>
+                  <p className="text-xs text-gray-500 mt-1">{preciseStakedBalance}</p>
                   <p className="text-sm text-gray-500">{"sABEYPAD"}</p>
                 </div>
                 <div className="p-4 border-2 border-black bg-[#ECF9E9]">
-                  <p className="text-xs uppercase font-bold text-gray-500">Reward For Duration</p>
+                  <p className="text-xs uppercase font-bold text-gray-500">Pending Rewards</p>
                   <p
                     className={`text-2xl font-black transition-all duration-700 ${isPendingRewardsAnimating
                       ? "text-emerald-700 scale-[1.03] animate-pulse"
@@ -519,6 +534,7 @@ export default function StakingPage() {
                   >
                     {formattedPendingRewards}
                   </p>
+                  <p className="text-xs text-gray-500 mt-1">{precisePendingRewards}</p>
                   <p className="text-sm text-gray-500">sABEY</p>
                 </div>
               </CardContent>
@@ -665,7 +681,7 @@ export default function StakingPage() {
                     </div>
 
                     <Button
-                      onClick={getReward}
+                      onClick={handleUnstake}
                       disabled={isUnstaking || !unstakeAmount || hasInsufficientUnstakeBalance}
                       className="rotate-[0.25deg] w-full py-6 bg-[#FF7F41] text-black font-black uppercase tracking-wider border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#F06A56] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all disabled:opacity-50"
                     >
