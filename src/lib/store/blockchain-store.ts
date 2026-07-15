@@ -14,6 +14,9 @@ export interface TokenLock {
   description: string;
 }
 
+// Enhanced user assets tracking is now handled by useUserAssetsStore
+// This store maintains backward compatibility for existing functionality
+
 interface CacheMetadata {
   timestamp: number;
   isLoading: boolean;

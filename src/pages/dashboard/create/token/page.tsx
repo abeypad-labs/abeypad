@@ -17,6 +17,7 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/li
 import { Coins, ExternalLink, CheckCircle2, LayoutDashboard, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { useUserAssetsStore } from "@/lib/store/user-assets-store";
 
 const TokenType = {
   Plain: 0,
@@ -34,6 +35,7 @@ export default function CreateTokenPage() {
   const explorerUrl = abeychainDevnet.blockExplorers.default.url;
   const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
   const navigate = useNavigate();
+  const { setUserToken } = useUserAssetsStore();
 
   const [tokenType, setTokenType] = useState<TokenType>(TokenType.Plain);
   const [name, setName] = useState("");
@@ -44,6 +46,9 @@ export default function CreateTokenPage() {
   const [taxWallet, setTaxWallet] = useState("");
   const [taxBps, setTaxBps] = useState("0");
   const [createdTokenAddress, setCreatedTokenAddress] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'confirming' | 'success' | 'error'>('idle');
+  const [txError, setTxError] = useState<string | null>(null);
 
   const processedHash = useRef<string | null>(null);
 
@@ -52,8 +57,25 @@ export default function CreateTokenPage() {
   }, [address]);
 
   const handleCreateToken = () => {
+    console.log("[CreateToken] Starting token creation...");
+    console.log("[CreateToken] Current state:", {
+      tokenType,
+      name,
+      symbol,
+      decimals,
+      initialSupply,
+      initialRecipient,
+      taxWallet,
+      taxBps,
+      address,
+      tokenFactory,
+    });
+
     setCreatedTokenAddress(null);
     processedHash.current = null;
+    setTxStatus('pending');
+    setTxError(null);
+    setShowModal(true);
 
     const tokenParams = {
       name,
@@ -62,6 +84,8 @@ export default function CreateTokenPage() {
       initialSupply: parseUnits(initialSupply, parseInt(decimals)),
       initialRecipient: initialRecipient as `0x${string}`,
     };
+
+    console.log("[CreateToken] Token params:", tokenParams);
 
     let functionName:
       | "createPlainToken"
@@ -83,7 +107,9 @@ export default function CreateTokenPage() {
         break;
       case TokenType.Taxable: {
         functionName = "createTaxableToken";
-        args.push({ taxWallet: taxWallet as `0x${string}`, taxBps: parseInt(taxBps) });
+        const taxParams = { taxWallet: taxWallet as `0x${string}`, taxBps: parseInt(taxBps) };
+        args.push(taxParams);
+        console.log("[CreateToken] Tax params:", taxParams);
         break;
       }
       case TokenType.NonMintable:
@@ -93,6 +119,12 @@ export default function CreateTokenPage() {
         toast.error("Invalid token type selected");
         return;
     }
+
+    console.log("[CreateToken] Calling writeContract with:", {
+      address: tokenFactory,
+      functionName,
+      args,
+    });
 
     writeContract({ address: tokenFactory, abi: TokenFactory.abi, functionName, args: args as never });
   };
@@ -106,6 +138,10 @@ export default function CreateTokenPage() {
   // Handle write errors
   useEffect(() => {
     if (error) {
+      console.error("[CreateToken] Write contract error:", error);
+      console.error("[CreateToken] Error message:", getFriendlyTxErrorMessage(error, "Token creation"));
+      setTxStatus('error');
+      setTxError(getFriendlyTxErrorMessage(error, "Token creation"));
       toast.error(getFriendlyTxErrorMessage(error, "Token creation"));
       reset();
     }
@@ -113,8 +149,20 @@ export default function CreateTokenPage() {
 
   // On confirmation: parse token address from receipt logs, toast, redirect
   useEffect(() => {
+    console.log("[CreateToken] Confirmation effect triggered:", {
+      isConfirmed,
+      hasReceipt: !!receipt,
+      hash,
+      processedHash: processedHash.current,
+    });
+
     if (!isConfirmed || !receipt || processedHash.current === hash) return;
     processedHash.current = hash ?? null;
+
+    console.log("[CreateToken] Transaction confirmed!");
+    console.log("[CreateToken] Transaction hash:", hash);
+    console.log("[CreateToken] Receipt:", receipt);
+    console.log("[CreateToken] Receipt logs count:", receipt.logs.length);
 
     // Pull the deployed token address straight from the TokenCreated event —
     // no extra RPC call needed, the address is in the receipt topics.
@@ -125,15 +173,35 @@ export default function CreateTokenPage() {
         logs: receipt.logs,
         eventName: "TokenCreated",
       });
+      console.log("[CreateToken] Parsed TokenCreated logs:", logs);
       newToken = (logs[0]?.args as { token?: string })?.token ?? null;
-    } catch {
+      console.log("[CreateToken] Extracted token address:", newToken);
+    } catch (parseError) {
+      console.error("[CreateToken] Failed to parse event logs:", parseError);
       // parsing failed, proceed without the address
     }
 
     setCreatedTokenAddress(newToken);
     if (newToken) {
+      console.log("[CreateToken] Token created successfully:", newToken);
+      setTxStatus('success');
       toast.success("Token created! Redirecting to your dashboard…");
+      // Save the created token to user assets store
+      if (address) {
+        console.log("[CreateToken] Saving token to user assets store");
+        setUserToken(address as `0x${string}`, {
+          address: newToken as `0x${string}`,
+          name,
+          symbol,
+          decimals: parseInt(decimals),
+          totalSupply: parseUnits(initialSupply, parseInt(decimals)),
+          createdAt: Date.now(),
+        });
+      }
     } else {
+      console.error("[CreateToken] No token address found in logs - transaction may have reverted");
+      setTxStatus('error');
+      setTxError("Transaction succeeded but no token was created. The factory contract may not be deployed on this network.");
       toast.error("Transaction succeeded but no token was created. The factory contract may not be deployed on this network.");
     }
 
@@ -146,34 +214,154 @@ export default function CreateTokenPage() {
     reset();
 
     if (newToken) {
-      setTimeout(() => navigate("/dashboard/user"), 2500);
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/dashboard/user");
+      }, 3000);
     }
   }, [isConfirmed, receipt, hash, reset, navigate]);
 
+  // Log transaction hash when it's received
+  useEffect(() => {
+    if (hash) {
+      console.log("[CreateToken] Transaction submitted!");
+      console.log("[CreateToken] Transaction hash:", hash);
+      console.log("[CreateToken] Explorer URL:", `${explorerUrl}/tx/${hash}`);
+      setTxStatus('confirming');
+    }
+  }, [hash, explorerUrl]);
+
+  // Log pending state
+  useEffect(() => {
+    console.log("[CreateToken] isPending changed:", isPending);
+  }, [isPending]);
+
+  // Log confirming state
+  useEffect(() => {
+    console.log("[CreateToken] isConfirming changed:", isConfirming);
+  }, [isConfirming]);
+
   const isBusy = isPending || isConfirming;
+
+  console.log("[CreateToken] Render state:", {
+    isBusy,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    hasHash: !!hash,
+    hasReceipt: !!receipt,
+    createdTokenAddress,
+  });
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
-      {/* Full-page mining overlay */}
-      {isConfirming && (
+      {/* Full-page transaction status modal */}
+      {showModal && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="border-4 border-black bg-[#FFE38A] p-8 shadow-[8px_8px_0_rgba(0,0,0,1)] flex flex-col items-center gap-4 max-w-sm w-full mx-4">
-            <Loader2 className="w-12 h-12 animate-spin" />
-            <p className="font-black uppercase tracking-wider text-xl text-center">
-              Deploying Token…
-            </p>
-            <p className="text-sm text-gray-700 text-center">
-              Transaction submitted. Waiting for block confirmation.
-            </p>
-            {hash && (
-              <a
-                href={`${explorerUrl}/tx/${hash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
-              >
-                {hash.slice(0, 20)}…{hash.slice(-8)}
-              </a>
+            {/* Pending State - Waiting for wallet */}
+            {txStatus === 'pending' && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Confirm in Wallet
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Please confirm the transaction in your wallet...
+                </p>
+              </>
+            )}
+
+            {/* Confirming State - Transaction submitted */}
+            {txStatus === 'confirming' && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Deploying Token…
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Transaction submitted. Waiting for block confirmation.
+                </p>
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View on Explorer
+                  </a>
+                )}
+              </>
+            )}
+
+            {/* Success State */}
+            {txStatus === 'success' && (
+              <>
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Token Created!
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Your token has been deployed successfully.
+                </p>
+                {createdTokenAddress && (
+                  <div className="w-full">
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Token Address</p>
+                    <code className="block bg-white p-2 border-2 border-black font-mono text-xs break-all">
+                      {createdTokenAddress}
+                    </code>
+                  </div>
+                )}
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <p className="text-xs text-gray-600 text-center">
+                  Redirecting to dashboard...
+                </p>
+              </>
+            )}
+
+            {/* Error State */}
+            {txStatus === 'error' && (
+              <>
+                <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                  <span className="text-white text-2xl font-black">!</span>
+                </div>
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Transaction Failed
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  {txError || "An error occurred during token creation."}
+                </p>
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <Button
+                  onClick={() => {
+                    setShowModal(false);
+                    setTxStatus('idle');
+                    setTxError(null);
+                  }}
+                  className="mt-4 w-full border-4 border-black bg-white text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-gray-100"
+                >
+                  Close
+                </Button>
+              </>
             )}
           </div>
         </div>

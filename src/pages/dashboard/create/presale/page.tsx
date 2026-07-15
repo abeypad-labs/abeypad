@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
 // LaunchpadService removed - data is now stored only on blockchain
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
+import { useLaunchpadPresaleStore } from "@/lib/store/launchpad-presale-store";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -433,6 +434,7 @@ export default function CreatePresalePage() {
     owner: address ?? "",
     requiresWhitelist: false,
   });
+  const { setPresale } = useLaunchpadPresaleStore();
 
   // Creation is permissionless by default; no whitelist restriction is enforced.
 
@@ -514,6 +516,29 @@ export default function CreatePresalePage() {
       );
       // Invalidate the presales cache to force refetch
       setPresales([]);
+      // Save presale to launchpad presale store
+      if (address) {
+        // Save basic presale info to store
+        setPresale(newPresaleAddress, {
+          address: newPresaleAddress,
+          saleToken: formData.saleToken as `0x${string}`,
+          paymentToken: (formData.paymentToken || "0x0000000000000000000000000000000000000000") as `0x${string}`,
+          isPaymentETH: !formData.paymentToken,
+          startTime: BigInt(Math.floor(new Date(formData.startTime).getTime() / 1000)),
+          endTime: BigInt(Math.floor(new Date(formData.endTime).getTime() / 1000)),
+          rate: 0n, // Will be fetched from contract later
+          softCap: parseEther(formData.softCap),
+          hardCap: parseEther(formData.hardCap),
+          minContribution: parseEther(formData.minContribution),
+          maxContribution: parseEther(formData.maxContribution),
+          totalRaised: 0n,
+          committedTokens: 0n,
+          totalTokensDeposited: parseUnits(formData.saleAmount, 18),
+          claimEnabled: false,
+          refundsEnabled: false,
+          owner: address as `0x${string}`,
+        });
+      }
       // Save presale to Supabase with transaction hash
       savePresaleToDatabase(newPresaleAddress, creationHash);
       // Redirect to manage page
@@ -526,6 +551,8 @@ export default function CreatePresalePage() {
     setPresales,
     savePresaleToDatabase,
     navigate,
+    address,
+    formData,
   ]);
 
   // Show loading state while checking whitelist

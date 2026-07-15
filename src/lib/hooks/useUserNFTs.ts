@@ -1,28 +1,20 @@
-import { useAccount, useReadContract } from '@/lib/hooks';
-import { NFTFactoryContract, CONTRACT_ADDRESSES } from '../../config';
+import { useAccount } from '@/lib/hooks';
+import { useUserAssetsStore } from '../store/user-assets-store';
 
 export function useUserNFTs() {
   const { address } = useAccount();
-  const { nftFactory } = CONTRACT_ADDRESSES;
+  const { getUserNFTCollections } = useUserAssetsStore();
 
-  const { data, isLoading, isError, refetch } = useReadContract({
-    abi: NFTFactoryContract.abi,
-    address: nftFactory,
-    functionName: 'tokensCreatedBy',
-    args: [address as `0x${string}`],
-    query: {
-      enabled: !!address,
-      staleTime: 0,
-      refetchInterval: 10_000,
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-    },
-  });
+  // Get NFT collections from local store first
+  const localCollections = address ? getUserNFTCollections(address as `0x${string}`) : null;
+  
+  // Convert to array of addresses
+  const collectionAddresses = localCollections ? localCollections.map(c => c.address) : [];
 
   return {
-    nfts: (data as `0x${string}`[] | undefined) ?? [],
-    isLoading: !!address && isLoading,
-    isError,
-    refetch,
+    nfts: collectionAddresses,
+    isLoading: false, // Local store is instant
+    isError: false,
+    refetch: () => {}, // No refetch needed for local store
   };
 }

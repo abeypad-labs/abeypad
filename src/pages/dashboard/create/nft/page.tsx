@@ -4,16 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NFTFactoryContract, CONTRACT_ADDRESSES } from "@/config";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { parseEther } from "viem";
+import { parseEther, parseEventLogs } from "viem";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { useUserAssetsStore } from "@/lib/store/user-assets-store";
 
 export default function CreateNftPage() {
     const { address } = useAccount();
     const { nftFactory } = CONTRACT_ADDRESSES;
     const { data: hash, writeContract, isPending, error } = useWriteContract();
+    const { setUserNFTCollection } = useUserAssetsStore();
+    const processedHash = useRef<string | null>(null);
 
     const [name, setName] = useState("");
     const [symbol, setSymbol] = useState("");
@@ -62,16 +65,67 @@ export default function CreateNftPage() {
         });
     };
 
-    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+    const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = useWaitForTransactionReceipt({ hash });
 
     useEffect(() => {
-        if (isConfirmed) {
-            toast.success("NFT Collection created successfully!");
+        if (!isConfirmed || !receipt || processedHash.current === hash) return;
+        processedHash.current = hash ?? null;
+
+        // Parse NFT collection address from event logs
+        let newCollection: string | null = null;
+        try {
+            const logs = parseEventLogs({
+                abi: NFTFactoryContract.abi,
+                logs: receipt.logs,
+                // Try different possible event names
+            });
+            // Look for any log that has an address that could be the collection
+            for (const log of logs) {
+                // Check if log has args with an address property
+                if (log && typeof log === 'object' && 'args' in log) {
+                    const args = log.args as Record<string, unknown>;
+                    // Look for common field names that might contain the collection address
+                    const possibleFields = ['collection', 'nft', 'token', 'contractAddress', 'address'];
+                    for (const field of possibleFields) {
+                        if (args[field] && typeof args[field] === 'string' && 
+                            (args[field] as string).startsWith('0x') && (args[field] as string).length === 42) {
+                            newCollection = args[field] as string;
+                            break;
+                        }
+                    }
+                    if (newCollection) break;
+                }
+            }
+        } catch {
+            // parsing failed, will try alternative method
         }
+        
+        // Alternative: if we couldn't parse from events, we might need to fetch from contract
+        // For now, we'll show a success message even without the address
+
+        if (newCollection) {
+            toast.success("NFT Collection created successfully!");
+            // Save to user assets store
+            if (address) {
+                setUserNFTCollection(address as `0x${string}`, {
+                    address: newCollection as `0x${string}`,
+                    name,
+                    symbol,
+                    totalSupply: BigInt(maxSupply || "0"),
+                    owner: address as `0x${string}`,
+                    createdAt: Date.now(),
+                });
+            }
+        } else {
+            toast.success("NFT Collection created successfully! Check explorer for details.");
+        }
+    }, [isConfirmed, receipt, hash, address, name, symbol, maxSupply]);
+
+    useEffect(() => {
         if (error) {
             toast.error(getFriendlyTxErrorMessage(error, "NFT creation"));
         }
-    }, [isConfirmed, error])
+    }, [error])
 
     return (
         <div className="container mx-auto px-4 py-12 text-black">

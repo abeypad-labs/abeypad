@@ -85,7 +85,7 @@ export default function StakingPage() {
     abi: MyMyMy.abi as Abi,
     address: stakingToken as Address,
     functionName: "balanceOf",
-    args: [address as Address],
+    args: [address],
     query: { enabled: !!address && !!stakingToken },
   });
 
