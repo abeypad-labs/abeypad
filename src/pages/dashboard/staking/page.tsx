@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StakingContract } from "@/config";
 import { MyMyMy } from "@/config/abis/MyMyMy";
 import {
-  useAccount, useConnectModal, usePublicClient,
+  useAccount, useConnectModal,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract
@@ -26,7 +26,6 @@ import {
 export default function StakingPage() {
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   const [activeTab, setActiveTab] = useState<"stake" | "unstake">("stake");
@@ -80,67 +79,6 @@ export default function StakingPage() {
     args: [address]
   });
 
-  console.log({ rewardsToken, stakingToken, rewardsPerToken, getRewardsForDuration, isWhiteListed })
-
-  // setters
-  const handleFixedStake = async () => {
-    if (!address || !stakingToken || !stakeAmount) return;
-    try {
-      const amount = parseUnits(stakeAmount, decimals);
-
-      if (amount <= 0n) {
-        toast.error("Enter an amount greater than 0.");
-        return;
-      }
-
-      if (!publicClient) {
-        toast.error("Could not access network client. Please retry.");
-        return;
-      }
-
-      const currentAllowance = (allowance as bigint | undefined) ?? 0n;
-
-      if (currentAllowance < amount) {
-        setIsApproving(true);
-        toast.info(`Approving ${stakingTokenDisplaySymbol}...`);
-
-        const approvalTxHash = await writeContractAsync({
-          address: stakingToken as Address,
-          abi: MyMyMy.abi,
-          functionName: "approve",
-          args: [StakingContract.address, amount],
-        });
-
-        const approvalReceipt = await publicClient.waitForTransactionReceipt({
-          hash: approvalTxHash as `0x${string}`,
-        });
-
-        if (approvalReceipt.status !== "success") {
-          throw new Error("Approval transaction failed.");
-        }
-
-        await refetchAllowance();
-        setIsApproving(false);
-        toast.success("Approval confirmed. Confirm staking to continue.");
-      }
-
-      setIsStaking(true);
-      const hash = await writeContractAsync({
-        address: StakingContract.address,
-        abi: StakingContract.abi as Abi,
-        functionName: "stake",
-        args: [amount],
-      });
-      setStakingHash(hash);
-      toast.info("Staking tokens...");
-    } catch (err: unknown) {
-      setIsApproving(false);
-      setIsStaking(false);
-      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
-      toast.error(message);
-    }
-  };
-
   // Read user's wallet balance of staking token
   const { data: walletBalance, refetch: refetchWalletBalance } = useReadContract({
     abi: MyMyMy.abi as Abi,
@@ -168,13 +106,6 @@ export default function StakingPage() {
     query: { enabled: !!address },
   });
 
-  console.log({
-    raw: stakedBalance,
-    formatted: stakedBalance
-      ? formatUnits(stakedBalance as bigint, 18)
-      : null,
-  });
-
   // Read pending rewards
   const { data: pendingRewards, refetch: refetchPendingRewards } = useReadContract({
     address: StakingContract.address,
@@ -186,6 +117,85 @@ export default function StakingPage() {
       refetchInterval: 5000,
     },
   });
+
+  console.log({ rewardsToken, stakingToken, rewardsPerToken, getRewardsForDuration, isWhiteListed, pendingRewards, stakedBalance, allowance, walletBalance })
+
+  // setters
+  const handleFixedStake = async () => {
+    if (!address || !stakingToken || !stakeAmount) return;
+    try {
+      const amount = parseUnits(stakeAmount, decimals);
+
+      const currentAllowance = (allowance as bigint | undefined) ?? 0n;
+
+      if (currentAllowance < amount) {
+        setIsApproving(true);
+        toast.info(`Approving ${stakingTokenDisplaySymbol}...`);
+
+        const approvalTxHash = await writeContractAsync({
+          address: stakingToken as Address,
+          abi: MyMyMy.abi,
+          functionName: "approve",
+          args: [StakingContract.address, amount],
+        });
+
+        const approvalReceipt = useWaitForTransactionReceipt({
+          hash: approvalTxHash as `0x${string}`,
+        });
+
+        if (approvalReceipt.status !== "success") {
+          throw new Error("Approval transaction failed.");
+        }
+
+        await refetchAllowance();
+        setIsApproving(false);
+        toast.success("Approval confirmed. Confirm staking to continue.");
+      }
+
+      setIsStaking(true);
+
+      const hash = await writeContractAsync({
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
+        functionName: "stake",
+        args: [BigInt(1e4)],
+      });
+
+      console.log(hash);
+      setStakingHash(hash);
+      toast.info("Staking tokens...");
+    } catch (err: unknown) {
+      setIsApproving(false);
+      setIsStaking(false);
+      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
+      toast.error(message);
+    }
+  };
+
+  // getReward()
+  const getReward = async () => {
+    if (!address) return
+
+    try {
+      // const amount = parseUnits(stakeAmount, decimals);
+
+      const hash = await writeContractAsync({
+        address: StakingContract.address,
+        abi: StakingContract.abi as Abi,
+        functionName: "getReward",
+        args: [BigInt(1e4)],
+      });
+
+      console.log(hash);
+      toast.info("Getting Reward tokens...");
+    } catch (err: unknown) {
+      setIsApproving(false);
+      setIsStaking(false);
+      const message = (err as { shortMessage?: string })?.shortMessage || "Staking failed";
+      toast.error(message);
+    }
+
+  };
 
   // Transaction receipts
   const { isSuccess: isStakingSuccess, isError: isStakingError } =
@@ -210,9 +220,10 @@ export default function StakingPage() {
   }, [walletBalance, decimals]);
 
   const formattedStakedBalance = useMemo(() => {
+    if (stakedBalance === undefined || stakedBalance === null) return "0";
     return Number(stakedBalance)
     try {
-      return Number(formatUnits(stakedBalance as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 18 });
+      return Number(formatUnits(stakedBalance as bigint, 18)).toLocaleString(undefined, { maximumFractionDigits: 6 });
     } catch { return "0"; }
   }, [stakedBalance, decimals]);
 
@@ -228,7 +239,7 @@ export default function StakingPage() {
     if (rewardsPerToken == null) return "0";
     try {
       return Number(
-        formatUnits(rewardsPerToken as bigint, 18)
+        formatUnits(getRewardsForDuration as bigint, 18)
       ).toLocaleString(undefined, {
         maximumFractionDigits: 6,
       });
@@ -383,28 +394,28 @@ export default function StakingPage() {
     }
   }, [isClaimError, claimHash]);
 
-  const handleUnstake = async () => {
-    if (!address || !unstakeAmount) return;
+  // const handleUnstake = async () => {
+  //   if (!address || !unstakeAmount) return;
 
-    try {
-      setIsUnstaking(true);
-      const amount = parseUnits(unstakeAmount, decimals);
+  //   try {
+  //     setIsUnstaking(true);
+  //     const amount = parseUnits(unstakeAmount, decimals);
 
-      const hash = await writeContractAsync({
-        address: StakingContract.address,
-        abi: StakingContract.abi as Abi,
-        functionName: "withdraw",
-        args: [amount],
-      });
+  //     const hash = await writeContractAsync({
+  //       address: StakingContract.address,
+  //       abi: StakingContract.abi as Abi,
+  //       functionName: "withdraw",
+  //       args: [amount],
+  //     });
 
-      setUnstakingHash(hash);
-      toast.info("Withdrawing tokens...");
-    } catch (err: unknown) {
-      setIsUnstaking(false);
-      const message = (err as { shortMessage?: string })?.shortMessage || "Withdrawal failed";
-      toast.error(message);
-    }
-  };
+  //     setUnstakingHash(hash);
+  //     toast.info("Withdrawing tokens...");
+  //   } catch (err: unknown) {
+  //     setIsUnstaking(false);
+  //     const message = (err as { shortMessage?: string })?.shortMessage || "Withdrawal failed";
+  //     toast.error(message);
+  //   }
+  // };
 
   const handleClaim = async () => {
     if (!address) return;
@@ -499,7 +510,7 @@ export default function StakingPage() {
                   <p className="text-sm text-gray-500">{"sABEYPAD"}</p>
                 </div>
                 <div className="p-4 border-2 border-black bg-[#ECF9E9]">
-                  <p className="text-xs uppercase font-bold text-gray-500">Reward Per Token</p>
+                  <p className="text-xs uppercase font-bold text-gray-500">Reward For Duration</p>
                   <p
                     className={`text-2xl font-black transition-all duration-700 ${isPendingRewardsAnimating
                       ? "text-emerald-700 scale-[1.03] animate-pulse"
@@ -654,7 +665,7 @@ export default function StakingPage() {
                     </div>
 
                     <Button
-                      onClick={handleUnstake}
+                      onClick={getReward}
                       disabled={isUnstaking || !unstakeAmount || hasInsufficientUnstakeBalance}
                       className="rotate-[0.25deg] w-full py-6 bg-[#FF7F41] text-black font-black uppercase tracking-wider border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#F06A56] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all disabled:opacity-50"
                     >
