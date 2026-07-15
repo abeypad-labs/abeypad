@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from '@/lib/hooks';
-import { 
-  TokenFactory, 
-  NFTFactoryContract, 
+import {
+  TokenFactory,
+  NFTFactoryContract,
   CONTRACT_ADDRESSES
 } from '@/config';
-import { erc20Abi } from '@/config/abis/erc20';
+import { erc20Abi } from 'viem';
 import { NFT_ABI } from '@/config/abis/nft';
 import type { Address } from 'viem';
 import { useUserAssetsStore } from '@/lib/store/user-assets-store';
@@ -47,7 +47,7 @@ export function useUserTokens() {
   // Get token details for all tokens
   const tokenDetailsQueries = useMemo(() => {
     if (safeTokenAddresses.length === 0) return [];
-    
+
     const queries: Array<{ abi: any; address: Address; functionName: string }> = [];
     safeTokenAddresses.forEach((tokenAddress) => {
       queries.push(
@@ -88,17 +88,17 @@ export function useUserTokens() {
   // Process token details into structured format
   const processedTokens = useMemo(() => {
     if (safeTokenAddresses.length === 0 || !tokenDetails || tokenDetails.length === 0) return [];
-    
+
     const tokens = [];
     const tokensPerAddress = 4; // name, symbol, decimals, totalSupply
-    
+
     for (let i = 0; i < safeTokenAddresses.length; i++) {
       const baseIndex = i * tokensPerAddress;
       const nameResult = tokenDetails[baseIndex];
       const symbolResult = tokenDetails[baseIndex + 1];
       const decimalsResult = tokenDetails[baseIndex + 2];
       const totalSupplyResult = tokenDetails[baseIndex + 3];
-      
+
       if (
         nameResult?.status === 'success' &&
         symbolResult?.status === 'success' &&
@@ -115,7 +115,7 @@ export function useUserTokens() {
         });
       }
     }
-    
+
     return tokens;
   }, [safeTokenAddresses, tokenDetails]);
 
@@ -179,7 +179,7 @@ export function useUserNFTCollections() {
   // Get collection details for all collections
   const collectionDetailsQueries = useMemo(() => {
     if (safeCollectionAddresses.length === 0) return [];
-    
+
     const queries: Array<{ abi: any; address: Address; functionName: string }> = [];
     safeCollectionAddresses.forEach((collectionAddress) => {
       queries.push(
@@ -215,16 +215,16 @@ export function useUserNFTCollections() {
   // Process collection details into structured format
   const processedCollections = useMemo(() => {
     if (safeCollectionAddresses.length === 0 || !collectionDetails || collectionDetails.length === 0) return [];
-    
+
     const collections = [];
     const detailsPerCollection = 3; // name, symbol, totalSupply
-    
+
     for (let i = 0; i < safeCollectionAddresses.length; i++) {
       const baseIndex = i * detailsPerCollection;
       const nameResult = collectionDetails[baseIndex];
       const symbolResult = collectionDetails[baseIndex + 1];
       const totalSupplyResult = collectionDetails[baseIndex + 2];
-      
+
       if (
         nameResult?.status === 'success' &&
         symbolResult?.status === 'success' &&
@@ -241,7 +241,7 @@ export function useUserNFTCollections() {
         });
       }
     }
-    
+
     return collections;
   }, [safeCollectionAddresses, collectionDetails, address]);
 
@@ -274,7 +274,7 @@ export function useUserNFTCollections() {
 export function useUserTokenBalances() {
   const { address: userAddress } = useAccount();
   const { getUserTokens, getUserTokenBalance, setUserTokenBalance, isUserTokenBalancesStale } = useUserAssetsStore();
-  
+
   // Get user's created tokens
   const userTokens = userAddress ? getUserTokens(userAddress) : null;
   const isStale = userAddress ? isUserTokenBalancesStale(userAddress) : true;
@@ -283,7 +283,7 @@ export function useUserTokenBalances() {
   // Get balances for all user tokens
   const balanceQueries = useMemo(() => {
     if (!userTokens || userTokens.length === 0 || !userAddress) return [];
-    
+
     return userTokens.map((token) => ({
       abi: erc20Abi,
       address: token.address,
@@ -306,8 +306,8 @@ export function useUserTokenBalances() {
       balances.forEach((balanceResult, index) => {
         if (balanceResult?.status === 'success' && userTokens[index]) {
           setUserTokenBalance(
-            userAddress, 
-            userTokens[index].address, 
+            userAddress,
+            userTokens[index].address,
             balanceResult.result as bigint
           );
         }
@@ -318,7 +318,7 @@ export function useUserTokenBalances() {
   // Get current balances from store
   const tokenBalances = useMemo(() => {
     if (!userAddress || !userTokens) return {};
-    
+
     const balances: Record<string, bigint> = {};
     userTokens.forEach(token => {
       const balance = getUserTokenBalance(userAddress, token.address);
@@ -326,7 +326,7 @@ export function useUserTokenBalances() {
         balances[token.address] = balance;
       }
     });
-    
+
     return balances;
   }, [userAddress, userTokens, getUserTokenBalance]);
 

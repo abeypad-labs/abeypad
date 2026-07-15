@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StakingContract } from "@/config";
-import { MyMyMy } from "@/config/abis/MyMyMy";
+import { TestToken } from "@/config/abis/TestToken";
 import {
   useAccount, useConnectModal,
   useReadContract,
@@ -82,7 +82,7 @@ export default function StakingPage() {
 
   // Read user's wallet balance of staking token
   const { data: walletBalance, refetch: refetchWalletBalance } = useReadContract({
-    abi: MyMyMy.abi as Abi,
+    abi: TestToken.abi as Abi,
     address: stakingToken as Address,
     functionName: "balanceOf",
     args: [address],
@@ -135,7 +135,7 @@ export default function StakingPage() {
 
         const approvalTxHash = await writeContractAsync({
           address: stakingToken as Address,
-          abi: MyMyMy.abi,
+          abi: TestToken.abi,
           functionName: "approve",
           args: [StakingContract.address, amount],
         });

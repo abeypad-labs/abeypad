@@ -1,7 +1,7 @@
-import { TokenLocker, CONTRACT_ADDRESSES } from '@/config';
-import { useMemo } from 'react';
-import { erc20Abi, formatUnits, type Address, type Abi } from 'viem';
+import { CONTRACT_ADDRESSES, TokenLocker } from '@/config';
 import { useReadContracts } from '@/lib/hooks';
+import { useMemo } from 'react';
+import { erc20Abi, formatUnits, type Abi, type Address } from 'viem';
 import { useUserLocks } from './useUserLocks';
 
 interface LockResult {
