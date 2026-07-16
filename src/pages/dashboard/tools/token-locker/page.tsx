@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
 import {
   useAccount,
   useReadContract,
@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { erc20Abi, maxUint256, parseUnits, type Abi } from "viem";
+import { useChainId, useConfig } from "wagmi";
 
 interface LockData {
   id: bigint;
@@ -129,7 +130,7 @@ function LockCard({
   onTransfer: (lockId: bigint) => void;
   unlockingId: bigint | null;
   isOwner: boolean;
-  explorerUrl: string;
+  explorerUrl: string | undefined;
 }) {
   // Safe conversions
   let unlockTimestamp = 0;
@@ -862,7 +863,10 @@ function TransferLockModal({
 
 export default function TokenLockerPage() {
   const { address } = useAccount();
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+  const config = useConfig();
+  const chainId = useChainId()
+  const chain = config.chains.find((c) => c.id === chainId)
+  const explorerUrl = chain?.blockExplorers?.default.url;
   const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [extendingLockId, setExtendingLockId] = useState<bigint | null>(null);

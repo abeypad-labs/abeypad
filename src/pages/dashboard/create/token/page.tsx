@@ -9,15 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TokenFactory, CONTRACT_ADDRESSES, abeychainDevnet } from "@/config";
+import { CONTRACT_ADDRESSES, TokenFactory } from "@/config";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
+import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { CheckCircle2, Coins, ExternalLink, LayoutDashboard, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { parseEventLogs, parseUnits } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
-import { Coins, ExternalLink, CheckCircle2, LayoutDashboard, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
-import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { useChainId, useConfig } from "wagmi";
 
 const TokenType = {
   Plain: 0,
@@ -31,8 +32,11 @@ type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 export default function CreateTokenPage() {
   const { address } = useAccount();
+  const config = useConfig();
+  const chainId = useChainId()
+  const chain = config.chains.find((c) => c.id === chainId)
   const { tokenFactory } = CONTRACT_ADDRESSES;
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+  const explorerUrl = chain?.blockExplorers?.default.url;
   const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
   const navigate = useNavigate();
   const { setUserToken } = useUserAssetsStore();

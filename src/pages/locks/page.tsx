@@ -2,13 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { useChainId, useReadContract } from "@/lib/hooks";
 import { formatDistanceToNow } from "date-fns";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Clock, ExternalLink, Eye, Lock, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { erc20Abi, formatUnits, type Abi, type Address } from "viem";
-import { useReadContract } from "@/lib/hooks";
-import { Lock, Search, ArrowRight, ExternalLink, Eye, Clock, CheckCircle2 } from "lucide-react";
+import { useConfig } from "wagmi";
 
 interface LockInfo {
     token: `0x${string}`;
@@ -204,8 +205,11 @@ function RecentLockCard({
 }
 
 export default function LocksPage() {
-    const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
-    const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+    const { tokenLocker } = CONTRACT_ADDRESSES;
+    const config = useConfig();
+    const chainId = useChainId()
+    const chain = config.chains.find((c) => c.id === chainId)
+    const explorerUrl = chain?.blockExplorers?.default.url;
     const { data: totalLocksCount, isLoading: isLoadingTotal } = useReadContract({
         address: tokenLocker,
         abi: TokenLocker.abi as Abi,

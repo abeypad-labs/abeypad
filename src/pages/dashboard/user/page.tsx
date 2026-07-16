@@ -2,8 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { abeychainDevnet } from "@/config/chains";
-import { useAccount, useReadContract } from "@/lib/hooks";
+import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
@@ -14,8 +13,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
 import { erc721Abi, formatUnits } from "viem";
+import { useConfig } from "wagmi";
 
-function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string }) {
+function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string | undefined }) {
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
     abi: erc721Abi,
     address: collectionAddress,
@@ -195,10 +195,13 @@ export default function UserDashboardPage() {
   const { nfts: createdNFTs, isLoading: isLoadingNFTs, isError: isNFTError } = useUserNFTs();
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
+  const config = useConfig();
+  const chainId = useChainId()
+  const chain = config.chains.find((c) => c.id === chainId)
+  const explorerUrl = chain?.blockExplorers?.default.url;
   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
   //   address as Address | undefined
   // );
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
   // const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenPage, setTokenPage] = useState(0);
   const [nftPage, setNftPage] = useState(0);

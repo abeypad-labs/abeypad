@@ -1,4 +1,4 @@
-import { CONTRACT_ADDRESSES } from "../contracts";
+import { CONTRACT_ADDRESSES } from "./contracts";
 
 export const TokenFactory = {
     address: CONTRACT_ADDRESSES.tokenFactory,

@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./AppLayout";
-import AdminDashboard from "./pages/admin/page";
 import AdminCreatePresalePage from "./pages/admin/create-presale/page";
+import AdminDashboard from "./pages/admin/page";
 import AdminPresales from "./pages/admin/presales/page";
 import AdminWhitelist from "./pages/admin/whitelist/page";
 import CreateNftPage from "./pages/dashboard/create/nft/page";
@@ -17,7 +17,6 @@ import TokenLockerPage from "./pages/dashboard/tools/token-locker/page";
 import UserDashboardPage from "./pages/dashboard/user/page";
 import LockDetailPage from "./pages/locks/[id]/page";
 import NFTDetailPage from "./pages/nfts/[id]/page";
-import DomainsPage from "./pages/domains/page";
 import NFTsPage from "./pages/nfts/page";
 import Home from "./pages/page";
 import ProjectDetailPage from "./pages/projects/[id]/page";
@@ -42,7 +41,6 @@ function App() {
             <Route path="/dashboard/tools/airdrop" element={<AirdropPage />} />
             <Route path="/dashboard/tools/token-locker" element={<TokenLockerPage />} />
             <Route path="/dashboard/user" element={<UserDashboardPage />} />
-            <Route path="/domains" element={<DomainsPage />} />
             <Route path="/nfts" element={<NFTsPage />} />
             <Route path="/nfts/:id" element={<NFTDetailPage />} />
             <Route path="/projects" element={<ProjectsPage />} />

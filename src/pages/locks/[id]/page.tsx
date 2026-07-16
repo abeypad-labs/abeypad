@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
-// import { useChainContracts } from "@/lib/hooks/useChainContracts";
-import { useReadContract } from "@/lib/hooks";
+import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { useChainId, useReadContract } from "@/lib/hooks";
 import { format, formatDistanceToNow } from "date-fns";
 import { ArrowLeft, Calendar, CheckCircle2, Clock, Coins, ExternalLink, Lock, Timer, User, XCircle } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { erc20Abi, formatUnits, type Abi } from "viem";
+import { useConfig } from "wagmi";
 
 interface LockInfo {
     token: `0x${string}`;
@@ -92,8 +92,11 @@ function LockProgressBar({ lockDate, unlockDate }: { lockDate: bigint; unlockDat
 
 export default function LockDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
-    const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+    const { tokenLocker } = CONTRACT_ADDRESSES;
+    const config = useConfig();
+    const chainId = useChainId()
+    const chain = config.chains.find((c) => c.id === chainId)
+    const explorerUrl = chain?.blockExplorers?.default.url;
 
     // Safe BigInt conversion
     let lockId: bigint | undefined = undefined;

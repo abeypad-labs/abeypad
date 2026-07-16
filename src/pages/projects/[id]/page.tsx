@@ -2,19 +2,14 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SwapForm } from "@/components/ui/swap-form";
-import { useMarkets } from "@/lib/hooks/useMarkets";
-import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   useLaunchpadPresale,
   type PresaleWithStatus,
 } from "@/lib/hooks/useLaunchpadPresales";
-import { Weth9Contract } from "@/config";
 import { PresaleParticipationForm } from "@/components/ui/presale-participation-form";
 import { formatUnits } from "viem";
 import { Badge } from "@/components/ui/badge";
-import { getPresaleMetadata } from "@/config/presale-metadata";
 
 export default function ProjectDetailPage() {
   const { id } = useParams(); // This is the presale_address
@@ -22,26 +17,8 @@ export default function ProjectDetailPage() {
     presale,
     isLoading: isLoadingPresale,
   } = useLaunchpadPresale(id as `0x${string}`);
-  const { markets, isLoading: isLoadingMarkets } = useMarkets();
-  const metadata = useMemo(
-    () => (presale?.address ? getPresaleMetadata(presale.address) : id ? getPresaleMetadata(id) : undefined),
-    [presale?.address, id]
-  );
 
-  // React purity rule: avoid calling `Date.now()` during render.
-  // Keep a ticking "now" in state and update it in an effect instead.
-  const [nowMs, setNowMs] = useState<number | null>(null);
-  useEffect(() => {
-    const updateNow = () => setNowMs(Date.now());
-    const timeoutId = window.setTimeout(updateNow, 0);
-    const intervalId = window.setInterval(updateNow, 1000);
-    return () => {
-      window.clearTimeout(timeoutId);
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  if (isLoadingPresale || isLoadingMarkets) {
+  if (isLoadingPresale) {
     return <div className="text-center py-20">Loading project details...</div>;
   }
 
@@ -52,69 +29,6 @@ export default function ProjectDetailPage() {
   if (!presale.saleToken || !presale.owner) {
     return <div className="text-center py-20">Loading project details...</div>;
   }
-
-  const presaleIsActive =
-    presale.status === "live" || presale.status === "upcoming";
-  const isPresaleFinalized = presale.claimEnabled === true;
-  const isPresaleCancelled = presale.refundsEnabled === true;
-  const presaleEndMs = presale.endTime ? Number(presale.endTime) * 1000 : null;
-  const presaleHasEnded =
-    presaleEndMs !== null && nowMs !== null ? presaleEndMs < nowMs : false;
-
-  // Show presale view (with claim/refund UI) after the sale ends as well,
-  // so participants can claim tokens or refunds instead of seeing Market Not Available.
-  const showPresaleView =
-    presaleIsActive || isPresaleFinalized || isPresaleCancelled || presaleHasEnded;
-
-  const renderMarketView = () => {
-    const presaleTokens = [
-      presale.saleToken.toLowerCase(),
-      (presale.paymentToken || Weth9Contract.address).toLowerCase(),
-    ];
-
-    const market = markets.find((m) => {
-      if (!m) return false;
-      const marketTokens = [
-        m.token0.address.toLowerCase(),
-        m.token1.address.toLowerCase(),
-      ];
-      return (
-        marketTokens.includes(presaleTokens[0]) &&
-        marketTokens.includes(presaleTokens[1])
-      );
-    });
-
-    if (!market) {
-      return (
-        <div className="text-center py-10">
-          <p className="text-xl font-bold">Market Not Available</p>
-          <p className="text-gray-500">
-            The presale has ended, but a trading market has not been created for
-            this token yet.
-          </p>
-        </div>
-      );
-    }
-
-    const dexScreenerUrl = `https://dexscreener.com/qf-network/${market.pairAddress}?embed=1&theme=dark&info=0`;
-
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card className="w-full h-[600px] overflow-hidden">
-            <iframe
-              src={dexScreenerUrl}
-              className="w-full h-full border-0"
-              allowFullScreen
-            ></iframe>
-          </Card>
-        </div>
-        <div>
-          <SwapForm market={market} />
-        </div>
-      </div>
-    );
-  };
 
   const renderPresaleView = (presale: PresaleWithStatus) => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -243,11 +157,7 @@ export default function ProjectDetailPage() {
       <section className="mb-8 flex items-center gap-4">
         <Avatar className="h-20 w-20">
           <AvatarImage
-            src={
-              presale.logo ||
-              metadata?.logo ||
-              `https://api.dicebear.com/7.x/rings/svg?seed=${presale.saleToken}`
-            }
+            src={`https://api.dicebear.com/7.x/rings/svg?seed=${presale.saleToken}`}
             alt={`${presale.saleTokenName} logo`}
           />
           <AvatarFallback>
@@ -270,7 +180,7 @@ export default function ProjectDetailPage() {
         </div>
       </section>
 
-      {showPresaleView ? renderPresaleView(presale) : renderMarketView()}
+      {renderPresaleView(presale)}
     </div>
   );
 }

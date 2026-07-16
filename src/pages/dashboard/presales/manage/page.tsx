@@ -3,16 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { LaunchpadPresaleContract, abeychainDevnet } from "@/config";
-import {
-  useLaunchpadPresale,
-  type PresaleWithStatus,
-} from "@/lib/hooks/useLaunchpadPresales";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { erc20Abi, formatUnits, isAddress, type Address } from "viem";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { LaunchpadPresaleContract } from "@/config";
 import {
   useAccount,
   useReadContract,
@@ -20,6 +11,16 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
+import {
+  useLaunchpadPresale,
+  type PresaleWithStatus,
+} from "@/lib/hooks/useLaunchpadPresales";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { erc20Abi, formatUnits, isAddress, type Address } from "viem";
+import { useChainId, useConfig } from "wagmi";
 
 export default function ManagePresalePage() {
   const { address: presaleAddress } = useParams<{ address: string }>();
@@ -156,7 +157,11 @@ function ManagePresaleView({
   presale: PresaleWithStatus;
   refetchPresale: () => void;
 }) {
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+  const config = useConfig();
+  const chainId = useChainId();
+
+  const explorerUrl = config.chains.find((chain) => chain.id === chainId)?.blockExplorers?.default.url;
+
   const [singleWhitelist, setSingleWhitelist] = useState("");
   const [bulkWhitelist, setBulkWhitelist] = useState("");
   const [removeAddress, setRemoveAddress] = useState("");
@@ -625,8 +630,8 @@ function ManagePresaleView({
               presaleHasEnded
             }
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${hasSufficientAllowance || hasDeposited || presaleHasEnded
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-white text-black"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-white text-black"
               }`}
           >
             {approveBusy
@@ -649,10 +654,10 @@ function ManagePresaleView({
               presaleHasEnded
             }
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${hasDeposited || presaleHasEnded
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : hasSufficientAllowance
-                  ? "bg-[#42C9FF] text-black ring-4 ring-yellow-400 ring-opacity-75"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : hasSufficientAllowance
+                ? "bg-[#42C9FF] text-black ring-4 ring-yellow-400 ring-opacity-75"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
           >
             {depositBusy
@@ -817,8 +822,8 @@ function ManagePresaleView({
             onClick={handleWithdrawProceeds}
             disabled={ownerActionBusy || !presale.claimEnabled}
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${!presale.claimEnabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#C4F1BE] text-black"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-[#C4F1BE] text-black"
               }`}
           >
             {ownerActionBusy && activeOwnerAction === "withdrawProceeds"
@@ -829,8 +834,8 @@ function ManagePresaleView({
             onClick={handleWithdrawTokens}
             disabled={ownerActionBusy || !presale.claimEnabled}
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${!presale.claimEnabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#FFE38A] text-black"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-[#FFE38A] text-black"
               }`}
           >
             {ownerActionBusy && activeOwnerAction === "withdrawTokens"

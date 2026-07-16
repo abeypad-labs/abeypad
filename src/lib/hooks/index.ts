@@ -12,6 +12,3 @@ export {
 
 export { useConnectModal } from '@rainbow-me/rainbowkit';
 export { useBalance } from './useBalance';
-
-export { useWatchRegistrations } from './useWatchRegistrations';
-

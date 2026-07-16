@@ -1,18 +1,18 @@
 import { AdminRoute } from "@/components/admin/AdminRoute";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAccount } from "@/lib/hooks";
-import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { useSetFeeRecipient } from "@/lib/hooks/useAdminActions";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useStakingAdmin } from "@/lib/hooks/useStakingAdmin";
+import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { ArrowRight, BarChart3, Coins, CoinsIcon, Lock, PlusCircle, Settings, Shield, UserPlus, Users, Zap } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { isAddress, type Address } from "viem";
-import { Users, Coins, ArrowRight, PlusCircle, CoinsIcon, UserPlus, Lock, Zap, Settings, Shield, BarChart3 } from "lucide-react";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 
 function AdminDashboardContent() {
   const { address } = useAccount();

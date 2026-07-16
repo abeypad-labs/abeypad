@@ -1,23 +1,25 @@
+"use client";
+
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONTRACT_ADDRESSES, PresaleFactory, erc20Abi } from "@/config";
+import { CONTRACT_ADDRESSES, PresaleFactory } from "@/config";
 import {
   useAccount,
   useReadContract,
-  useSimulatedWrite,
   useWaitForTransactionReceipt,
+  useWriteContract,
 } from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   decodeEventLog,
+  erc20Abi,
   isAddress,
   parseEther,
   parseUnits,
@@ -48,6 +50,7 @@ function AdminCreatePresaleForm({
 }) {
   const { address } = useAccount();
   const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { writeContractAsync } = useWriteContract();
 
   const {
     saleToken,
@@ -159,34 +162,34 @@ function AdminCreatePresaleForm({
     decimals,
   ]);
 
-  const {
-    write,
-    isSimulating,
-    isWritePending,
-    combinedError,
-  } = useSimulatedWrite({
-    address: presaleFactory,
-    abi: PresaleFactory.abi,
-    functionName: "createPresale",
-    args: params ? [params] : undefined,
-    enabled: Boolean(params),
-    onSuccess: onPresaleCreated,
-  });
+  const [isPending, setIsPending] = useState(false);
 
-  const displayError = useMemo(() => {
-    if (validationError) return validationError;
-    if (combinedError) {
-      return getFriendlyTxErrorMessage(combinedError, "Presale simulation");
-    }
-    return null;
-  }, [validationError, combinedError]);
-
-  const handleCreatePresale = () => {
-    if (displayError) {
-      toast.error(displayError);
+  const handleCreatePresale = async () => {
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
-    write();
+
+    if (!params) {
+      toast.error("Invalid presale parameters");
+      return;
+    }
+
+    try {
+      setIsPending(true);
+      const hash = await writeContractAsync({
+        address: presaleFactory,
+        abi: PresaleFactory.abi as Abi,
+        functionName: "createPresale",
+        args: [params],
+      });
+      onPresaleCreated(hash);
+      toast.info("Creating presale...");
+    } catch (error: any) {
+      toast.error(error.shortMessage || "Failed to create presale");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -290,10 +293,10 @@ function AdminCreatePresaleForm({
 
       <Button
         onClick={handleCreatePresale}
-        disabled={isSimulating || isWritePending}
+        disabled={isPending}
         className="w-full py-6 text-base font-black uppercase tracking-wider border-4 border-black bg-[#FF7F41] text-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#1E5BFF] hover:text-white"
       >
-        {isSimulating ? "Simulating..." : isWritePending ? "Creating Presale..." : "Create Presale (Admin)"}
+        {isPending ? "Creating Presale..." : "Create Presale (Admin)"}
       </Button>
     </>
   );

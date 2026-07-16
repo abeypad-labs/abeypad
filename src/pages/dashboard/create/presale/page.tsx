@@ -3,16 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
-// LaunchpadService removed - data is now stored only on blockchain
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { useLaunchpadPresaleStore } from "@/lib/store/launchpad-presale-store";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   decodeEventLog,
+  erc20Abi,
   parseEther,
   parseUnits,
   type Abi,
@@ -23,9 +22,8 @@ import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
-  useSimulatedWrite,
+  useWriteContract,
 } from "@/lib/hooks";
-import { erc20Abi } from "@/config";
 
 interface PresaleFormData {
   saleToken: string;
@@ -176,35 +174,36 @@ function CreatePresaleForm({
     decimals,
   ]);
 
-  // Setup simulation-first contract writing hook
-  const {
-    write,
-    isSimulating,
-    isWritePending,
-    combinedError,
-  } = useSimulatedWrite({
-    address: presaleFactory,
-    abi: PresaleFactory.abi,
-    functionName: "createPresale",
-    args: params ? [params] : undefined,
-    enabled: Boolean(params),
-    onSuccess: onPresaleCreated,
-  });
+  const { writeContractAsync } = useWriteContract();
 
-  const displayError = useMemo(() => {
-    if (validationError) return validationError;
-    if (combinedError) {
-      return getFriendlyTxErrorMessage(combinedError, "Presale simulation");
-    }
-    return null;
-  }, [validationError, combinedError]);
+  const [isPending, setIsPending] = useState(false);
 
-  const handleCreatePresale = () => {
-    if (displayError) {
-      toast.error(displayError);
+  const handleCreatePresale = async () => {
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
-    write();
+
+    if (!params) {
+      toast.error("Invalid presale parameters");
+      return;
+    }
+
+    try {
+      setIsPending(true);
+      const hash = await writeContractAsync({
+        address: presaleFactory,
+        abi: PresaleFactory.abi as Abi,
+        functionName: "createPresale",
+        args: [params],
+      });
+      onPresaleCreated(hash);
+      toast.info("Creating presale...");
+    } catch (error: any) {
+      toast.error(error.shortMessage || "Failed to create presale");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -228,17 +227,6 @@ function CreatePresaleForm({
           </li>
         </ul>
       </div>
-
-      {displayError && (
-        <div className="border-4 border-black bg-red-50 p-4 space-y-1 shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <p className="text-xs font-black uppercase tracking-wider text-red-700">
-            Form / Simulation Status
-          </p>
-          <p className="text-sm text-red-800 font-medium">
-            {displayError}
-          </p>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -402,10 +390,10 @@ function CreatePresaleForm({
       </div>
       <Button
         onClick={handleCreatePresale}
-        disabled={isSimulating || isWritePending}
+        disabled={isPending}
         className="w-full py-6 text-base font-bold uppercase tracking-wide"
       >
-        {isSimulating ? "Simulating..." : isWritePending ? "Creating Presale..." : "Create Presale"}
+        {isPending ? "Creating Presale..." : "Create Presale"}
       </Button>
     </>
   );

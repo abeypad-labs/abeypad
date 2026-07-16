@@ -1,4 +1,4 @@
-import { CONTRACT_ADDRESSES } from "../contracts";
+import { CONTRACT_ADDRESSES } from "./contracts";
 
 export const AirdropMultiSender = {
     address: CONTRACT_ADDRESSES.airdropMultisender,
@@ -302,25 +302,25 @@ export const LaunchpadNFTContract = {
 
 // Standard NFT ABI with common functions needed for user collections
 export const NFT_ABI = [
-  {
-    "inputs": [],
-    "name": "name",
-    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{ "name": "", "type": "string", "internalType": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    }
 ];

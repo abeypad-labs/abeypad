@@ -3,9 +3,18 @@
  * Admin is determined by the Ownable owner() on the PresaleFactory contract
  */
 
-import { PresaleFactory, ADMIN_ADDRESSES, CONTRACT_ADDRESSES } from '@/config';
+import { PresaleFactory, CONTRACT_ADDRESSES } from '@/config';
 import { useReadContract } from '@/lib/hooks';
-import type { Address } from 'viem';
+
+import { type Address } from 'viem';
+
+const ADMIN_ADDRESSES: Address[] = [
+  "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED" as Address,
+  ...((import.meta.env.VITE_ADMIN_ADDRESSES ?? "")
+    .split(',')
+    .map((addr: string) => addr.trim())
+    .filter(Boolean) as Address[]),
+];
 
 /**
  * Hook to get the factory owner address

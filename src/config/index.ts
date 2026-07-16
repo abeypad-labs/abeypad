@@ -4,9 +4,7 @@ export * from './abis/presale-factory';
 export * from './abis/staking';
 export * from './abis/token-factory';
 export * from './abis/token-locker';
-export * from './admin';
-export * from './chains';
-export * from './contracts';
+export * from './abis/contracts';
 
 // Export individual ABIs for convenience
 export { NFT_ABI } from './abis/nft';

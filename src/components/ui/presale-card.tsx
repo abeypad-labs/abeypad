@@ -84,7 +84,7 @@ export function PresaleCard({ presale }: { presale: PresaleWithStatus }) {
         discord: presale.socials?.discord ?? metadata?.socials?.discord ?? defaultSocials.discord,
         website: presale.socials?.website ?? metadata?.socials?.website ?? defaultSocials.website,
     };
-    const category = presale.category || metadata?.category;
+    const category = presale.category || (metadata?.category as PresaleCategory | undefined);
     const customDescription = presale.description || metadata?.description;
     const customLogo = presale.logo || metadata?.logo;
 
