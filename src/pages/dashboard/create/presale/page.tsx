@@ -586,7 +586,7 @@ export default function CreatePresalePage() {
   }
 
   // Show access denied message if not whitelisted
-  if (false) {
+  if (isWhitelisted === false) {
     return (
       <div className="container mx-auto px-4 py-12 text-black">
         <Card className="max-w-2xl mx-auto border-4 border-black shadow-[6px_6px_0_rgba(0,0,0,1)]">
