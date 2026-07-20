@@ -134,13 +134,13 @@ export default function Home() {
 
         <section className="mb-16 grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="neo-frame bg-[#FFF2D5] p-8 sm:p-10 animate-fade-in-up animation-delay-200">
-           <h1 className="text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+            <h1 className="text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
               The Builder Stack
               <br />
               for Abey.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
-              Fundraise, create tokens & NFTs, secure liquidity, distribute airdrops, and claim your .abey identity — all from one platform.
+              Fundraise, create tokens & NFTs, secure liquidity, distribute airdrops — all from one platform.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -260,7 +260,7 @@ export default function Home() {
             Fund Smarter
           </h2>
           <p className="mt-5 max-w-2xl text-lg font-bold">
-            Turn your concept into a live on-chain raise with built-in token and NFT tooling on Abeychain.
+            Turn your concept into a live on-chain raise with built-in token and NFT tooling on Abey.
           </p>
           <Link
             to="/dashboard/create"

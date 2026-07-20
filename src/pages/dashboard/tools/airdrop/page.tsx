@@ -3,12 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AirdropMultisenderContract, CONTRACT_ADDRESSES } from "@/config";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import { erc20Abi, formatUnits, maxUint256, parseUnits } from "viem";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { CONTRACT_ADDRESSES } from "@/config";
+import { AirdropMultiSender } from "@/config/abis/airdrop";
 import {
   useAccount,
   useBalance,
@@ -16,15 +12,20 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import {
-  Send,
-  Coins,
-  Upload,
-  CheckCircle2,
   AlertCircle,
+  CheckCircle2,
+  Coins,
+  Send,
+  Upload,
   Users,
   Wallet,
 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { erc20Abi, formatUnits, maxUint256, parseUnits } from "viem";
 
 export default function AirdropPage() {
   const [searchParams] = useSearchParams();
@@ -221,7 +222,7 @@ export default function AirdropPage() {
     if (sendType === "react") {
       sendTokens({
         address: airdropMultisender,
-        abi: AirdropMultisenderContract.abi,
+        abi: AirdropMultiSender.abi,
         functionName: "sendETH",
         args: [parsedRecipients.recipients, parsedRecipients.amounts],
         value: totalAmount,
@@ -229,7 +230,7 @@ export default function AirdropPage() {
     } else {
       sendTokens({
         address: airdropMultisender,
-        abi: AirdropMultisenderContract.abi,
+        abi: AirdropMultiSender.abi,
         functionName: "sendERC20",
         args: [
           normalizedTokenAddress,
@@ -332,8 +333,8 @@ export default function AirdropPage() {
                 type="button"
                 onClick={() => setSendType("erc20")}
                 className={`-rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${sendType === "erc20"
-                    ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
-                    : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
+                  ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                  : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -356,8 +357,8 @@ export default function AirdropPage() {
                   setTokenAddress("");
                 }}
                 className={`rotate-[0.35deg] p-4 border-4 border-black text-left transition-all ${sendType === "react"
-                    ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
-                    : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
+                  ? "bg-[#90EE90] shadow-[4px_4px_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                  : "bg-white shadow-[2px_2px_0_rgba(0,0,0,1)] hover:bg-gray-50"
                   }`}
               >
                 <div className="flex items-center gap-3">

@@ -2,13 +2,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { TokenInfo } from "@/components/TokenInfo";
 import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, ImageIcon, Lock, Plus } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
@@ -211,10 +212,10 @@ export default function UserDashboardPage() {
   const TOKENS_PER_PAGE = 3;
   const tokenList = [...((createdTokens as `0x${string}`[]) || [])].reverse();
   const totalTokenPages = Math.ceil(tokenList.length / TOKENS_PER_PAGE);
-  // const paginatedTokens = tokenList.slice(
-  //   tokenPage * TOKENS_PER_PAGE,
-  //   (tokenPage + 1) * TOKENS_PER_PAGE
-  // );
+  const paginatedTokens = tokenList.slice(
+    tokenPage * TOKENS_PER_PAGE,
+    (tokenPage + 1) * TOKENS_PER_PAGE
+  );
 
   // Pagination for NFT collections (newest first)
   const NFTS_PER_PAGE = 3;
@@ -257,9 +258,6 @@ export default function UserDashboardPage() {
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">Your Dashboard</h1>
-              <p className="text-xs sm:text-sm font-mono mt-1 sm:mt-2 truncate">
-                {address?.slice(0, 6)}...{address?.slice(-4)}
-              </p>
             </div>
           </div>
         </div>
@@ -297,12 +295,11 @@ export default function UserDashboardPage() {
             </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
-              {/* {paginatedTokens.map((token, index) => (
+              {paginatedTokens.map((token, index) => (
                 <div key={token} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
-                  <TokenInfo tokenAddress={token} onPresaleClick={() => setIsModalOpen(true)} />
+                  <TokenInfo tokenAddress={token} />
                 </div>
-              ))} */}
-              {/* Pagination Controls */}
+              ))}
               {totalTokenPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
                   <Button
@@ -333,8 +330,8 @@ export default function UserDashboardPage() {
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any tokens yet.</p>
               <Link to="/dashboard/create/token">
-                <Button className="border-4 border-black bg-[#22C55E] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
-                  <Plus className="w-4 h-4 mr-1" /> Create Your First Token
+                <Button className="border-4 border-black bg-[#22C55E] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
+                  Create Your First Token
                 </Button>
               </Link>
             </div>
@@ -347,7 +344,7 @@ export default function UserDashboardPage() {
         <CardHeader className="border-b-2 border-black bg-[#FF7F41] p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
-              <ImageIcon className="w-5 h-5" /> My NFT Collections
+              My NFT Collections
             </CardTitle>
             {nftList.length > 0 && (
               <Link to="/dashboard/create/nft">
@@ -409,8 +406,8 @@ export default function UserDashboardPage() {
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any NFT collections yet.</p>
               <Link to="/dashboard/create/nft">
-                <Button className="border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
-                  <Plus className="w-4 h-4 mr-1" /> Create Your First Collection
+                <Button className="border-4 border-black bg-[#FF7F41] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
+                  Create Your First Collection
                 </Button>
               </Link>
             </div>
@@ -453,7 +450,7 @@ export default function UserDashboardPage() {
               <div className="text-center py-8">
                 <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No presales yet</p>
                 <Link to="/dashboard/create/presale">
-                  <Button className="border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
+                  <Button className="border-4 border-black bg-[#42C9FF] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
                     Create Presale
                   </Button>
                 </Link>
@@ -512,8 +509,8 @@ export default function UserDashboardPage() {
               <div className="text-center py-8">
                 <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No active locks</p>
                 <Link to="/dashboard/tools/token-locker">
-                  <Button className="border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
-                    <Lock className="w-4 h-4 mr-1" /> Create Lock
+                  <Button className="border-4 border-black bg-[#FFE38A] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
+                    Create Lock
                   </Button>
                 </Link>
               </div>

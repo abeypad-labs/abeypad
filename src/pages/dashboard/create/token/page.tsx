@@ -75,6 +75,12 @@ export default function CreateTokenPage() {
       tokenFactory,
     });
 
+    // Validate inputs
+    if (!name || !symbol || !initialSupply || !initialRecipient) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setCreatedTokenAddress(null);
     processedHash.current = null;
     setTxStatus('pending');
@@ -91,46 +97,62 @@ export default function CreateTokenPage() {
 
     console.log("[CreateToken] Token params:", tokenParams);
 
-    let functionName:
-      | "createPlainToken"
-      | "createMintableToken"
-      | "createBurnableToken"
-      | "createTaxableToken"
-      | "createNonMintableToken";
-    const args: unknown[] = [tokenParams];
-
+    // Call writeContract directly for each token type to ensure type safety
     switch (tokenType) {
       case TokenType.Plain:
-        functionName = "createPlainToken";
+        console.log("[CreateToken] Calling createPlainToken");
+        writeContract({ 
+          address: tokenFactory, 
+          abi: TokenFactory.abi, 
+          functionName: "createPlainToken",
+          args: [tokenParams]
+        });
         break;
       case TokenType.Mintable:
-        functionName = "createMintableToken";
+        console.log("[CreateToken] Calling createMintableToken");
+        writeContract({ 
+          address: tokenFactory, 
+          abi: TokenFactory.abi, 
+          functionName: "createMintableToken",
+          args: [tokenParams]
+        });
         break;
       case TokenType.Burnable:
-        functionName = "createBurnableToken";
+        console.log("[CreateToken] Calling createBurnableToken");
+        writeContract({ 
+          address: tokenFactory, 
+          abi: TokenFactory.abi, 
+          functionName: "createBurnableToken",
+          args: [tokenParams]
+        });
         break;
       case TokenType.Taxable: {
-        functionName = "createTaxableToken";
-        const taxParams = { taxWallet: taxWallet as `0x${string}`, taxBps: parseInt(taxBps) };
-        args.push(taxParams);
-        console.log("[CreateToken] Tax params:", taxParams);
+        const taxParams = { 
+          taxWallet: taxWallet as `0x${string}`, 
+          taxBps: BigInt(taxBps) // Use BigInt to match ABI's uint96
+        };
+        console.log("[CreateToken] Calling createTaxableToken with tax params:", taxParams);
+        writeContract({ 
+          address: tokenFactory, 
+          abi: TokenFactory.abi, 
+          functionName: "createTaxableToken",
+          args: [tokenParams, taxParams]
+        });
         break;
       }
       case TokenType.NonMintable:
-        functionName = "createNonMintableToken";
+        console.log("[CreateToken] Calling createNonMintableToken");
+        writeContract({ 
+          address: tokenFactory, 
+          abi: TokenFactory.abi, 
+          functionName: "createNonMintableToken",
+          args: [tokenParams]
+        });
         break;
       default:
         toast.error("Invalid token type selected");
         return;
     }
-
-    console.log("[CreateToken] Calling writeContract with:", {
-      address: tokenFactory,
-      functionName,
-      args,
-    });
-
-    writeContract({ address: tokenFactory, abi: TokenFactory.abi, functionName, args: args as never });
   };
 
   const {
@@ -373,11 +395,10 @@ export default function CreateTokenPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <div className="-rotate-[0.45deg] sm:-rotate-[0.2deg] border-4 border-black bg-[#42C9FF] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <div className="-rotate-[0.45deg] sm:-rotate-[0.2deg] border-4 border-black bg-[#22C55E] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wider flex items-center gap-3">
             <Coins className="w-8 h-8" /> Create Token
           </h1>
-          <p className="text-sm text-gray-700 mt-2">Deploy your own ARC-20 token on the blockchain.</p>
         </div>
       </div>
 
@@ -457,7 +478,7 @@ export default function CreateTokenPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
-                {tokenType === TokenType.Plain && "A standard ARC-20 token with basic transfer functionality."}
+                {tokenType === TokenType.Plain && "A standard token with basic transfer functionality."}
                 {tokenType === TokenType.Mintable && "Allows the owner to mint new tokens after deployment."}
                 {tokenType === TokenType.Burnable && "Allows holders to burn (destroy) their tokens."}
                 {tokenType === TokenType.Taxable && "Applies a tax on transfers, sent to a designated wallet."}
@@ -555,7 +576,7 @@ export default function CreateTokenPage() {
             <Button
               onClick={handleCreateToken}
               disabled={isBusy || !name || !symbol}
-              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#22C55E] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isPending && (
                 <>

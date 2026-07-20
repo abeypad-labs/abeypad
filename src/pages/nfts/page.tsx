@@ -1,7 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { NFTCard } from "@/components/ui/nft-card";
-import { CONTRACT_ADDRESSES, NFTFactoryContract } from "@/config";
+import { CONTRACT_ADDRESSES, NFTFactory } from "@/config";
 import { useReadContract } from "@/lib/hooks";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -11,7 +11,7 @@ export default function NFTsPage() {
   const nftFactory = CONTRACT_ADDRESSES.nftFactory;
 
   const { data: nfts, isLoading } = useReadContract({
-    abi: NFTFactoryContract.abi,
+    abi: NFTFactory.abi,
     address: nftFactory,
     functionName: 'deployments',
   });

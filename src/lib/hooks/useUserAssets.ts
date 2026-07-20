@@ -2,11 +2,11 @@ import { useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from '@/lib/hooks';
 import {
   TokenFactory,
-  NFTFactoryContract,
+  NFTFactory,
   CONTRACT_ADDRESSES
 } from '@/config';
 import { erc20Abi } from 'viem';
-import { NFT_ABI } from '@/config/abis/nft';
+import { LaunchpadNFTContract } from '@/config/abis/nft-factory';
 import type { Address } from 'viem';
 import { useUserAssetsStore } from '@/lib/store/user-assets-store';
 
@@ -163,7 +163,7 @@ export function useUserNFTCollections() {
 
   // Get NFT collection addresses created by user
   const { data: collectionAddresses, isLoading: isLoadingAddresses } = useReadContract({
-    abi: NFTFactoryContract.abi,
+    abi: NFTFactory.abi,
     address: nftFactory,
     functionName: 'tokensCreatedBy',
     args: [address as `0x${string}`],
@@ -184,17 +184,17 @@ export function useUserNFTCollections() {
     safeCollectionAddresses.forEach((collectionAddress) => {
       queries.push(
         {
-          abi: NFT_ABI,
+          abi: LaunchpadNFTContract.abi,
           address: collectionAddress,
           functionName: 'name',
         },
         {
-          abi: NFT_ABI,
+          abi: LaunchpadNFTContract.abi,
           address: collectionAddress,
           functionName: 'symbol',
         },
         {
-          abi: NFT_ABI,
+          abi: LaunchpadNFTContract.abi,
           address: collectionAddress,
           functionName: 'totalSupply',
         }

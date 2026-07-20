@@ -863,11 +863,13 @@ function TransferLockModal({
 
 export default function TokenLockerPage() {
   const { address } = useAccount();
+  const { tokenLocker } = CONTRACT_ADDRESSES;
+
   const config = useConfig();
   const chainId = useChainId()
   const chain = config.chains.find((c) => c.id === chainId)
   const explorerUrl = chain?.blockExplorers?.default.url;
-  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [extendingLockId, setExtendingLockId] = useState<bigint | null>(null);
   const [transferringLockId, setTransferringLockId] = useState<bigint | null>(

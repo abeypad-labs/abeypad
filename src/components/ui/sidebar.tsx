@@ -51,17 +51,6 @@ const SidebarContent = () => {
   return (
     <div className="flex min-h-full flex-col bg-[#F7F1E1] text-black">
       <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src="/abeypad.png"
-            alt="AbeyPad logo"
-            className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
-          />
-          <div>
-            <p className="text-lg font-black uppercase tracking-[0.2em] leading-tight">AbeyPad</p>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em]">Launch Lab</p>
-          </div>
-        </Link>
       </div>
 
       {isConnected && (
