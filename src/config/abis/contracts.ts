@@ -5,9 +5,9 @@ export const CONTRACT_ADDRESSES = {
     tokenLocker: "0x3b1bCdA99Df192448137e6b592b95979bA0AC8fe" as Address,
     airdropMultisender: "0xe47485b89419Ae3b591046d74baca815c5A46Cc4" as Address,
     tokenFactory: "0xF74196387346F2083391f54E9011Dc87fbdF1277" as Address,
-    presaleFactory: "0xE2154b769c22B743D4aAf271bd4Ba333E5706F43" as Address,
-    stakeToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address,// MyMyMy Token
-    rewardToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address, // MyMyMy Token
+    presaleFactory: "0xB22DF375fC125D54C123438af9D4a91Ac56891Fb" as Address,
+    stakeToken: "0x72d4db19e3ae6f8ed47b5337ab00d69685277cf4" as Address,
+    rewardToken: "0x72d4db19e3ae6f8ed47b5337ab00d69685277cf4" as Address,
     nftFactory: "0xaA19CB732D3FD2F60914DF7A0C5a7c91175c9C6c" as Address,
     staking: "0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9" as Address,
     registry: "" as Address,

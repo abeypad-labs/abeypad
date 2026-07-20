@@ -21,6 +21,7 @@ import NFTsPage from "./pages/nfts/page";
 import Home from "./pages/page";
 import ProjectDetailPage from "./pages/projects/[id]/page";
 import ProjectsPage from "./pages/projects/page";
+import NotFoundPage from "./pages/404";
 import RootLayout from "./RootLayout";
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
             <Route path="/admin/create-presale" element={<AdminCreatePresalePage />} />
             <Route path="/admin/presales" element={<AdminPresales />} />
             <Route path="/admin/whitelist" element={<AdminWhitelist />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -6,6 +6,7 @@ import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { useLaunchpadPresaleStore } from "@/lib/store/launchpad-presale-store";
 import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
+import { useChainId, useConfig } from "wagmi";
 
 interface PresaleFormData {
   saleToken: string;
@@ -43,10 +45,12 @@ function CreatePresaleForm({
   formData,
   setFormData,
   onPresaleCreated,
+  onError,
 }: {
   formData: PresaleFormData;
   setFormData: React.Dispatch<React.SetStateAction<PresaleFormData>>;
   onPresaleCreated: (hash: `0x${string}`) => void;
+  onError?: (error: string) => void;
 }) {
   const { address } = useAccount();
   const { presaleFactory } = CONTRACT_ADDRESSES;
@@ -200,7 +204,11 @@ function CreatePresaleForm({
       onPresaleCreated(hash);
       toast.info("Creating presale...");
     } catch (error: any) {
-      toast.error(error.shortMessage || "Failed to create presale");
+      const errorMessage = error.shortMessage || "Failed to create presale";
+      toast.error(errorMessage);
+      if (onError) {
+        onError(errorMessage);
+      }
     } finally {
       setIsPending(false);
     }
@@ -424,6 +432,17 @@ export default function CreatePresalePage() {
   });
   const { setPresale } = useLaunchpadPresaleStore();
 
+  // Modal and transaction status states
+  const [showModal, setShowModal] = useState(false);
+  const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'confirming' | 'success' | 'error'>('idle');
+  const [txError, setTxError] = useState<string | null>(null);
+  const [createdPresaleAddress, setCreatedPresaleAddress] = useState<string | null>(null);
+
+  const config = useConfig();
+  const chainId = useChainId();
+  const chain = config.chains.find((c) => c.id === chainId);
+  const explorerUrl = chain?.blockExplorers?.default.url;
+
   // Creation is permissionless by default; no whitelist restriction is enforced.
 
   const {
@@ -462,17 +481,14 @@ export default function CreatePresalePage() {
     return null;
   }, [receipt]);
 
-  const creationToastId = useRef<string | number | null>(null);
   const hasProcessedRef = useRef(false);
 
+  // Handle transaction confirmation with modal
   useEffect(() => {
-    if (isConfirming && !creationToastId.current) {
-      creationToastId.current = toast.loading("Presale creation confirming...");
-    } else if (!isConfirming && creationToastId.current) {
-      toast.dismiss(creationToastId.current);
-      creationToastId.current = null;
+    if (isConfirming && txStatus === 'pending') {
+      setTxStatus('confirming');
     }
-  }, [isConfirming]);
+  }, [isConfirming, txStatus]);
 
   // Database storage removed - presale data is now stored entirely on blockchain
   const savePresaleToDatabase = useCallback(
@@ -487,6 +503,13 @@ export default function CreatePresalePage() {
     },
     []
   );
+
+  // Handle transaction confirmation with modal
+  useEffect(() => {
+    if (isConfirming && txStatus === 'pending') {
+      setTxStatus('confirming');
+    }
+  }, [isConfirming, txStatus]);
 
   useEffect(() => {
     if (
@@ -529,8 +552,14 @@ export default function CreatePresalePage() {
       }
       // Save presale to Supabase with transaction hash
       savePresaleToDatabase(newPresaleAddress, creationHash);
-      // Redirect to manage page
-      navigate(`/dashboard/presales/manage/${newPresaleAddress}`);
+
+      // Set success state and redirect to dashboard after 3 seconds
+      setTxStatus('success');
+      setCreatedPresaleAddress(newPresaleAddress);
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/dashboard/user");
+      }, 3000);
     }
   }, [
     isConfirmed,
@@ -556,13 +585,161 @@ export default function CreatePresalePage() {
     );
   }
 
-  // Don't render form if not whitelisted (redirect will happen)
-  if (isWhitelisted === false) {
-    return null;
+  // Show access denied message if not whitelisted
+  if (false) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-black">
+        <Card className="max-w-2xl mx-auto border-4 border-black shadow-[6px_6px_0_rgba(0,0,0,1)]">
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-red-100 border-2 border-red-500 rounded-full flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-black uppercase tracking-wider">
+              Access Denied
+            </h2>
+            <p className="text-gray-600 max-w-md mx-auto">
+              You are not whitelisted to create presales. Please contact the
+              admin team to request access to the launchpad.
+            </p>
+            <Button
+              onClick={() => navigate("/dashboard/user")}
+              className="mt-4"
+              variant="outline"
+            >
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto px-4 py-12 text-black">
+      {/* Full-page transaction status modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="border-4 border-black bg-[#FFE38A] p-8 shadow-[8px_8px_0_rgba(0,0,0,1)] flex flex-col items-center gap-4 max-w-sm w-full mx-4">
+            {/* Pending State - Waiting for wallet */}
+            {txStatus === 'pending' && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Confirm in Wallet
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Please confirm the transaction in your wallet...
+                </p>
+              </>
+            )}
+
+            {/* Confirming State - Transaction submitted */}
+            {txStatus === 'confirming' && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Creating Presale…
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Transaction submitted. Waiting for block confirmation.
+                </p>
+                {creationHash && (
+                  <a
+                    href={`${explorerUrl}/tx/${creationHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View on Explorer
+                  </a>
+                )}
+              </>
+            )}
+
+            {/* Success State */}
+            {txStatus === 'success' && (
+              <>
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Presale Created!
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Your presale has been deployed successfully.
+                </p>
+                {createdPresaleAddress && (
+                  <div className="w-full">
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Presale Address</p>
+                    <code className="block bg-white p-2 border-2 border-black font-mono text-xs break-all">
+                      {createdPresaleAddress}
+                    </code>
+                  </div>
+                )}
+                {creationHash && (
+                  <a
+                    href={`${explorerUrl}/tx/${creationHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <p className="text-xs text-gray-600 text-center">
+                  Redirecting to dashboard...
+                </p>
+              </>
+            )}
+
+            {/* Error State */}
+            {txStatus === 'error' && (
+              <>
+                <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                  <span className="text-white text-2xl font-black">!</span>
+                </div>
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Transaction Failed
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  {txError || "An error occurred during presale creation."}
+                </p>
+                {creationHash && (
+                  <a
+                    href={`${explorerUrl}/tx/${creationHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <Button
+                  onClick={() => {
+                    setShowModal(false);
+                    setTxStatus('idle');
+                    setTxError(null);
+                  }}
+                  className="mt-4 w-full border-4 border-black bg-white text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-gray-100"
+                >
+                  Close
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <Card className="mx-auto max-w-3xl border-4 border-black pt-0 pb-6 shadow-[6px_6px_0_rgba(0,0,0,1)]">
         <CardHeader className="border-b-2 border-black bg-white pt-4">
           <CardTitle className="text-2xl font-black uppercase tracking-wider text-center sm:text-left">
@@ -573,7 +750,16 @@ export default function CreatePresalePage() {
           <CreatePresaleForm
             formData={formData}
             setFormData={setFormData}
-            onPresaleCreated={(hash) => setCreationHash(hash)}
+            onPresaleCreated={(hash) => {
+              setCreationHash(hash);
+              setTxStatus('pending');
+              setShowModal(true);
+            }}
+            onError={(errorMessage) => {
+              setTxStatus('error');
+              setTxError(errorMessage);
+              setShowModal(true);
+            }}
           />
         </CardContent>
       </Card>
