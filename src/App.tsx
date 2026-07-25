@@ -33,14 +33,29 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard/create" element={<CreateHubPage />} />
             <Route path="/dashboard/create/nft" element={<CreateNftPage />} />
-            <Route path="/dashboard/create/presale" element={<CreatePresalePage />} />
-            <Route path="/dashboard/create/project" element={<CreateProjectPage />} />
-            <Route path="/dashboard/create/token" element={<CreateTokenPage />} />
+            <Route
+              path="/dashboard/create/presale"
+              element={<CreatePresalePage />}
+            />
+            <Route
+              path="/dashboard/create/project"
+              element={<CreateProjectPage />}
+            />
+            <Route
+              path="/dashboard/create/token"
+              element={<CreateTokenPage />}
+            />
             <Route path="/dashboard/presales" element={<PresalesListPage />} />
-            <Route path="/dashboard/presales/manage/:address" element={<ManagePresalePage />} />
+            <Route
+              path="/dashboard/presales/manage/:address"
+              element={<ManagePresalePage />}
+            />
             <Route path="/dashboard/staking" element={<StakingPage />} />
             <Route path="/dashboard/tools/airdrop" element={<AirdropPage />} />
-            <Route path="/dashboard/tools/token-locker" element={<TokenLockerPage />} />
+            <Route
+              path="/dashboard/tools/token-locker"
+              element={<TokenLockerPage />}
+            />
             <Route path="/dashboard/user" element={<UserDashboardPage />} />
             <Route path="/nfts" element={<NFTsPage />} />
             <Route path="/nfts/:id" element={<NFTDetailPage />} />
@@ -48,7 +63,10 @@ function App() {
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/locks/:id" element={<LockDetailPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/create-presale" element={<AdminCreatePresalePage />} />
+            <Route
+              path="/admin/create-presale"
+              element={<AdminCreatePresalePage />}
+            />
             <Route path="/admin/presales" element={<AdminPresales />} />
             <Route path="/admin/whitelist" element={<AdminWhitelist />} />
             <Route path="*" element={<NotFoundPage />} />

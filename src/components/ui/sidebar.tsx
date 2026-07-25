@@ -1,6 +1,8 @@
 import {
   useAccount,
-  useBalance, useConnectModal, useDisconnect
+  useBalance,
+  useConnectModal,
+  useDisconnect,
 } from "@/lib/hooks";
 import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
 import { useIsAdmin } from "@/lib/utils/admin";
@@ -50,8 +52,7 @@ const SidebarContent = () => {
 
   return (
     <div className="flex min-h-full flex-col bg-[#F7F1E1] text-black">
-      <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black">
-      </div>
+      <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black"></div>
 
       {isConnected && (
         <div className="mx-4 mt-4 -rotate-[0.45deg] border-[2px] border-black bg-[#FFF2D5] p-4 text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000]">
@@ -69,24 +70,31 @@ const SidebarContent = () => {
                   $
                   {valueUsd < 0.01 && valueUsd > 0
                     ? valueUsd.toLocaleString(undefined, {
-                      minimumFractionDigits: 4,
-                      maximumFractionDigits: 4,
-                    })
+                        minimumFractionDigits: 4,
+                        maximumFractionDigits: 4,
+                      })
                     : valueUsd.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                 </p>
                 <p className="mt-2 text-xs font-bold font-mono">
-                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} ABEY
+                  {balance.toLocaleString(undefined, {
+                    maximumFractionDigits: 4,
+                  })}{" "}
+                  ABEY
                 </p>
               </>
             ) : (
               <>
                 <p className="text-3xl font-black leading-none">
-                  {balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                  {balance.toLocaleString(undefined, {
+                    maximumFractionDigits: 4,
+                  })}
                 </p>
-                <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">ABEY</p>
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">
+                  ABEY
+                </p>
               </>
             )}
           </div>
@@ -112,12 +120,19 @@ const SidebarContent = () => {
               <li key={item.name}>
                 <Link
                   to={isDisabled ? "#" : item.href}
-                  className={`group flex items-center gap-3 border-[3px] border-black px-4 py-3 text-xs font-black uppercase tracking-[0.14em] transition-all ${isActive
-                    ? "bg-[#B8EF53] text-black [box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] -translate-x-1 -translate-y-1"
-                    : "bg-white text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
-                    } ${index % 2 === 0 ? "rotate-[1.35deg] sm:rotate-[1deg]" : "-rotate-[1.35deg] sm:-rotate-[1deg]"} ${isActive && index % 2 === 0 ? "hover:rotate-[1.35deg] sm:hover:rotate-[1deg]" : ""
-                    } ${isActive && index % 2 === 1 ? "hover:-rotate-[1.35deg] sm:hover:-rotate-[1deg]" : ""
-                    }`}
+                  className={`group flex items-center gap-3 border-[3px] border-black px-4 py-3 text-xs font-black uppercase tracking-[0.14em] transition-all ${
+                    isActive
+                      ? "bg-[#B8EF53] text-black [box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] -translate-x-1 -translate-y-1"
+                      : "bg-white text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
+                  } ${index % 2 === 0 ? "rotate-[1.35deg] sm:rotate-[1deg]" : "-rotate-[1.35deg] sm:-rotate-[1deg]"} ${
+                    isActive && index % 2 === 0
+                      ? "hover:rotate-[1.35deg] sm:hover:rotate-[1deg]"
+                      : ""
+                  } ${
+                    isActive && index % 2 === 1
+                      ? "hover:-rotate-[1.35deg] sm:hover:-rotate-[1deg]"
+                      : ""
+                  }`}
                 >
                   <item.icon className="h-4 w-4" strokeWidth={2.5} />
                   <span>{item.name}</span>
@@ -130,10 +145,11 @@ const SidebarContent = () => {
             <li>
               <Link
                 to="/admin"
-                className={`flex items-center gap-3 border-[3px] border-black px-4 py-3 text-xs font-black uppercase tracking-[0.14em] transition-all ${pathname.startsWith("/admin")
-                  ? "bg-[#FF7F41] text-black [box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] -translate-x-1 -translate-y-1"
-                  : "bg-[#FFE7B0] text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
-                  } rotate-[1.35deg] sm:rotate-[1deg]`}
+                className={`flex items-center gap-3 border-[3px] border-black px-4 py-3 text-xs font-black uppercase tracking-[0.14em] transition-all ${
+                  pathname.startsWith("/admin")
+                    ? "bg-[#FF7F41] text-black [box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] -translate-x-1 -translate-y-1"
+                    : "bg-[#FFE7B0] text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
+                } rotate-[1.35deg] sm:rotate-[1deg]`}
               >
                 <Shield className="h-4 w-4" strokeWidth={2.5} />
                 <span>Admin</span>
@@ -145,10 +161,11 @@ const SidebarContent = () => {
         <div className="mt-8 space-y-4">
           <Link
             to="/dashboard/create"
-            className={`flex items-center justify-center gap-2 border-[3px] border-black px-4 py-4 text-xs font-black uppercase tracking-[0.16em] transition-all ${pathname === "/dashboard/create"
-              ? "bg-[#42C9FF] text-black [box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] -translate-x-1 -translate-y-1"
-              : "bg-[#FF7F41] text-black [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
-              }`}
+            className={`flex items-center justify-center gap-2 border-[3px] border-black px-4 py-4 text-xs font-black uppercase tracking-[0.16em] transition-all ${
+              pathname === "/dashboard/create"
+                ? "bg-[#42C9FF] text-black [box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] -translate-x-1 -translate-y-1"
+                : "bg-[#FF7F41] text-black [box-shadow:0_0_0_1px_#000,8px_8px_0_0_#000] hover:[box-shadow:0_0_0_1px_#000,12px_12px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
+            }`}
           >
             <Plus className="h-5 w-5" />
             Create
@@ -174,7 +191,11 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   const [prevPathname, setPrevPathname] = useState<string | null>(null);
   const location = useLocation();
 
-  if (prevPathname !== null && prevPathname !== location.pathname && sidebarOpen) {
+  if (
+    prevPathname !== null &&
+    prevPathname !== location.pathname &&
+    sidebarOpen
+  ) {
     setSidebarOpen(false);
   }
   if (prevPathname !== location.pathname) {
@@ -184,15 +205,17 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-black/60 transition-opacity lg:hidden ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
+        className={`fixed inset-0 z-30 bg-black/60 transition-opacity lg:hidden ${
+          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
         onClick={() => setSidebarOpen(false)}
         aria-hidden="true"
       />
 
       <div
-        className={`fixed top-0 left-0 z-40 h-full w-80 transform overflow-y-auto border-r-[3px] border-black bg-[#F7F1E1] transition-transform duration-300 lg:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 z-40 h-full w-80 transform overflow-y-auto border-r-[3px] border-black bg-[#F7F1E1] transition-transform duration-300 lg:hidden ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <SidebarContent />
       </div>
@@ -212,7 +235,9 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                 alt="AbeyPad logo"
                 className="h-8 w-8 rounded-[10px] border-[2px] border-black object-cover"
               />
-              <span className="text-sm font-black uppercase tracking-[0.18em]">AbeyPad</span>
+              <span className="text-sm font-black uppercase tracking-[0.18em]">
+                AbeyPad
+              </span>
             </Link>
             <button
               onClick={() => setSidebarOpen(true)}

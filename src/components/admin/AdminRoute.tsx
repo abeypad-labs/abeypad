@@ -1,7 +1,7 @@
-import { useAccount } from '@/lib/hooks';
-import { Navigate } from 'react-router-dom';
-import { useIsAdmin } from '@/lib/utils/admin';
-import type { Address } from 'viem';
+import { useAccount } from "@/lib/hooks";
+import { Navigate } from "react-router-dom";
+import { useIsAdmin } from "@/lib/utils/admin";
+import type { Address } from "viem";
 
 interface AdminRouteProps {
   children: React.ReactNode;

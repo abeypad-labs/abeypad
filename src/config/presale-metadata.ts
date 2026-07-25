@@ -13,7 +13,9 @@ export interface PresaleMetadata {
   logo?: string;
 }
 
-export function getPresaleMetadata(_presaleAddress: string): PresaleMetadata | undefined {
+export function getPresaleMetadata(
+  _presaleAddress: string,
+): PresaleMetadata | undefined {
   // TODO: Implement actual metadata fetching logic
   // For now, return undefined to use defaults
   return undefined;

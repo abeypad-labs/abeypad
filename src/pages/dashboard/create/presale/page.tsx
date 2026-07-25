@@ -75,7 +75,9 @@ function CreatePresaleForm({
     abi: erc20Abi,
     functionName: "decimals",
     query: {
-      enabled: Boolean(saleToken && saleToken.startsWith("0x") && isAddress(saleToken)),
+      enabled: Boolean(
+        saleToken && saleToken.startsWith("0x") && isAddress(saleToken),
+      ),
     },
   });
 
@@ -103,7 +105,8 @@ function CreatePresaleForm({
   const validationError = useMemo(() => {
     if (!saleToken) return "Sale Token Address is required.";
     if (!isAddress(saleToken)) return "Invalid Sale Token Address format.";
-    if (paymentToken && !isAddress(paymentToken)) return "Invalid Payment Token Address format.";
+    if (paymentToken && !isAddress(paymentToken))
+      return "Invalid Payment Token Address format.";
     if (!owner) return "Presale Owner address is required.";
     if (!isAddress(owner)) return "Invalid Presale Owner address format.";
     if (!startTime || !endTime) return "Start and End times are required.";
@@ -113,13 +116,20 @@ function CreatePresaleForm({
     if (start >= end) return "End time must be after the start time.";
     if (start < Date.now() - 60000) return "Start time cannot be in the past.";
 
-    if (!saleAmount || Number(saleAmount) <= 0) return "Sale Amount must be greater than 0.";
-    if (!hardCap || Number(hardCap) <= 0) return "Hard Cap must be greater than 0.";
-    if (!softCap || Number(softCap) <= 0) return "Soft Cap must be greater than 0.";
-    if (Number(softCap) > Number(hardCap)) return "Soft Cap cannot exceed the Hard Cap.";
-    if (!minContribution || Number(minContribution) <= 0) return "Min contribution must be greater than 0.";
-    if (!maxContribution || Number(maxContribution) <= 0) return "Max contribution must be greater than 0.";
-    if (Number(minContribution) > Number(maxContribution)) return "Min contribution cannot exceed the Max contribution.";
+    if (!saleAmount || Number(saleAmount) <= 0)
+      return "Sale Amount must be greater than 0.";
+    if (!hardCap || Number(hardCap) <= 0)
+      return "Hard Cap must be greater than 0.";
+    if (!softCap || Number(softCap) <= 0)
+      return "Soft Cap must be greater than 0.";
+    if (Number(softCap) > Number(hardCap))
+      return "Soft Cap cannot exceed the Hard Cap.";
+    if (!minContribution || Number(minContribution) <= 0)
+      return "Min contribution must be greater than 0.";
+    if (!maxContribution || Number(maxContribution) <= 0)
+      return "Max contribution must be greater than 0.";
+    if (Number(minContribution) > Number(maxContribution))
+      return "Min contribution cannot exceed the Max contribution.";
 
     return null;
   }, [
@@ -148,7 +158,8 @@ function CreatePresaleForm({
 
       return {
         saleToken: saleToken as `0x${string}`,
-        paymentToken: (paymentToken || "0x0000000000000000000000000000000000000000") as `0x${string}`,
+        paymentToken: (paymentToken ||
+          "0x0000000000000000000000000000000000000000") as `0x${string}`,
         config: {
           startTime: BigInt(Math.floor(new Date(startTime).getTime() / 1000)),
           endTime: BigInt(Math.floor(new Date(endTime).getTime() / 1000)),
@@ -415,7 +426,7 @@ export default function CreatePresalePage() {
   const { isWhitelisted, isLoading: isLoadingWhitelist } =
     useWhitelistedCreator(address as Address | undefined);
   const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(
-    undefined
+    undefined,
   );
   const [formData, setFormData] = useState({
     saleToken: searchParams.get("token") ?? "",
@@ -434,9 +445,13 @@ export default function CreatePresalePage() {
 
   // Modal and transaction status states
   const [showModal, setShowModal] = useState(false);
-  const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'confirming' | 'success' | 'error'>('idle');
+  const [txStatus, setTxStatus] = useState<
+    "idle" | "pending" | "confirming" | "success" | "error"
+  >("idle");
   const [txError, setTxError] = useState<string | null>(null);
-  const [createdPresaleAddress, setCreatedPresaleAddress] = useState<string | null>(null);
+  const [createdPresaleAddress, setCreatedPresaleAddress] = useState<
+    string | null
+  >(null);
 
   const config = useConfig();
   const chainId = useChainId();
@@ -485,8 +500,8 @@ export default function CreatePresalePage() {
 
   // Handle transaction confirmation with modal
   useEffect(() => {
-    if (isConfirming && txStatus === 'pending') {
-      setTxStatus('confirming');
+    if (isConfirming && txStatus === "pending") {
+      setTxStatus("confirming");
     }
   }, [isConfirming, txStatus]);
 
@@ -498,16 +513,16 @@ export default function CreatePresalePage() {
         "Presale created at address:",
         presaleAddress,
         "with tx:",
-        txHash
+        txHash,
       );
     },
-    []
+    [],
   );
 
   // Handle transaction confirmation with modal
   useEffect(() => {
-    if (isConfirming && txStatus === 'pending') {
-      setTxStatus('confirming');
+    if (isConfirming && txStatus === "pending") {
+      setTxStatus("confirming");
     }
   }, [isConfirming, txStatus]);
 
@@ -522,8 +537,8 @@ export default function CreatePresalePage() {
       toast.success(
         `Presale created successfully! Tx: ${creationHash.slice(
           0,
-          10
-        )}...${creationHash.slice(-8)}`
+          10,
+        )}...${creationHash.slice(-8)}`,
       );
       // Invalidate the presales cache to force refetch
       setPresales([]);
@@ -533,10 +548,15 @@ export default function CreatePresalePage() {
         setPresale(newPresaleAddress, {
           address: newPresaleAddress,
           saleToken: formData.saleToken as `0x${string}`,
-          paymentToken: (formData.paymentToken || "0x0000000000000000000000000000000000000000") as `0x${string}`,
+          paymentToken: (formData.paymentToken ||
+            "0x0000000000000000000000000000000000000000") as `0x${string}`,
           isPaymentETH: !formData.paymentToken,
-          startTime: BigInt(Math.floor(new Date(formData.startTime).getTime() / 1000)),
-          endTime: BigInt(Math.floor(new Date(formData.endTime).getTime() / 1000)),
+          startTime: BigInt(
+            Math.floor(new Date(formData.startTime).getTime() / 1000),
+          ),
+          endTime: BigInt(
+            Math.floor(new Date(formData.endTime).getTime() / 1000),
+          ),
           rate: 0n, // Will be fetched from contract later
           softCap: parseEther(formData.softCap),
           hardCap: parseEther(formData.hardCap),
@@ -554,7 +574,7 @@ export default function CreatePresalePage() {
       savePresaleToDatabase(newPresaleAddress, creationHash);
 
       // Set success state and redirect to dashboard after 3 seconds
-      setTxStatus('success');
+      setTxStatus("success");
       setCreatedPresaleAddress(newPresaleAddress);
       setTimeout(() => {
         setShowModal(false);
@@ -633,7 +653,7 @@ export default function CreatePresalePage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="border-4 border-black bg-[#FFE38A] p-8 shadow-[8px_8px_0_rgba(0,0,0,1)] flex flex-col items-center gap-4 max-w-sm w-full mx-4">
             {/* Pending State - Waiting for wallet */}
-            {txStatus === 'pending' && (
+            {txStatus === "pending" && (
               <>
                 <Loader2 className="w-12 h-12 animate-spin" />
                 <p className="font-black uppercase tracking-wider text-xl text-center">
@@ -646,7 +666,7 @@ export default function CreatePresalePage() {
             )}
 
             {/* Confirming State - Transaction submitted */}
-            {txStatus === 'confirming' && (
+            {txStatus === "confirming" && (
               <>
                 <Loader2 className="w-12 h-12 animate-spin" />
                 <p className="font-black uppercase tracking-wider text-xl text-center">
@@ -669,7 +689,7 @@ export default function CreatePresalePage() {
             )}
 
             {/* Success State */}
-            {txStatus === 'success' && (
+            {txStatus === "success" && (
               <>
                 <CheckCircle2 className="w-12 h-12 text-green-600" />
                 <p className="font-black uppercase tracking-wider text-xl text-center">
@@ -680,7 +700,9 @@ export default function CreatePresalePage() {
                 </p>
                 {createdPresaleAddress && (
                   <div className="w-full">
-                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">Presale Address</p>
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">
+                      Presale Address
+                    </p>
                     <code className="block bg-white p-2 border-2 border-black font-mono text-xs break-all">
                       {createdPresaleAddress}
                     </code>
@@ -703,7 +725,7 @@ export default function CreatePresalePage() {
             )}
 
             {/* Error State */}
-            {txStatus === 'error' && (
+            {txStatus === "error" && (
               <>
                 <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
                   <span className="text-white text-2xl font-black">!</span>
@@ -727,7 +749,7 @@ export default function CreatePresalePage() {
                 <Button
                   onClick={() => {
                     setShowModal(false);
-                    setTxStatus('idle');
+                    setTxStatus("idle");
                     setTxError(null);
                   }}
                   className="mt-4 w-full border-4 border-black bg-white text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-gray-100"
@@ -752,11 +774,11 @@ export default function CreatePresalePage() {
             setFormData={setFormData}
             onPresaleCreated={(hash) => {
               setCreationHash(hash);
-              setTxStatus('pending');
+              setTxStatus("pending");
               setShowModal(true);
             }}
             onError={(errorMessage) => {
-              setTxStatus('error');
+              setTxStatus("error");
               setTxError(errorMessage);
               setShowModal(true);
             }}

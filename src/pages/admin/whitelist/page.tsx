@@ -74,8 +74,9 @@ function WhitelistChecker() {
         </div>
         {addressToCheck && !isLoading && (
           <div
-            className={`p-4 border-2 border-black ${isWhitelisted ? "bg-green-100" : "bg-red-100"
-              }`}
+            className={`p-4 border-2 border-black ${
+              isWhitelisted ? "bg-green-100" : "bg-red-100"
+            }`}
           >
             <div className="flex items-center gap-3">
               {isWhitelisted ? (

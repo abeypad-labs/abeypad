@@ -8,7 +8,19 @@ import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useStakingAdmin } from "@/lib/hooks/useStakingAdmin";
 import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
-import { ArrowRight, BarChart3, Coins, CoinsIcon, Lock, PlusCircle, Settings, Shield, UserPlus, Users, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Coins,
+  CoinsIcon,
+  Lock,
+  PlusCircle,
+  Settings,
+  Shield,
+  UserPlus,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,8 +29,13 @@ import { isAddress, type Address } from "viem";
 function AdminDashboardContent() {
   const { address } = useAccount();
   const { factoryOwner, isLoading: isLoadingOwner } = useFactoryOwner();
-  const { feeRecipient, isLoading: isLoadingFeeRecipient, refetch: refetchFeeRecipient } = useFeeRecipient();
-  const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales("all");
+  const {
+    feeRecipient,
+    isLoading: isLoadingFeeRecipient,
+    refetch: refetchFeeRecipient,
+  } = useFeeRecipient();
+  const { presales, isLoading: isLoadingPresales } =
+    useLaunchpadPresales("all");
 
   // Fee recipient management
   const [newFeeRecipient, setNewFeeRecipient] = useState("");
@@ -39,7 +56,9 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     if (isFeeRecipientError && feeRecipientError) {
-      toast.error(getFriendlyTxErrorMessage(feeRecipientError, "Update fee recipient"));
+      toast.error(
+        getFriendlyTxErrorMessage(feeRecipientError, "Update fee recipient"),
+      );
       resetFeeRecipient();
     }
   }, [isFeeRecipientError, feeRecipientError, resetFeeRecipient]);
@@ -55,8 +74,15 @@ function AdminDashboardContent() {
   // Presale stats
   const totalPresales = presales?.length ?? 0;
   const livePresales = presales?.filter((p) => p.status === "live").length ?? 0;
-  const upcomingPresales = presales?.filter((p) => p.status === "upcoming").length ?? 0;
-  const endedPresales = presales?.filter((p) => p.status === "ended" || p.status === "finalized" || p.status === "cancelled").length ?? 0;
+  const upcomingPresales =
+    presales?.filter((p) => p.status === "upcoming").length ?? 0;
+  const endedPresales =
+    presales?.filter(
+      (p) =>
+        p.status === "ended" ||
+        p.status === "finalized" ||
+        p.status === "cancelled",
+    ).length ?? 0;
 
   // Staking Admin State
   const [rewardAPY, setRewardAPY] = useState("");
@@ -168,10 +194,14 @@ function AdminDashboardContent() {
             {isLoadingOwner ? (
               <p className="text-gray-500">Loading...</p>
             ) : (
-              <p className="font-mono text-sm break-all bg-gray-100 p-2 rounded">{factoryOwner}</p>
+              <p className="font-mono text-sm break-all bg-gray-100 p-2 rounded">
+                {factoryOwner}
+              </p>
             )}
             {address?.toLowerCase() === factoryOwner?.toLowerCase() && (
-              <p className="text-green-600 text-sm mt-2 font-medium">✓ You are the factory owner</p>
+              <p className="text-green-600 text-sm mt-2 font-medium">
+                ✓ You are the factory owner
+              </p>
             )}
           </CardContent>
         </Card>
@@ -187,10 +217,14 @@ function AdminDashboardContent() {
             {isLoadingFeeRecipient ? (
               <p className="text-gray-500">Loading...</p>
             ) : (
-              <p className="font-mono text-sm break-all bg-gray-100 p-2 rounded">{feeRecipient}</p>
+              <p className="font-mono text-sm break-all bg-gray-100 p-2 rounded">
+                {feeRecipient}
+              </p>
             )}
             {address?.toLowerCase() === feeRecipient?.toLowerCase() && (
-              <p className="text-green-600 text-sm mt-2 font-medium">✓ You are the fee recipient</p>
+              <p className="text-green-600 text-sm mt-2 font-medium">
+                ✓ You are the fee recipient
+              </p>
             )}
           </CardContent>
         </Card>
@@ -202,8 +236,12 @@ function AdminDashboardContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500">Total Presales</p>
-                <p className="text-2xl font-bold">{isLoadingPresales ? "..." : totalPresales}</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500">
+                  Total Presales
+                </p>
+                <p className="text-2xl font-bold">
+                  {isLoadingPresales ? "..." : totalPresales}
+                </p>
               </div>
               <BarChart3 className="w-6 h-6 text-gray-400" />
             </div>
@@ -213,8 +251,12 @@ function AdminDashboardContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500">Live</p>
-                <p className="text-2xl font-bold">{isLoadingPresales ? "..." : livePresales}</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500">
+                  Live
+                </p>
+                <p className="text-2xl font-bold">
+                  {isLoadingPresales ? "..." : livePresales}
+                </p>
               </div>
               <BarChart3 className="w-6 h-6 text-green-500" />
             </div>
@@ -224,8 +266,12 @@ function AdminDashboardContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500">Upcoming</p>
-                <p className="text-2xl font-bold">{isLoadingPresales ? "..." : upcomingPresales}</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500">
+                  Upcoming
+                </p>
+                <p className="text-2xl font-bold">
+                  {isLoadingPresales ? "..." : upcomingPresales}
+                </p>
               </div>
               <BarChart3 className="w-6 h-6 text-yellow-500" />
             </div>
@@ -235,8 +281,12 @@ function AdminDashboardContent() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500">Ended</p>
-                <p className="text-2xl font-bold">{isLoadingPresales ? "..." : endedPresales}</p>
+                <p className="text-xs uppercase tracking-wider text-gray-500">
+                  Ended
+                </p>
+                <p className="text-2xl font-bold">
+                  {isLoadingPresales ? "..." : endedPresales}
+                </p>
               </div>
               <BarChart3 className="w-6 h-6 text-gray-400" />
             </div>
@@ -336,7 +386,9 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">APY Percentage</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      APY Percentage
+                    </label>
                     <Input
                       placeholder="e.g., 12 for 12%"
                       value={rewardAPY}
@@ -367,7 +419,9 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">User Address</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      User Address
+                    </label>
                     <Input
                       placeholder="0x..."
                       value={userToWhitelist}
@@ -398,7 +452,9 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Reward Amount</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Reward Amount
+                    </label>
                     <Input
                       placeholder="Amount in tokens"
                       value={rewardAmount}
@@ -449,9 +505,15 @@ function AdminDashboardContent() {
 
             {!isStakingOwner && (
               <div className="mt-6 p-4 border border-red-200 bg-red-50 rounded-sm text-sm">
-                <p className="font-medium text-red-800">⚠️ Warning: You are not the staking contract owner.</p>
-                <p className="text-red-700 mt-1">Current owner: {stakingOwner?.toString() || "Loading..."}</p>
-                <p className="text-red-600 mt-2 text-xs">Some admin functions may fail if executed by non-owner.</p>
+                <p className="font-medium text-red-800">
+                  ⚠️ Warning: You are not the staking contract owner.
+                </p>
+                <p className="text-red-700 mt-1">
+                  Current owner: {stakingOwner?.toString() || "Loading..."}
+                </p>
+                <p className="text-red-600 mt-2 text-xs">
+                  Some admin functions may fail if executed by non-owner.
+                </p>
               </div>
             )}
           </CardContent>
@@ -468,7 +530,9 @@ function AdminDashboardContent() {
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">New Fee Recipient Address</label>
+            <label className="text-sm font-medium text-gray-700">
+              New Fee Recipient Address
+            </label>
             <div className="flex gap-2">
               <Input
                 placeholder="0x..."
@@ -485,7 +549,8 @@ function AdminDashboardContent() {
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              Only the factory owner can update this. Fee recipient receives all platform fees.
+              Only the factory owner can update this. Fee recipient receives all
+              platform fees.
             </p>
           </div>
         </CardContent>

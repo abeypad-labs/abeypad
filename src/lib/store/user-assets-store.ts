@@ -1,6 +1,6 @@
-import { type Address } from 'viem';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { type Address } from "viem";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface UserToken {
   address: Address;
@@ -33,44 +33,75 @@ interface CacheMetadata {
 
 interface UserAssetsStore {
   // User Created Tokens
-  userTokens: Record<string, {
-    tokens: Record<string, UserToken>;
-    metadata: CacheMetadata;
-  }>;
+  userTokens: Record<
+    string,
+    {
+      tokens: Record<string, UserToken>;
+      metadata: CacheMetadata;
+    }
+  >;
 
   // User Created NFT Collections
-  userNFTs: Record<string, {
-    collections: Record<string, UserNFTCollection>;
-    metadata: CacheMetadata;
-  }>;
+  userNFTs: Record<
+    string,
+    {
+      collections: Record<string, UserNFTCollection>;
+      metadata: CacheMetadata;
+    }
+  >;
 
   // User Token Balances
-  userTokenBalances: Record<string, {
-    balances: Record<string, UserTokenBalance>;
-    metadata: CacheMetadata;
-  }>;
+  userTokenBalances: Record<
+    string,
+    {
+      balances: Record<string, UserTokenBalance>;
+      metadata: CacheMetadata;
+    }
+  >;
 
   // Actions for User Tokens
   setUserToken: (userAddress: string, token: UserToken) => void;
   setUserTokens: (userAddress: string, tokens: UserToken[]) => void;
   setUserTokensLoading: (userAddress: string, isLoading: boolean) => void;
   getUserTokens: (userAddress: string) => UserToken[] | null;
-  getUserToken: (userAddress: string, tokenAddress: Address) => UserToken | null;
+  getUserToken: (
+    userAddress: string,
+    tokenAddress: Address,
+  ) => UserToken | null;
   isUserTokensStale: (userAddress: string, maxAge?: number) => boolean;
   removeUserToken: (userAddress: string, tokenAddress: Address) => void;
 
   // Actions for User NFT Collections
-  setUserNFTCollection: (userAddress: string, collection: UserNFTCollection) => void;
-  setUserNFTCollections: (userAddress: string, collections: UserNFTCollection[]) => void;
+  setUserNFTCollection: (
+    userAddress: string,
+    collection: UserNFTCollection,
+  ) => void;
+  setUserNFTCollections: (
+    userAddress: string,
+    collections: UserNFTCollection[],
+  ) => void;
   setUserNFTsLoading: (userAddress: string, isLoading: boolean) => void;
   getUserNFTCollections: (userAddress: string) => UserNFTCollection[] | null;
-  getUserNFTCollection: (userAddress: string, collectionAddress: Address) => UserNFTCollection | null;
+  getUserNFTCollection: (
+    userAddress: string,
+    collectionAddress: Address,
+  ) => UserNFTCollection | null;
   isUserNFTsStale: (userAddress: string, maxAge?: number) => boolean;
-  removeUserNFTCollection: (userAddress: string, collectionAddress: Address) => void;
+  removeUserNFTCollection: (
+    userAddress: string,
+    collectionAddress: Address,
+  ) => void;
 
   // Actions for User Token Balances
-  setUserTokenBalance: (userAddress: string, tokenAddress: Address, balance: bigint) => void;
-  getUserTokenBalance: (userAddress: string, tokenAddress: Address) => bigint | null;
+  setUserTokenBalance: (
+    userAddress: string,
+    tokenAddress: Address,
+    balance: bigint,
+  ) => void;
+  getUserTokenBalance: (
+    userAddress: string,
+    tokenAddress: Address,
+  ) => bigint | null;
   isUserTokenBalancesStale: (userAddress: string, maxAge?: number) => boolean;
 
   // Cache Management
@@ -111,10 +142,13 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           userTokens: {
             ...state.userTokens,
             [userAddress.toLowerCase()]: {
-              tokens: tokens.reduce((acc, token) => ({
-                ...acc,
-                [token.address.toLowerCase()]: token,
-              }), {}),
+              tokens: tokens.reduce(
+                (acc, token) => ({
+                  ...acc,
+                  [token.address.toLowerCase()]: token,
+                }),
+                {},
+              ),
               metadata: {
                 timestamp: Date.now(),
                 isLoading: false,
@@ -163,7 +197,8 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           const userTokens = state.userTokens[userAddress.toLowerCase()];
           if (!userTokens) return state;
 
-          const { [tokenAddress.toLowerCase()]: _, ...remainingTokens } = userTokens.tokens;
+          const { [tokenAddress.toLowerCase()]: _, ...remainingTokens } =
+            userTokens.tokens;
 
           return {
             userTokens: {
@@ -199,10 +234,13 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           userNFTs: {
             ...state.userNFTs,
             [userAddress.toLowerCase()]: {
-              collections: collections.reduce((acc, collection) => ({
-                ...acc,
-                [collection.address.toLowerCase()]: collection,
-              }), {}),
+              collections: collections.reduce(
+                (acc, collection) => ({
+                  ...acc,
+                  [collection.address.toLowerCase()]: collection,
+                }),
+                {},
+              ),
               metadata: {
                 timestamp: Date.now(),
                 isLoading: false,
@@ -251,7 +289,10 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           const userNFTs = state.userNFTs[userAddress.toLowerCase()];
           if (!userNFTs) return state;
 
-          const { [collectionAddress.toLowerCase()]: _, ...remainingCollections } = userNFTs.collections;
+          const {
+            [collectionAddress.toLowerCase()]: _,
+            ...remainingCollections
+          } = userNFTs.collections;
 
           return {
             userNFTs: {
@@ -305,7 +346,8 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           const lowerUserAddress = userAddress.toLowerCase();
           const { [lowerUserAddress]: _, ...restTokens } = state.userTokens;
           const { [lowerUserAddress]: __, ...restNFTs } = state.userNFTs;
-          const { [lowerUserAddress]: ___, ...restBalances } = state.userTokenBalances;
+          const { [lowerUserAddress]: ___, ...restBalances } =
+            state.userTokenBalances;
           return {
             userTokens: restTokens,
             userNFTs: restNFTs,
@@ -321,14 +363,14 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
         }),
     }),
     {
-      name: 'user-assets-storage',
+      name: "user-assets-storage",
       // Custom storage to handle BigInt serialization
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name);
           if (!str) return null;
           return JSON.parse(str, (_, value) => {
-            if (typeof value === 'string' && value.startsWith('__bigint__:')) {
+            if (typeof value === "string" && value.startsWith("__bigint__:")) {
               return BigInt(value.slice(11));
             }
             return value;
@@ -338,11 +380,11 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           localStorage.setItem(
             name,
             JSON.stringify(value, (_, val) => {
-              if (typeof val === 'bigint') {
+              if (typeof val === "bigint") {
                 return `__bigint__:${val.toString()}`;
               }
               return val;
-            })
+            }),
           );
         },
         removeItem: (name) => localStorage.removeItem(name),
@@ -354,21 +396,21 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           Object.entries(state.userTokens).map(([key, value]) => [
             key,
             { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
+          ]),
         );
-        
+
         const cleanUserNFTs = Object.fromEntries(
           Object.entries(state.userNFTs).map(([key, value]) => [
             key,
             { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
+          ]),
         );
-        
+
         const cleanUserTokenBalances = Object.fromEntries(
           Object.entries(state.userTokenBalances).map(([key, value]) => [
             key,
             { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
+          ]),
         );
 
         return {
@@ -377,6 +419,6 @@ export const useUserAssetsStore = create<UserAssetsStore>()(
           userTokenBalances: cleanUserTokenBalances,
         } as UserAssetsStore;
       },
-    }
-  )
+    },
+  ),
 );

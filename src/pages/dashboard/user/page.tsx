@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,23 +9,35 @@ import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Plus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
 import { erc721Abi, formatUnits } from "viem";
 import { useConfig } from "wagmi";
 
-function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string | undefined }) {
+function NFTCollectionInfo({
+  collectionAddress,
+  explorerUrl,
+}: {
+  collectionAddress: `0x${string}`;
+  explorerUrl: string | undefined;
+}) {
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
     abi: erc721Abi,
     address: collectionAddress,
-    functionName: 'symbol',
+    functionName: "symbol",
   });
   const { data: name, isLoading: isLoadingName } = useReadContract({
     abi: erc721Abi,
     address: collectionAddress,
-    functionName: 'name',
+    functionName: "name",
   });
 
   if (isLoadingSymbol || isLoadingName) {
@@ -41,13 +53,25 @@ function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddre
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
       <div className="flex-1 min-w-0">
         <h3 className="font-black text-lg uppercase">
-          {(name as string) || 'Unknown Collection'} ({(symbol as string) || 'N/A'})
+          {(name as string) || "Unknown Collection"} (
+          {(symbol as string) || "N/A"})
         </h3>
-        <p className="text-xs text-gray-500 break-all font-mono">{collectionAddress}</p>
+        <p className="text-xs text-gray-500 break-all font-mono">
+          {collectionAddress}
+        </p>
       </div>
       <div className="flex flex-wrap gap-2 flex-shrink-0">
-        <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <a href={`${explorerUrl}/address/${collectionAddress}`} target="_blank" rel="noopener noreferrer">
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]"
+        >
+          <a
+            href={`${explorerUrl}/address/${collectionAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <ExternalLink className="w-3 h-3 mr-1" /> Explorer
           </a>
         </Button>
@@ -57,10 +81,12 @@ function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddre
 }
 
 function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
-  const { presales, isLoading } = useLaunchpadPresales('all', false);
+  const { presales, isLoading } = useLaunchpadPresales("all", false);
 
   // Find the presale in the list
-  const presaleData = presales?.find(p => p.address.toLowerCase() === presaleAddress.toLowerCase());
+  const presaleData = presales?.find(
+    (p) => p.address.toLowerCase() === presaleAddress.toLowerCase(),
+  );
 
   if (isLoading || !presaleData) {
     return (
@@ -71,17 +97,25 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
     );
   }
 
-  const progress = presaleData.hardCap > 0n
-    ? Math.round(Number((presaleData.totalRaised * 100n) / presaleData.hardCap))
-    : 0;
+  const progress =
+    presaleData.hardCap > 0n
+      ? Math.round(
+          Number((presaleData.totalRaised * 100n) / presaleData.hardCap),
+        )
+      : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'live': return 'bg-green-500';
-      case 'upcoming': return 'bg-yellow-500';
-      case 'finalized': return 'bg-blue-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case "live":
+        return "bg-green-500";
+      case "upcoming":
+        return "bg-yellow-500";
+      case "finalized":
+        return "bg-blue-500";
+      case "cancelled":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
@@ -91,16 +125,24 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-black text-lg uppercase">
-              {presaleData.saleTokenSymbol || 'Token'} Presale
+              {presaleData.saleTokenSymbol || "Token"} Presale
             </h3>
-            <span className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${getStatusColor(presaleData.status)}`}>
+            <span
+              className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${getStatusColor(presaleData.status)}`}
+            >
               {presaleData.status}
             </span>
           </div>
-          <p className="text-xs text-gray-500 break-all font-mono">{presaleAddress}</p>
+          <p className="text-xs text-gray-500 break-all font-mono">
+            {presaleAddress}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 flex-shrink-0">
-          <Button size="sm" asChild className="border-2 border-black bg-[#FFE38A] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
+          <Button
+            size="sm"
+            asChild
+            className="border-2 border-black bg-[#FFE38A] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]"
+          >
             <Link to={`/dashboard/presales/manage/${presaleAddress}`}>
               Manage <ExternalLink className="ml-1 h-3 w-3" />
             </Link>
@@ -112,7 +154,14 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
             <span className="text-gray-500">
-              {Math.round(Number(formatUnits(presaleData.totalRaised, 18))).toLocaleString()} / {Math.round(Number(formatUnits(presaleData.hardCap, 18))).toLocaleString()} ABEY
+              {Math.round(
+                Number(formatUnits(presaleData.totalRaised, 18)),
+              ).toLocaleString()}{" "}
+              /{" "}
+              {Math.round(
+                Number(formatUnits(presaleData.hardCap, 18)),
+              ).toLocaleString()}{" "}
+              ABEY
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />
@@ -122,7 +171,21 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
   );
 }
 
-function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; amount: bigint; lockDate: bigint; unlockDate: bigint; withdrawn: boolean; name: string; tokenSymbol?: string; formattedAmount: string } }) {
+function LockPreviewCard({
+  lock,
+}: {
+  lock: {
+    id: bigint;
+    token: `0x${string}`;
+    amount: bigint;
+    lockDate: bigint;
+    unlockDate: bigint;
+    withdrawn: boolean;
+    name: string;
+    tokenSymbol?: string;
+    formattedAmount: string;
+  };
+}) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -134,7 +197,8 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
   }, []);
 
   // Safe bigint to string conversion
-  const lockIdString = lock.id !== undefined && lock.id !== null ? String(lock.id) : '0';
+  const lockIdString =
+    lock.id !== undefined && lock.id !== null ? String(lock.id) : "0";
 
   // Safe number conversions with fallbacks
   let lockTimestamp = 0;
@@ -148,17 +212,22 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
   const totalDuration = unlockTimestamp - lockTimestamp;
   const elapsed = now - lockTimestamp;
-  const progress = totalDuration > 0 ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100)) : 0;
+  const progress =
+    totalDuration > 0
+      ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100))
+      : 0;
   const isExpired = unlockTimestamp > 0 && now >= unlockTimestamp;
 
   // Safe distance calculation
-  let timeRemaining = 'Ready';
+  let timeRemaining = "Ready";
   if (!isExpired && unlockTimestamp > 0) {
     try {
-      timeRemaining = formatDistanceToNow(new Date(unlockTimestamp), { addSuffix: true });
+      timeRemaining = formatDistanceToNow(new Date(unlockTimestamp), {
+        addSuffix: true,
+      });
     } catch (e) {
       console.error("Error formatting distance:", e);
-      timeRemaining = 'Unknown';
+      timeRemaining = "Unknown";
     }
   }
 
@@ -166,22 +235,35 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
     <div className="border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-black text-sm uppercase">{lock.name || `Lock #${lockIdString}`}</span>
+          <span className="font-black text-sm uppercase">
+            {lock.name || `Lock #${lockIdString}`}
+          </span>
         </div>
-        <span className={`px-2 py-0.5 text-xs font-bold uppercase ${lock.withdrawn ? 'bg-gray-400 text-white' : isExpired ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'}`}>
-          {lock.withdrawn ? 'Withdrawn' : isExpired ? 'Unlockable' : 'Locked'}
+        <span
+          className={`px-2 py-0.5 text-xs font-bold uppercase ${lock.withdrawn ? "bg-gray-400 text-white" : isExpired ? "bg-green-500 text-white" : "bg-yellow-500 text-black"}`}
+        >
+          {lock.withdrawn ? "Withdrawn" : isExpired ? "Unlockable" : "Locked"}
         </span>
       </div>
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-bold">{lock.formattedAmount || '0'} {lock.tokenSymbol || ''}</span>
+        <span className="text-sm font-bold">
+          {lock.formattedAmount || "0"} {lock.tokenSymbol || ""}
+        </span>
         <span className="text-xs text-gray-500">{timeRemaining}</span>
       </div>
       {!lock.withdrawn && (
-        <Progress value={progress} className={`h-1.5 border border-black ${isExpired ? 'bg-green-100' : 'bg-gray-100'}`} />
+        <Progress
+          value={progress}
+          className={`h-1.5 border border-black ${isExpired ? "bg-green-100" : "bg-gray-100"}`}
+        />
       )}
       <div className="mt-3 flex justify-end">
         <Link to={`/locks/${lockIdString}`}>
-          <Button size="sm" variant="outline" className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]"
+          >
             View <ArrowRight className="w-3 h-3 ml-1" />
           </Button>
         </Link>
@@ -192,13 +274,24 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
 export default function UserDashboardPage() {
   const { address, isConnected } = useAccount();
-  const { tokens: createdTokens, isLoading, isError: isTokenError } = useUserTokens();
-  const { nfts: createdNFTs, isLoading: isLoadingNFTs, isError: isNFTError } = useUserNFTs();
-  const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
+  const {
+    tokens: createdTokens,
+    isLoading,
+    isError: isTokenError,
+  } = useUserTokens();
+  const {
+    nfts: createdNFTs,
+    isLoading: isLoadingNFTs,
+    isError: isNFTError,
+  } = useUserNFTs();
+  const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales(
+    "all",
+    false,
+  );
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
   const config = useConfig();
-  const chainId = useChainId()
-  const chain = config.chains.find((c) => c.id === chainId)
+  const chainId = useChainId();
+  const chain = config.chains.find((c) => c.id === chainId);
   const explorerUrl = chain?.blockExplorers?.default.url;
   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
   //   address as Address | undefined
@@ -214,7 +307,7 @@ export default function UserDashboardPage() {
   const totalTokenPages = Math.ceil(tokenList.length / TOKENS_PER_PAGE);
   const paginatedTokens = tokenList.slice(
     tokenPage * TOKENS_PER_PAGE,
-    (tokenPage + 1) * TOKENS_PER_PAGE
+    (tokenPage + 1) * TOKENS_PER_PAGE,
   );
 
   // Pagination for NFT collections (newest first)
@@ -223,21 +316,26 @@ export default function UserDashboardPage() {
   const totalNFTPages = Math.ceil(nftList.length / NFTS_PER_PAGE);
   const paginatedNFTs = nftList.slice(
     nftPage * NFTS_PER_PAGE,
-    (nftPage + 1) * NFTS_PER_PAGE
+    (nftPage + 1) * NFTS_PER_PAGE,
   );
 
   // Filter presales owned by the user
-  const myPresales = presales?.filter(
-    (p) => address && p.owner?.toLowerCase() === address.toLowerCase()
-  ) || [];
+  const myPresales =
+    presales?.filter(
+      (p) => address && p.owner?.toLowerCase() === address.toLowerCase(),
+    ) || [];
 
-  const activeLocks = [...(userLocks?.filter(l => !l.withdrawn) || [])].reverse();
+  const activeLocks = [
+    ...(userLocks?.filter((l) => !l.withdrawn) || []),
+  ].reverse();
 
   if (!isConnected) {
     return (
       <div className="container mx-auto px-4 py-12 text-black">
         <div className="border-b-4 border-black bg-[#FFE38A] p-4 sm:p-6 shadow-[4px_4px_0_rgba(0,0,0,1)] mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">Your Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">
+            Your Dashboard
+          </h1>
         </div>
         <Card className="-rotate-[0.45deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <CardContent className="py-12 text-center">
@@ -257,7 +355,9 @@ export default function UserDashboardPage() {
         <div className="border-b-4 border-black bg-[#FFE38A] p-4 sm:p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">Your Dashboard</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">
+                Your Dashboard
+              </h1>
             </div>
           </div>
         </div>
@@ -272,7 +372,10 @@ export default function UserDashboardPage() {
             </CardTitle>
             {tokenList.length > 0 && (
               <Link to="/dashboard/create/token">
-                <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                <Button
+                  size="sm"
+                  className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]"
+                >
                   <Plus className="w-3 h-3 mr-1" /> New Token
                 </Button>
               </Link>
@@ -290,13 +393,23 @@ export default function UserDashboardPage() {
             </div>
           ) : isTokenError ? (
             <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
-              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
-              <p className="text-xs text-red-600">The TokenFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
+              <p className="font-black text-red-700 uppercase text-sm mb-1">
+                Contract Unavailable
+              </p>
+              <p className="text-xs text-red-600">
+                The TokenFactory contract is not deployed at the configured
+                address. Contact the team to deploy contracts on Abeychain.
+              </p>
             </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
               {paginatedTokens.map((token, index) => (
-                <div key={token} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
+                <div
+                  key={token}
+                  className={
+                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
+                  }
+                >
                   <TokenInfo tokenAddress={token} />
                 </div>
               ))}
@@ -305,7 +418,7 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setTokenPage(p => Math.max(0, p - 1))}
+                    onClick={() => setTokenPage((p) => Math.max(0, p - 1))}
                     disabled={tokenPage === 0}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -317,7 +430,9 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setTokenPage(p => Math.min(totalTokenPages - 1, p + 1))}
+                    onClick={() =>
+                      setTokenPage((p) => Math.min(totalTokenPages - 1, p + 1))
+                    }
                     disabled={tokenPage >= totalTokenPages - 1}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -328,7 +443,9 @@ export default function UserDashboardPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any tokens yet.</p>
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                You have not created any tokens yet.
+              </p>
               <Link to="/dashboard/create/token">
                 <Button className="border-4 border-black bg-[#22C55E] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
                   Create Your First Token
@@ -348,7 +465,10 @@ export default function UserDashboardPage() {
             </CardTitle>
             {nftList.length > 0 && (
               <Link to="/dashboard/create/nft">
-                <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                <Button
+                  size="sm"
+                  className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]"
+                >
                   <Plus className="w-3 h-3 mr-1" /> New Collection
                 </Button>
               </Link>
@@ -366,14 +486,27 @@ export default function UserDashboardPage() {
             </div>
           ) : isNFTError ? (
             <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
-              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
-              <p className="text-xs text-red-600">The NFTFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
+              <p className="font-black text-red-700 uppercase text-sm mb-1">
+                Contract Unavailable
+              </p>
+              <p className="text-xs text-red-600">
+                The NFTFactory contract is not deployed at the configured
+                address. Contact the team to deploy contracts on Abeychain.
+              </p>
             </div>
           ) : nftList.length > 0 ? (
             <div className="space-y-3">
               {paginatedNFTs.map((collection, index) => (
-                <div key={collection} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
-                  <NFTCollectionInfo collectionAddress={collection} explorerUrl={explorerUrl} />
+                <div
+                  key={collection}
+                  className={
+                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
+                  }
+                >
+                  <NFTCollectionInfo
+                    collectionAddress={collection}
+                    explorerUrl={explorerUrl}
+                  />
                 </div>
               ))}
               {totalNFTPages > 1 && (
@@ -381,7 +514,7 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setNftPage(p => Math.max(0, p - 1))}
+                    onClick={() => setNftPage((p) => Math.max(0, p - 1))}
                     disabled={nftPage === 0}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -393,7 +526,9 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setNftPage(p => Math.min(totalNFTPages - 1, p + 1))}
+                    onClick={() =>
+                      setNftPage((p) => Math.min(totalNFTPages - 1, p + 1))
+                    }
                     disabled={nftPage >= totalNFTPages - 1}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -404,7 +539,9 @@ export default function UserDashboardPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any NFT collections yet.</p>
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                You have not created any NFT collections yet.
+              </p>
               <Link to="/dashboard/create/nft">
                 <Button className="border-4 border-black bg-[#FF7F41] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
                   Create Your First Collection
@@ -434,21 +571,33 @@ export default function UserDashboardPage() {
             ) : myPresales.length > 0 ? (
               <div className="space-y-3">
                 {myPresales.slice(0, 3).map((presale, index) => (
-                  <div key={presale.address} className={index % 2 === 0 ? "rotate-[0.35deg]" : "-rotate-[0.35deg]"}>
+                  <div
+                    key={presale.address}
+                    className={
+                      index % 2 === 0 ? "rotate-[0.35deg]" : "-rotate-[0.35deg]"
+                    }
+                  >
                     <PresaleInfo presaleAddress={presale.address} />
                   </div>
                 ))}
                 {myPresales.length > 3 && (
                   <Link to="/dashboard/presales" className="block text-center">
-                    <Button variant="outline" size="sm" className="border-2 border-black font-bold text-xs uppercase">
-                      View All ({myPresales.length}) <ArrowRight className="w-3 h-3 ml-1" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-black font-bold text-xs uppercase"
+                    >
+                      View All ({myPresales.length}){" "}
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   </Link>
                 )}
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No presales yet</p>
+                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                  No presales yet
+                </p>
                 <Link to="/dashboard/create/presale">
                   <Button className="border-4 border-black bg-[#42C9FF] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
                     Create Presale
@@ -467,7 +616,11 @@ export default function UserDashboardPage() {
                 My Token Locks
               </CardTitle>
               <Link to="/dashboard/tools/token-locker">
-                <Button size="sm" variant="outline" className="border-2 border-black font-bold text-xs uppercase">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-2 border-black font-bold text-xs uppercase"
+                >
                   Manage
                 </Button>
               </Link>
@@ -488,7 +641,14 @@ export default function UserDashboardPage() {
                   if (!lock || lock.id === undefined) return null;
                   try {
                     return (
-                      <div key={lock.id.toString()} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
+                      <div
+                        key={lock.id.toString()}
+                        className={
+                          index % 2 === 0
+                            ? "-rotate-[0.35deg]"
+                            : "rotate-[0.35deg]"
+                        }
+                      >
                         <LockPreviewCard lock={lock} />
                       </div>
                     );
@@ -498,16 +658,26 @@ export default function UserDashboardPage() {
                   }
                 })}
                 {activeLocks.length > 3 && (
-                  <Link to="/dashboard/tools/token-locker" className="block text-center">
-                    <Button variant="outline" size="sm" className="border-2 border-black font-bold text-xs uppercase">
-                      View All ({activeLocks.length}) <ArrowRight className="w-3 h-3 ml-1" />
+                  <Link
+                    to="/dashboard/tools/token-locker"
+                    className="block text-center"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-black font-bold text-xs uppercase"
+                    >
+                      View All ({activeLocks.length}){" "}
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   </Link>
                 )}
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No active locks</p>
+                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                  No active locks
+                </p>
                 <Link to="/dashboard/tools/token-locker">
                   <Button className="border-4 border-black bg-[#FFE38A] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
                     Create Lock

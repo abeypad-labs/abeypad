@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useAccount, useReadContract } from '@/lib/hooks';
-import { TokenLocker, CONTRACT_ADDRESSES } from '@/config';
-import { useBlockchainStore } from '@/lib/store/blockchain-store';
+import { useEffect } from "react";
+import { useAccount, useReadContract } from "@/lib/hooks";
+import { TokenLocker, CONTRACT_ADDRESSES } from "@/config";
+import { useBlockchainStore } from "@/lib/store/blockchain-store";
 
 const AUTO_REFRESH_INTERVAL = 10000;
 
@@ -9,19 +9,20 @@ export function useUserLocks(forceRefetch = false) {
   const { address } = useAccount();
   const { tokenLocker } = CONTRACT_ADDRESSES;
 
-  const {
-    getUserLocks,
-    setUserLocks,
-    setUserLocksLoading,
-  } = useBlockchainStore();
+  const { getUserLocks, setUserLocks, setUserLocksLoading } =
+    useBlockchainStore();
 
   const cachedLockIds = address ? getUserLocks(address) : null;
   const shouldFetch = Boolean(address);
 
-  const { data: lockIds, isLoading, refetch } = useReadContract({
+  const {
+    data: lockIds,
+    isLoading,
+    refetch,
+  } = useReadContract({
     abi: TokenLocker.abi,
     address: tokenLocker,
-    functionName: 'locksOfOwner',
+    functionName: "locksOfOwner",
     args: [address as `0x${string}`],
     query: {
       enabled: shouldFetch,

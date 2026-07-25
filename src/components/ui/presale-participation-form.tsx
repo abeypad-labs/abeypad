@@ -37,7 +37,7 @@ export function PresaleParticipationForm({
   const presaleData = updatedPresale || presale;
   const publicClient = usePublicClient();
   const [isWhitelisted, setIsWhitelisted] = useState(
-    !presaleData.requiresWhitelist
+    !presaleData.requiresWhitelist,
   );
   const [isCheckingWhitelist, setIsCheckingWhitelist] = useState(false);
   const [whitelistError, setWhitelistError] = useState<string | null>(null);
@@ -117,7 +117,7 @@ export function PresaleParticipationForm({
     if (!account || !publicClient) {
       setIsWhitelisted(false);
       setWhitelistError(
-        account ? null : "Connect your wallet to verify access."
+        account ? null : "Connect your wallet to verify access.",
       );
       return;
     }
@@ -253,7 +253,6 @@ export function PresaleParticipationForm({
     return () => clearInterval(id);
   }, [presaleData.endTime]);
 
-
   const canContribute =
     amountAsBigInt > 0 &&
     amountAsBigInt >= minContribution &&
@@ -309,14 +308,15 @@ export function PresaleParticipationForm({
       <div className="space-y-3 border-t-2 border-gray-300 pt-4 mt-4">
         {/* Status Banner */}
         <div
-          className={`p-3 text-center font-black uppercase tracking-wide text-sm ${isPresaleFinalized
-            ? "bg-[#C4F1BE] text-green-800"
-            : isPresaleCancelled
-              ? "bg-[#FFD1DC] text-red-800"
-              : presaleHasEnded
-                ? "bg-[#FFE38A] text-yellow-900"
-                : "bg-[#FFE38A] text-yellow-900"
-            }`}
+          className={`p-3 text-center font-black uppercase tracking-wide text-sm ${
+            isPresaleFinalized
+              ? "bg-[#C4F1BE] text-green-800"
+              : isPresaleCancelled
+                ? "bg-[#FFD1DC] text-red-800"
+                : presaleHasEnded
+                  ? "bg-[#FFE38A] text-yellow-900"
+                  : "bg-[#FFE38A] text-yellow-900"
+          }`}
         >
           {isPresaleFinalized
             ? "✓ Presale Finalized - Claim Your Tokens"
@@ -359,12 +359,13 @@ export function PresaleParticipationForm({
             isClaimTokensConfirming ||
             isPresaleCancelled
           }
-          className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${isPresaleCancelled
-            ? "hidden"
-            : canClaimTokens
-              ? "bg-[#42C9FF] text-black"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+          className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+            isPresaleCancelled
+              ? "hidden"
+              : canClaimTokens
+                ? "bg-[#42C9FF] text-black"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
           {isClaimTokensPending || isClaimTokensConfirming
             ? "Claiming..."
@@ -372,9 +373,9 @@ export function PresaleParticipationForm({
               ? "✓ Already Claimed"
               : canClaimTokens
                 ? `Claim ${formatUnits(
-                  currentPurchasedTokens,
-                  saleTokenDecimals
-                )} ${presaleData.saleTokenSymbol}`
+                    currentPurchasedTokens,
+                    saleTokenDecimals,
+                  )} ${presaleData.saleTokenSymbol}`
                 : presaleHasEnded
                   ? "Awaiting Finalization..."
                   : "Claim Tokens"}
@@ -387,18 +388,19 @@ export function PresaleParticipationForm({
             disabled={
               !canClaimRefund || isClaimRefundPending || isClaimRefundConfirming
             }
-            className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${canClaimRefund
-              ? "bg-[#FFD1DC] text-black"
-              : "bg-gray-300 text-gray-500"
-              }`}
+            className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              canClaimRefund
+                ? "bg-[#FFD1DC] text-black"
+                : "bg-gray-300 text-gray-500"
+            }`}
           >
             {isClaimRefundPending || isClaimRefundConfirming
               ? "Claiming refund..."
               : canClaimRefund
                 ? `Claim Refund: ${formatUnits(
-                  currentContribution,
-                  paymentTokenDecimals
-                )} ${presaleData.paymentTokenSymbol}`
+                    currentContribution,
+                    paymentTokenDecimals,
+                  )} ${presaleData.paymentTokenSymbol}`
                 : currentContribution === 0n
                   ? "No refund available"
                   : "✓ Already Refunded"}
@@ -508,10 +510,11 @@ export function PresaleParticipationForm({
               !whitelistGateOpen ||
               (needsApproval ? false : !canContribute)
             }
-            className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${isContributionDisabled
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-[#42C9FF] text-black"
-              }`}
+            className={`w-full border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              isContributionDisabled
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-[#42C9FF] text-black"
+            }`}
           >
             {getButtonText()}
           </Button>

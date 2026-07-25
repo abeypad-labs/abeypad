@@ -20,7 +20,8 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openConnectModal } = useConnectModal();
   const { address } = useAccount();
-  const { allPresales, isLoading: isLoadingPresales } = useLaunchpadPresales("all");
+  const { allPresales, isLoading: isLoadingPresales } =
+    useLaunchpadPresales("all");
 
   const navLinks = [
     { label: "Projects", href: "/projects" },
@@ -40,12 +41,18 @@ export default function Home() {
   }, [allPresales]);
 
   const livePresaleCount = useMemo(() => {
-    return allPresales.filter((p) => p.status === "live" || p.status === "upcoming").length;
+    return allPresales.filter(
+      (p) => p.status === "live" || p.status === "upcoming",
+    ).length;
   }, [allPresales]);
 
-  const { count: totalProjects, ref: totalProjectsRef } = useCountUp(allPresales.length);
-  const { count: totalRaised, ref: totalRaisedRef } = useCountUp(totalRaisedValue);
-  const { count: activePresales, ref: activePresalesRef } = useCountUp(livePresaleCount);
+  const { count: totalProjects, ref: totalProjectsRef } = useCountUp(
+    allPresales.length,
+  );
+  const { count: totalRaised, ref: totalRaisedRef } =
+    useCountUp(totalRaisedValue);
+  const { count: activePresales, ref: activePresalesRef } =
+    useCountUp(livePresaleCount);
   const qfPriceUsd = useReactPriceUsd();
 
   const totalRaisedUsd = useMemo(() => {
@@ -64,7 +71,9 @@ export default function Home() {
                 alt="AbeyPad logo"
                 className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
               />
-              <p className="text-xl font-black uppercase leading-none tracking-[0.18em]">AbeyPad</p>
+              <p className="text-xl font-black uppercase leading-none tracking-[0.18em]">
+                AbeyPad
+              </p>
             </Link>
 
             <nav className="hidden items-center gap-4 md:flex">
@@ -102,8 +111,11 @@ export default function Home() {
 
           <div
             id="mobile-nav-menu"
-            className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? "mt-4 max-h-80 border-t-[3px] border-black pt-4" : "max-h-0"
-              }`}
+            className={`overflow-hidden transition-all duration-200 md:hidden ${
+              isMobileMenuOpen
+                ? "mt-4 max-h-80 border-t-[3px] border-black pt-4"
+                : "max-h-0"
+            }`}
           >
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
@@ -140,7 +152,8 @@ export default function Home() {
               for Abey.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
-              Fundraise, create tokens & NFTs, secure liquidity, distribute airdrops — all from one platform.
+              Fundraise, create tokens & NFTs, secure liquidity, distribute
+              airdrops — all from one platform.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -161,7 +174,9 @@ export default function Home() {
           <div className="space-y-5">
             <div className="animate-fade-in-soft animation-delay-400">
               <div className="neo-frame rotate-[-1deg] bg-[#42C9FF] p-6">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">Total Projects</p>
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">
+                  Total Projects
+                </p>
                 <p ref={totalProjectsRef} className="text-5xl font-black">
                   {Math.floor(totalProjects).toLocaleString()}
                 </p>
@@ -169,14 +184,16 @@ export default function Home() {
             </div>
             <div className="animate-fade-in-soft animation-delay-600">
               <div className="neo-frame rotate-[1deg] bg-[#FF7F41] p-6">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">Total Raised</p>
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">
+                  Total Raised
+                </p>
                 <p ref={totalRaisedRef} className="text-4xl font-black">
                   {totalRaisedUsd === null
                     ? "..."
                     : `$${totalRaisedUsd.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`}
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`}
                 </p>
                 <p className="mt-2 text-sm font-black uppercase tracking-[0.14em]">
                   {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} ABEY
@@ -185,7 +202,9 @@ export default function Home() {
             </div>
             <div className="animate-fade-in-soft animation-delay-800">
               <div className="neo-frame rotate-[-1deg] bg-[#B8EF53] p-6">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">Active Presales</p>
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em]">
+                  Active Presales
+                </p>
                 <p ref={activePresalesRef} className="text-5xl font-black">
                   {Math.floor(activePresales).toLocaleString()}
                 </p>
@@ -218,7 +237,9 @@ export default function Home() {
         </section>
 
         <section className="mb-16 animate-fade-in-up">
-          <h2 className="mb-6 text-4xl font-black uppercase tracking-tight sm:text-5xl">Featured Launches</h2>
+          <h2 className="mb-6 text-4xl font-black uppercase tracking-tight sm:text-5xl">
+            Featured Launches
+          </h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {isLoadingPresales ? (
               <div className="neo-frame -rotate-[0.7deg] bg-white p-8 text-center font-black uppercase md:col-span-2 lg:col-span-3">
@@ -226,8 +247,12 @@ export default function Home() {
               </div>
             ) : featuredPresales.length === 0 ? (
               <div className="neo-frame rotate-[0.7deg] bg-white p-8 text-center md:col-span-2 lg:col-span-3">
-                <p className="text-2xl font-black uppercase">No projects to feature</p>
-                <p className="mt-2 font-bold text-black/70">Check back soon for new launches.</p>
+                <p className="text-2xl font-black uppercase">
+                  No projects to feature
+                </p>
+                <p className="mt-2 font-bold text-black/70">
+                  Check back soon for new launches.
+                </p>
               </div>
             ) : (
               featuredPresales.map((presale, index) => (
@@ -238,14 +263,19 @@ export default function Home() {
                   style={{ animationDelay: `${0.12 + index * 0.12}s` }}
                 >
                   <article
-                    className={`${cardStyles[index % cardStyles.length].bg} ${cardStyles[index % cardStyles.length].text
-                      } neo-frame ${index % 2 === 0 ? "rotate-[0.8deg]" : "-rotate-[0.8deg]"} h-full p-7 transition-all hover:-translate-x-1 hover:-translate-y-1`}
+                    className={`${cardStyles[index % cardStyles.length].bg} ${
+                      cardStyles[index % cardStyles.length].text
+                    } neo-frame ${index % 2 === 0 ? "rotate-[0.8deg]" : "-rotate-[0.8deg]"} h-full p-7 transition-all hover:-translate-x-1 hover:-translate-y-1`}
                   >
-                    <p className="mb-3 text-[11px] font-black uppercase tracking-[0.16em]">Featured</p>
+                    <p className="mb-3 text-[11px] font-black uppercase tracking-[0.16em]">
+                      Featured
+                    </p>
                     <h3 className="text-2xl font-black uppercase leading-tight">
                       {presale.saleTokenName || "Unnamed Project"}
                     </h3>
-                    <p className="mt-6 text-xs font-black uppercase tracking-[0.16em]">Learn More</p>
+                    <p className="mt-6 text-xs font-black uppercase tracking-[0.16em]">
+                      Learn More
+                    </p>
                   </article>
                 </Link>
               ))
@@ -260,7 +290,8 @@ export default function Home() {
             Fund Smarter
           </h2>
           <p className="mt-5 max-w-2xl text-lg font-bold">
-            Turn your concept into a live on-chain raise with built-in token and NFT tooling on Abey.
+            Turn your concept into a live on-chain raise with built-in token and
+            NFT tooling on Abey.
           </p>
           <Link
             to="/dashboard/create"

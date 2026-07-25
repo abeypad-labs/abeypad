@@ -7,8 +7,8 @@ export {
   useReadContracts,
   useSwitchChain,
   useWaitForTransactionReceipt,
-  useWriteContract
-} from 'wagmi';
+  useWriteContract,
+} from "wagmi";
 
-export { useConnectModal } from '@rainbow-me/rainbowkit';
-export { useBalance } from './useBalance';
+export { useConnectModal } from "@rainbow-me/rainbowkit";
+export { useBalance } from "./useBalance";

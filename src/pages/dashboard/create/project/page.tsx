@@ -6,7 +6,9 @@ export default function CreateProjectPage() {
       <div className="container mx-auto px-6 py-10 max-w-5xl">
         {/* Header */}
         <h1 className="text-6xl md:text-7xl font-black uppercase mb-6 tracking-tight">
-          CREATE<br />PROJECT
+          CREATE
+          <br />
+          PROJECT
         </h1>
 
         {/* Coming soon state */}
@@ -18,8 +20,9 @@ export default function CreateProjectPage() {
             Apply to Get Whitelisted
           </h2>
           <p className="mt-4 text-base sm:text-lg font-bold text-black/80">
-            The whitelist application form is being prepared. Soon you will be able to submit
-            your project details for review directly from this page.
+            The whitelist application form is being prepared. Soon you will be
+            able to submit your project details for review directly from this
+            page.
           </p>
           <div className="mt-6 rotate-[0.55deg] border-[3px] border-black bg-white px-5 py-4">
             <p className="text-xs sm:text-sm font-black uppercase tracking-[0.14em] text-black/70">

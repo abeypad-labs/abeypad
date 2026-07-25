@@ -9,10 +9,17 @@ import { formatUnits } from "viem";
 import { useAccount } from "@/lib/hooks";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: number }) {
-  const progress = presale.hardCap > 0n
-    ? Math.round(Number((presale.totalRaised * 100n) / presale.hardCap))
-    : 0;
+function PresaleRow({
+  presale,
+  index,
+}: {
+  presale: PresaleWithStatus;
+  index: number;
+}) {
+  const progress =
+    presale.hardCap > 0n
+      ? Math.round(Number((presale.totalRaised * 100n) / presale.hardCap))
+      : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,7 +38,9 @@ function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: num
 
   const rowTilt = index % 2 === 0 ? "rotate-[0.35deg]" : "-rotate-[0.35deg]";
   return (
-    <div className={`${rowTilt} border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]`}>
+    <div
+      className={`${rowTilt} border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]`}
+    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -40,7 +49,7 @@ function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: num
             </h3>
             <span
               className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${getStatusColor(
-                presale.status
+                presale.status,
               )}`}
             >
               {presale.status}
@@ -67,8 +76,14 @@ function PresaleRow({ presale, index }: { presale: PresaleWithStatus; index: num
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
             <span className="text-gray-500">
-              {Math.round(Number(formatUnits(presale.totalRaised, 18))).toLocaleString()} /{" "}
-              {Math.round(Number(formatUnits(presale.hardCap, 18))).toLocaleString()} ABEY
+              {Math.round(
+                Number(formatUnits(presale.totalRaised, 18)),
+              ).toLocaleString()}{" "}
+              /{" "}
+              {Math.round(
+                Number(formatUnits(presale.hardCap, 18)),
+              ).toLocaleString()}{" "}
+              ABEY
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />
@@ -82,9 +97,11 @@ export default function PresalesListPage() {
   const { address, isConnected } = useAccount();
   const { presales, isLoading } = useLaunchpadPresales("all", false);
 
-  const myPresales = presales?.filter(
-    (presale) => address && presale.owner?.toLowerCase() === address.toLowerCase()
-  ) || [];
+  const myPresales =
+    presales?.filter(
+      (presale) =>
+        address && presale.owner?.toLowerCase() === address.toLowerCase(),
+    ) || [];
 
   if (!isConnected) {
     return (
@@ -132,7 +149,11 @@ export default function PresalesListPage() {
           ) : myPresales.length > 0 ? (
             <>
               {myPresales.map((presale, index) => (
-                <PresaleRow key={presale.address} presale={presale} index={index} />
+                <PresaleRow
+                  key={presale.address}
+                  presale={presale}
+                  index={index}
+                />
               ))}
             </>
           ) : (
@@ -142,7 +163,8 @@ export default function PresalesListPage() {
               </p>
               <Link to="/dashboard/create/presale">
                 <Button className="border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
-                  Create Your First Presale <ArrowRight className="ml-2 h-4 w-4" />
+                  Create Your First Presale{" "}
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>

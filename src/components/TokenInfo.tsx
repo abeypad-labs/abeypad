@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
 import { ExternalLink, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -21,35 +21,40 @@ export function TokenInfo({ tokenAddress }: TokenInfoProps) {
   const { data: name, isLoading: isLoadingName } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
-    functionName: 'name',
+    functionName: "name",
   });
 
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
-    functionName: 'symbol',
+    functionName: "symbol",
   });
 
   const { data: decimals, isLoading: isLoadingDecimals } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
-    functionName: 'decimals',
+    functionName: "decimals",
   });
 
   const { data: totalSupply, isLoading: isLoadingSupply } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
-    functionName: 'totalSupply',
+    functionName: "totalSupply",
   });
 
   const { data: balance, isLoading: isLoadingBalance } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
-    functionName: 'balanceOf',
+    functionName: "balanceOf",
     args: address ? [address] : undefined,
   });
 
-  const isLoading = isLoadingName || isLoadingSymbol || isLoadingDecimals || isLoadingSupply || isLoadingBalance;
+  const isLoading =
+    isLoadingName ||
+    isLoadingSymbol ||
+    isLoadingDecimals ||
+    isLoadingSupply ||
+    isLoadingBalance;
 
   if (isLoading) {
     return (
@@ -63,13 +68,13 @@ export function TokenInfo({ tokenAddress }: TokenInfoProps) {
     );
   }
 
-  const formattedSupply = totalSupply && decimals !== undefined
-    ? formatUnits(totalSupply, decimals)
-    : '0';
+  const formattedSupply =
+    totalSupply && decimals !== undefined
+      ? formatUnits(totalSupply, decimals)
+      : "0";
 
-  const formattedBalance = balance && decimals !== undefined
-    ? formatUnits(balance, decimals)
-    : '0';
+  const formattedBalance =
+    balance && decimals !== undefined ? formatUnits(balance, decimals) : "0";
 
   return (
     <div className="border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] transition-shadow">
@@ -78,21 +83,29 @@ export function TokenInfo({ tokenAddress }: TokenInfoProps) {
           <div className="flex items-center gap-2 mb-1">
             <Coins className="w-4 h-4 text-gray-600" />
             <h3 className="font-black text-lg uppercase truncate">
-              {name || 'Unknown Token'}
+              {name || "Unknown Token"}
             </h3>
             <span className="px-2 py-0.5 text-xs font-bold uppercase bg-gray-200 text-gray-700">
-              {symbol || 'N/A'}
+              {symbol || "N/A"}
             </span>
           </div>
-          
+
           <div className="space-y-1 text-sm">
-            <p className="text-xs text-gray-500 break-all font-mono">{tokenAddress}</p>
+            <p className="text-xs text-gray-500 break-all font-mono">
+              {tokenAddress}
+            </p>
             <div className="flex flex-wrap gap-4 text-xs">
               <span className="font-bold">
-                Supply: <span className="text-gray-600">{parseFloat(formattedSupply).toLocaleString()}</span>
+                Supply:{" "}
+                <span className="text-gray-600">
+                  {parseFloat(formattedSupply).toLocaleString()}
+                </span>
               </span>
               <span className="font-bold">
-                Your Balance: <span className="text-gray-600">{parseFloat(formattedBalance).toLocaleString()}</span>
+                Your Balance:{" "}
+                <span className="text-gray-600">
+                  {parseFloat(formattedBalance).toLocaleString()}
+                </span>
               </span>
             </div>
           </div>
@@ -111,7 +124,7 @@ export function TokenInfo({ tokenAddress }: TokenInfoProps) {
               </button>
             </a>
           )}
-          
+
           <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
             <button className="border-2 border-black bg-[#FFE38A] px-3 py-1.5 text-xs font-bold uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] transition-shadow">
               Lock Tokens

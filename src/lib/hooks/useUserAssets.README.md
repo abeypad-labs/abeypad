@@ -5,6 +5,7 @@ This module provides comprehensive hooks for tracking and managing user-created 
 ## Available Hooks
 
 ### 1. `useUserTokens()`
+
 Track all ERC20 tokens created by a user.
 
 ```typescript
@@ -12,9 +13,9 @@ import { useUserTokens } from '@/lib/hooks/useUserAssets';
 
 function TokenDashboard() {
   const { tokens, isLoading, refetch } = useUserTokens();
-  
+
   if (isLoading) return <div>Loading tokens...</div>;
-  
+
   return (
     <div>
       <h2>Your Tokens</h2>
@@ -31,6 +32,7 @@ function TokenDashboard() {
 ```
 
 ### 2. `useUserNFTCollections()`
+
 Track all NFT collections created by a user.
 
 ```typescript
@@ -38,9 +40,9 @@ import { useUserNFTCollections } from '@/lib/hooks/useUserAssets';
 
 function NFTDashboard() {
   const { collections, isLoading } = useUserNFTCollections();
-  
+
   if (isLoading) return <div>Loading NFT collections...</div>;
-  
+
   return (
     <div>
       <h2>Your NFT Collections</h2>
@@ -56,6 +58,7 @@ function NFTDashboard() {
 ```
 
 ### 3. `useUserTokenBalances()`
+
 Track balances of user-created tokens in the user's wallet.
 
 ```typescript
@@ -63,9 +66,9 @@ import { useUserTokenBalances } from '@/lib/hooks/useUserAssets';
 
 function BalanceDashboard() {
   const { balances, isLoading } = useUserTokenBalances();
-  
+
   if (isLoading) return <div>Loading balances...</div>;
-  
+
   return (
     <div>
       <h2>Your Token Balances</h2>
@@ -80,6 +83,7 @@ function BalanceDashboard() {
 ```
 
 ### 4. `useUserAssets()`
+
 Combined hook that provides all user asset data.
 
 ```typescript
@@ -87,19 +91,19 @@ import { useUserAssets } from '@/lib/hooks/useUserAssets';
 
 function UserAssetsDashboard() {
   const { tokens, collections, balances, isLoading } = useUserAssets();
-  
+
   if (isLoading) return <div>Loading assets...</div>;
-  
+
   return (
     <div>
       <h2>Your Blockchain Assets</h2>
-      
+
       <h3>Tokens</h3>
       {/* Token list */}
-      
+
       <h3>NFT Collections</h3>
       {/* Collection list */}
-      
+
       <h3>Token Balances</h3>
       {/* Balance list */}
     </div>
@@ -119,16 +123,19 @@ The hooks use a persistent local store (`useUserAssetsStore`) that:
 ## Features
 
 ### Automatic Refresh
+
 - Data refreshes automatically every 30 seconds
 - Manual refresh available via `refetch()` function
 - Smart caching prevents unnecessary network requests
 
 ### Type Safety
+
 - Full TypeScript support with proper typing
 - Strict null checking and error handling
 - Automatic type inference for contract data
 
 ### Performance Optimizations
+
 - Memoized computations to prevent unnecessary re-renders
 - Batched contract calls using `useReadContracts`
 - Efficient cache invalidation strategies
@@ -136,6 +143,7 @@ The hooks use a persistent local store (`useUserAssetsStore`) that:
 ## Integration with Existing Stores
 
 This module works alongside existing stores:
+
 - `useBlockchainStore` - For backward compatibility
 - `useLaunchpadPresaleStore` - For presale tracking
 - Existing token and NFT hooks - For simple address lists
@@ -143,37 +151,38 @@ This module works alongside existing stores:
 ## Usage Examples
 
 ### Dashboard Component
+
 ```typescript
 import { useUserAssets } from '@/lib/hooks/useUserAssets';
 
 export function UserDashboard() {
   const { tokens, collections, balances, isLoading, refetch } = useUserAssets();
-  
+
   if (isLoading) {
     return <div className="loading">Loading your assets...</div>;
   }
-  
+
   return (
     <div className="dashboard">
       <div className="header">
         <h1>Your Assets</h1>
         <button onClick={refetch}>Refresh</button>
       </div>
-      
+
       <section>
         <h2>Tokens ({tokens.length})</h2>
         {tokens.map(token => (
           <TokenCard key={token.address} token={token} />
         ))}
       </section>
-      
+
       <section>
         <h2>NFT Collections ({collections.length})</h2>
         {collections.map(collection => (
           <NFTCard key={collection.address} collection={collection} />
         ))}
       </section>
-      
+
       <section>
         <h2>Your Balances</h2>
         <BalanceList balances={balances} />
@@ -184,47 +193,48 @@ export function UserDashboard() {
 ```
 
 ### Asset Management Component
+
 ```typescript
 import { useUserTokens, useUserNFTCollections } from '@/lib/hooks/useUserAssets';
 
 export function AssetManager() {
-  const { 
-    tokens, 
-    collections, 
+  const {
+    tokens,
+    collections,
     isLoading: assetsLoading,
-    refetch 
+    refetch
   } = useUserAssets();
-  
+
   const handleCreateToken = async () => {
     // Implement token creation logic
     // Then refresh the asset list
     await refetch();
   };
-  
+
   if (assetsLoading) {
     return <Spinner />;
   }
-  
+
   return (
     <div>
       <button onClick={handleCreateToken}>
         Create New Token
       </button>
-      
+
       <div className="assets-grid">
         {tokens.map(token => (
-          <AssetItem 
-            key={token.address} 
-            type="token" 
-            data={token} 
+          <AssetItem
+            key={token.address}
+            type="token"
+            data={token}
           />
         ))}
-        
+
         {collections.map(collection => (
-          <AssetItem 
-            key={collection.address} 
-            type="nft" 
-            data={collection} 
+          <AssetItem
+            key={collection.address}
+            type="nft"
+            data={collection}
           />
         ))}
       </div>

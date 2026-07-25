@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 import { megaethTestnet } from "viem/chains";
+// import { defineChain } from "viem/utils";
 import { WagmiProvider, http } from "wagmi";
 
 // const abeychainDevnet = defineChain({
@@ -25,8 +26,8 @@ import { WagmiProvider, http } from "wagmi";
 // });
 
 const config = getDefaultConfig({
-  appName: 'AbeyPad',
-  projectId: '9ef8a1835f8d9515949514f77259f972',
+  appName: "AbeyPad",
+  projectId: "9ef8a1835f8d9515949514f77259f972",
   chains: [megaethTestnet],
   transports: {
     [megaethTestnet.id]: http(),
@@ -40,9 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider>
-            {children}
-          </RainbowKitProvider>
+          <RainbowKitProvider>{children}</RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </ThemeProvider>
