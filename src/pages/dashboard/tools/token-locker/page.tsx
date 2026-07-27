@@ -373,7 +373,7 @@ function CreateLockModal({
       address: normalizedTokenAddress,
       abi: erc20Abi,
       functionName: "approve",
-      args: [tokenLocker, maxUint256],
+      args: [tokenLocker, parsedAmount],
     });
   };
 

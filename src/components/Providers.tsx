@@ -3,9 +3,9 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
-import { megaethTestnet } from "viem/chains";
 // import { defineChain } from "viem/utils";
 import { WagmiProvider, http } from "wagmi";
+ import { megaethTestnet } from "viem/chains";
 
 // const abeychainDevnet = defineChain({
 //   id: 178,
