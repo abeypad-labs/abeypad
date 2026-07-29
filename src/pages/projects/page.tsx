@@ -7,7 +7,11 @@ import { PresaleCard } from "@/components/ui/presale-card";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import type { LaunchpadPresaleFilter } from "@/lib/hooks/useLaunchpadPresales";
 
-const filterOptions: Array<{ label: string; value: LaunchpadPresaleFilter; color: string }> = [
+const filterOptions: Array<{
+  label: string;
+  value: LaunchpadPresaleFilter;
+  color: string;
+}> = [
   { label: "All", value: "all", color: "bg-[#42C9FF]" },
   { label: "Live", value: "live", color: "bg-[#B8EF53]" },
   { label: "Upcoming", value: "upcoming", color: "bg-[#FF7F41]" },
@@ -15,15 +19,20 @@ const filterOptions: Array<{ label: string; value: LaunchpadPresaleFilter; color
 ];
 
 export default function ProjectsPage() {
-  const [activeFilter, setActiveFilter] = useState<LaunchpadPresaleFilter>("all");
+  const [activeFilter, setActiveFilter] =
+    useState<LaunchpadPresaleFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { presales, isLoading } = useLaunchpadPresales(activeFilter);
 
   const filteredPresales = presales.filter((presale) => {
     if (!presale) return false;
     const matchesSearch =
-      presale.saleTokenName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      presale.saleTokenSymbol?.toLowerCase().includes(searchQuery.toLowerCase());
+      presale.saleTokenName
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      presale.saleTokenSymbol
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
@@ -34,9 +43,12 @@ export default function ProjectsPage() {
           <p className="mb-4 inline-block border-[3px] border-black bg-[#42C9FF] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em]">
             Marketplace
           </p>
-          <h1 className="text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl">Launchpad Projects</h1>
+          <h1 className="text-5xl font-black uppercase leading-[0.9] tracking-tight sm:text-7xl">
+            Launchpad Projects
+          </h1>
           <p className="mt-4 max-w-2xl text-lg font-bold">
-            Scout live and upcoming token sales in a high-contrast project board.
+            Scout live and upcoming token sales in a high-contrast project
+            board.
           </p>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_auto]">

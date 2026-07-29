@@ -5,11 +5,20 @@ import { useMemo } from "react";
 export function useBalance({
   address,
   token,
-}: { address?: Address; token?: Address; query?: Record<string, unknown> } = {}) {
+}: {
+  address?: Address;
+  token?: Address;
+  query?: Record<string, unknown>;
+} = {}) {
   const isErc20 = !!token;
 
   // Query native balance
-  const { data: nativeData, isLoading: isNativeLoading, error: nativeError, refetch: refetchNative } = useWagmiBalance({
+  const {
+    data: nativeData,
+    isLoading: isNativeLoading,
+    error: nativeError,
+    refetch: refetchNative,
+  } = useWagmiBalance({
     address,
     query: {
       enabled: !isErc20 && !!address,
@@ -17,25 +26,33 @@ export function useBalance({
   });
 
   // Query ERC20 balance
-  const { data: erc20Data, isLoading: isErc20Loading, error: erc20Error, refetch: refetchErc20 } = useReadContracts({
-    contracts: isErc20 && address ? [
-      {
-        address: token,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [address],
-      },
-      {
-        address: token,
-        abi: erc20Abi,
-        functionName: "decimals",
-      },
-      {
-        address: token,
-        abi: erc20Abi,
-        functionName: "symbol",
-      },
-    ] as const : [],
+  const {
+    data: erc20Data,
+    isLoading: isErc20Loading,
+    error: erc20Error,
+    refetch: refetchErc20,
+  } = useReadContracts({
+    contracts:
+      isErc20 && address
+        ? ([
+            {
+              address: token,
+              abi: erc20Abi,
+              functionName: "balanceOf",
+              args: [address],
+            },
+            {
+              address: token,
+              abi: erc20Abi,
+              functionName: "decimals",
+            },
+            {
+              address: token,
+              abi: erc20Abi,
+              functionName: "symbol",
+            },
+          ] as const)
+        : [],
     query: {
       enabled: isErc20 && !!address,
     },
@@ -48,11 +65,21 @@ export function useBalance({
       const r1 = erc20Data[1] as any;
       const r2 = erc20Data[2] as any;
       if (!r0 || !r1 || !r2) return undefined;
-      if (r0.status === "failure" || r1.status === "failure" || r2.status === "failure") return undefined;
+      if (
+        r0.status === "failure" ||
+        r1.status === "failure" ||
+        r2.status === "failure"
+      )
+        return undefined;
       const balance = r0.result as bigint;
       const decimals = r1.result as number;
       const symbol = r2.result as string;
-      if (balance === undefined || decimals === undefined || symbol === undefined) return undefined;
+      if (
+        balance === undefined ||
+        decimals === undefined ||
+        symbol === undefined
+      )
+        return undefined;
       return {
         value: balance,
         decimals,

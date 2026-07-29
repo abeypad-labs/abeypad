@@ -1,7 +1,11 @@
-import { PresaleFactory, LaunchpadPresaleContract, CONTRACT_ADDRESSES } from '@/config';
-import { useWriteContract, useWaitForTransactionReceipt } from '@/lib/hooks';
-import { useEffect } from 'react';
-import type { Address } from 'viem';
+import {
+  CONTRACT_ADDRESSES,
+  LaunchpadPresaleContract,
+  PresaleFactory,
+} from "@/config";
+import { useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
+import { useEffect } from "react";
+import type { Address } from "viem";
 
 /**
  * Hook for factory owner to manage whitelisted creators
@@ -21,11 +25,14 @@ export function useSetWhitelistedCreator() {
     hash,
   });
 
-  const setWhitelistedCreator = (creatorAddress: Address, whitelisted: boolean) => {
+  const setWhitelistedCreator = (
+    creatorAddress: Address,
+    whitelisted: boolean,
+  ) => {
     writeContract({
       address: presaleFactory,
       abi: PresaleFactory.abi,
-      functionName: 'setWhitelistedCreators',
+      functionName: "setWhitelistedCreators",
       args: [[creatorAddress], whitelisted],
     });
   };
@@ -77,7 +84,7 @@ export function useSetFeeRecipient(options?: SetFeeRecipientOptions) {
     writeContract({
       address: presaleFactory,
       abi: PresaleFactory.abi,
-      functionName: 'transferOwnership',
+      functionName: "transferOwnership",
       args: [newRecipient],
     });
   };
@@ -115,12 +122,12 @@ export function useUpdatePresaleFees() {
   const updateFees = (
     presaleAddress: Address,
     newTokenFeeBps: number,
-    newProceedsFeeBps: number
+    newProceedsFeeBps: number,
   ) => {
     writeContract({
       address: presaleAddress,
       abi: LaunchpadPresaleContract.abi,
-      functionName: 'updateFees',
+      functionName: "updateFees",
       args: [BigInt(newTokenFeeBps), BigInt(newProceedsFeeBps)],
     });
   };

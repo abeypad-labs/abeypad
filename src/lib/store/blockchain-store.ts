@@ -1,6 +1,6 @@
-import { type Address } from 'viem';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { type Address } from "viem";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface TokenLock {
   id: bigint;
@@ -14,6 +14,9 @@ export interface TokenLock {
   description: string;
 }
 
+// Enhanced user assets tracking is now handled by useUserAssetsStore
+// This store maintains backward compatibility for existing functionality
+
 interface CacheMetadata {
   timestamp: number;
   isLoading: boolean;
@@ -21,23 +24,32 @@ interface CacheMetadata {
 
 interface BlockchainStore {
   // User Tokens Cache
-  userTokens: Record<string, {
-    tokens: Address[];
-    metadata: CacheMetadata;
-  }>;
+  userTokens: Record<
+    string,
+    {
+      tokens: Address[];
+      metadata: CacheMetadata;
+    }
+  >;
 
   // User NFTs Cache
-  userNFTs: Record<string, {
-    tokens: Address[];
-    metadata: CacheMetadata;
-  }>;
+  userNFTs: Record<
+    string,
+    {
+      tokens: Address[];
+      metadata: CacheMetadata;
+    }
+  >;
 
   // User Locks Cache
-  userLocks: Record<string, {
-    lockIds: bigint[];
-    locks: Record<string, TokenLock>;
-    metadata: CacheMetadata;
-  }>;
+  userLocks: Record<
+    string,
+    {
+      lockIds: bigint[];
+      locks: Record<string, TokenLock>;
+      metadata: CacheMetadata;
+    }
+  >;
 
   // Presales Cache
   presales: {
@@ -109,7 +121,9 @@ export const useBlockchainStore = create<BlockchainStore>()(
             [address.toLowerCase()]: {
               tokens: state.userTokens[address.toLowerCase()]?.tokens || [],
               metadata: {
-                timestamp: state.userTokens[address.toLowerCase()]?.metadata.timestamp || 0,
+                timestamp:
+                  state.userTokens[address.toLowerCase()]?.metadata.timestamp ||
+                  0,
                 isLoading,
               },
             },
@@ -146,7 +160,9 @@ export const useBlockchainStore = create<BlockchainStore>()(
             [address.toLowerCase()]: {
               tokens: state.userNFTs[address.toLowerCase()]?.tokens || [],
               metadata: {
-                timestamp: state.userNFTs[address.toLowerCase()]?.metadata.timestamp || 0,
+                timestamp:
+                  state.userNFTs[address.toLowerCase()]?.metadata.timestamp ||
+                  0,
                 isLoading,
               },
             },
@@ -197,7 +213,9 @@ export const useBlockchainStore = create<BlockchainStore>()(
               lockIds: state.userLocks[address.toLowerCase()]?.lockIds || [],
               locks: state.userLocks[address.toLowerCase()]?.locks || {},
               metadata: {
-                timestamp: state.userLocks[address.toLowerCase()]?.metadata.timestamp || 0,
+                timestamp:
+                  state.userLocks[address.toLowerCase()]?.metadata.timestamp ||
+                  0,
                 isLoading,
               },
             },
@@ -280,7 +298,8 @@ export const useBlockchainStore = create<BlockchainStore>()(
 
       clearUserCache: (address) =>
         set((state) => {
-          const { [address.toLowerCase()]: _, ...restTokens } = state.userTokens;
+          const { [address.toLowerCase()]: _, ...restTokens } =
+            state.userTokens;
           const { [address.toLowerCase()]: _nft, ...restNFTs } = state.userNFTs;
           const { [address.toLowerCase()]: __, ...restLocks } = state.userLocks;
           return {
@@ -291,14 +310,14 @@ export const useBlockchainStore = create<BlockchainStore>()(
         }),
     }),
     {
-      name: 'blockchain-storage',
+      name: "blockchain-storage",
       // Custom storage to handle BigInt serialization
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name);
           if (!str) return null;
           return JSON.parse(str, (_, value) => {
-            if (typeof value === 'string' && value.startsWith('__bigint__:')) {
+            if (typeof value === "string" && value.startsWith("__bigint__:")) {
               return BigInt(value.slice(11));
             }
             return value;
@@ -308,40 +327,41 @@ export const useBlockchainStore = create<BlockchainStore>()(
           localStorage.setItem(
             name,
             JSON.stringify(value, (_, val) => {
-              if (typeof val === 'bigint') {
+              if (typeof val === "bigint") {
                 return `__bigint__:${val.toString()}`;
               }
               return val;
-            })
+            }),
           );
         },
         removeItem: (name) => localStorage.removeItem(name),
       },
       // Only persist the data, not loading states
-      partialize: (state) => ({
-        userTokens: Object.fromEntries(
-          Object.entries(state.userTokens).map(([key, value]) => [
-            key,
-            { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
-        ),
-        userNFTs: Object.fromEntries(
-          Object.entries(state.userNFTs).map(([key, value]) => [
-            key,
-            { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
-        ),
-        userLocks: Object.fromEntries(
-          Object.entries(state.userLocks).map(([key, value]) => [
-            key,
-            { ...value, metadata: { ...value.metadata, isLoading: false } },
-          ])
-        ),
-        presales: {
-          ...state.presales,
-          metadata: { ...state.presales.metadata, isLoading: false },
-        },
-      }) as BlockchainStore,
-    }
-  )
+      partialize: (state) =>
+        ({
+          userTokens: Object.fromEntries(
+            Object.entries(state.userTokens).map(([key, value]) => [
+              key,
+              { ...value, metadata: { ...value.metadata, isLoading: false } },
+            ]),
+          ),
+          userNFTs: Object.fromEntries(
+            Object.entries(state.userNFTs).map(([key, value]) => [
+              key,
+              { ...value, metadata: { ...value.metadata, isLoading: false } },
+            ]),
+          ),
+          userLocks: Object.fromEntries(
+            Object.entries(state.userLocks).map(([key, value]) => [
+              key,
+              { ...value, metadata: { ...value.metadata, isLoading: false } },
+            ]),
+          ),
+          presales: {
+            ...state.presales,
+            metadata: { ...state.presales.metadata, isLoading: false },
+          },
+        }) as BlockchainStore,
+    },
+  ),
 );

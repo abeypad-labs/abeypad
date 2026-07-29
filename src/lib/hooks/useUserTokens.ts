@@ -1,28 +1,20 @@
-import { useAccount, useReadContract } from '@/lib/hooks';
-import { TokenFactory, CONTRACT_ADDRESSES } from '../../config';
+import { useAccount } from "@/lib/hooks";
+import { useUserAssetsStore } from "../store/user-assets-store";
 
 export function useUserTokens() {
   const { address } = useAccount();
-  const { tokenFactory } = CONTRACT_ADDRESSES;
+  const { getUserTokens } = useUserAssetsStore();
 
-  const { data, isLoading, isError, refetch } = useReadContract({
-    abi: TokenFactory.abi,
-    address: tokenFactory,
-    functionName: 'tokensCreatedBy',
-    args: [address as `0x${string}`],
-    query: {
-      enabled: !!address,
-      staleTime: 0,
-      refetchInterval: 10_000,
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-    },
-  });
+  // Get tokens from local store first
+  const localTokens = address ? getUserTokens(address as `0x${string}`) : null;
+
+  // Convert to array of addresses
+  const tokenAddresses = localTokens ? localTokens.map((t) => t.address) : [];
 
   return {
-    tokens: (data as `0x${string}`[] | undefined) ?? [],
-    isLoading: !!address && isLoading,
-    isError,
-    refetch,
+    tokens: tokenAddresses,
+    isLoading: false, // Local store is instant
+    isError: false,
+    refetch: () => {}, // No refetch needed for local store
   };
 }

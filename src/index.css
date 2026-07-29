@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Albert Sans', sans-serif;
+  font-family: "Albert Sans", sans-serif;
 }
 
 @layer base {
@@ -81,19 +81,32 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.15) 1px, transparent 0),
-      linear-gradient(130deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 55%);
-    background-size: 18px 18px, 100% 100%;
+      radial-gradient(
+        circle at 1px 1px,
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 0
+      ),
+      linear-gradient(
+        130deg,
+        rgba(255, 255, 255, 0.45),
+        rgba(255, 255, 255, 0) 55%
+      );
+    background-size:
+      18px 18px,
+      100% 100%;
   }
 }
 
 @layer utilities {
   .neo-frame {
     border: 3px solid #000;
-    box-shadow: 0 0 0 1px #000, 10px 10px 0 0 #000;
+    box-shadow:
+      0 0 0 1px #000,
+      10px 10px 0 0 #000;
   }
 
   .neo-zigzag {
@@ -134,7 +147,6 @@ body {
     animation: launchBarSlide 28s linear infinite;
     will-change: transform;
   }
-
 }
 
 @keyframes fadeInUp {
@@ -142,6 +154,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -152,6 +165,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -161,6 +175,7 @@ body {
   from {
     transform: translate3d(0, 0, 0);
   }
+
   to {
     transform: translate3d(-50%, 0, 0);
   }

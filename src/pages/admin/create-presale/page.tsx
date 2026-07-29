@@ -1,23 +1,25 @@
+"use client";
+
 import { AdminRoute } from "@/components/admin/AdminRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONTRACT_ADDRESSES, PresaleFactory, erc20Abi } from "@/config";
+import { CONTRACT_ADDRESSES, PresaleFactory } from "@/config";
 import {
   useAccount,
   useReadContract,
-  useSimulatedWrite,
   useWaitForTransactionReceipt,
+  useWriteContract,
 } from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   decodeEventLog,
+  erc20Abi,
   isAddress,
   parseEther,
   parseUnits,
@@ -48,6 +50,7 @@ function AdminCreatePresaleForm({
 }) {
   const { address } = useAccount();
   const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { writeContractAsync } = useWriteContract();
 
   const {
     saleToken,
@@ -67,7 +70,9 @@ function AdminCreatePresaleForm({
     abi: erc20Abi,
     functionName: "decimals",
     query: {
-      enabled: Boolean(saleToken && saleToken.startsWith("0x") && isAddress(saleToken)),
+      enabled: Boolean(
+        saleToken && saleToken.startsWith("0x") && isAddress(saleToken),
+      ),
     },
   });
 
@@ -86,7 +91,8 @@ function AdminCreatePresaleForm({
   const validationError = useMemo(() => {
     if (!saleToken) return "Sale Token Address is required.";
     if (!isAddress(saleToken)) return "Invalid Sale Token Address format.";
-    if (paymentToken && !isAddress(paymentToken)) return "Invalid Payment Token Address format.";
+    if (paymentToken && !isAddress(paymentToken))
+      return "Invalid Payment Token Address format.";
     if (!owner) return "Presale Owner address is required.";
     if (!isAddress(owner)) return "Invalid Presale Owner address format.";
     if (!startTime || !endTime) return "Start and End times are required.";
@@ -95,13 +101,20 @@ function AdminCreatePresaleForm({
     const end = new Date(endTime).getTime();
     if (start >= end) return "End time must be after the start time.";
 
-    if (!saleAmount || Number(saleAmount) <= 0) return "Sale Amount must be greater than 0.";
-    if (!hardCap || Number(hardCap) <= 0) return "Hard Cap must be greater than 0.";
-    if (!softCap || Number(softCap) <= 0) return "Soft Cap must be greater than 0.";
-    if (Number(softCap) > Number(hardCap)) return "Soft Cap cannot exceed the Hard Cap.";
-    if (!minContribution || Number(minContribution) <= 0) return "Min contribution must be greater than 0.";
-    if (!maxContribution || Number(maxContribution) <= 0) return "Max contribution must be greater than 0.";
-    if (Number(minContribution) > Number(maxContribution)) return "Min contribution cannot exceed the Max contribution.";
+    if (!saleAmount || Number(saleAmount) <= 0)
+      return "Sale Amount must be greater than 0.";
+    if (!hardCap || Number(hardCap) <= 0)
+      return "Hard Cap must be greater than 0.";
+    if (!softCap || Number(softCap) <= 0)
+      return "Soft Cap must be greater than 0.";
+    if (Number(softCap) > Number(hardCap))
+      return "Soft Cap cannot exceed the Hard Cap.";
+    if (!minContribution || Number(minContribution) <= 0)
+      return "Min contribution must be greater than 0.";
+    if (!maxContribution || Number(maxContribution) <= 0)
+      return "Max contribution must be greater than 0.";
+    if (Number(minContribution) > Number(maxContribution))
+      return "Min contribution cannot exceed the Max contribution.";
 
     return null;
   }, [
@@ -129,7 +142,8 @@ function AdminCreatePresaleForm({
 
       return {
         saleToken: saleToken as `0x${string}`,
-        paymentToken: (paymentToken || "0x0000000000000000000000000000000000000000") as `0x${string}`,
+        paymentToken: (paymentToken ||
+          "0x0000000000000000000000000000000000000000") as `0x${string}`,
         config: {
           startTime: BigInt(Math.floor(new Date(startTime).getTime() / 1000)),
           endTime: BigInt(Math.floor(new Date(endTime).getTime() / 1000)),
@@ -159,34 +173,34 @@ function AdminCreatePresaleForm({
     decimals,
   ]);
 
-  const {
-    write,
-    isSimulating,
-    isWritePending,
-    combinedError,
-  } = useSimulatedWrite({
-    address: presaleFactory,
-    abi: PresaleFactory.abi,
-    functionName: "createPresale",
-    args: params ? [params] : undefined,
-    enabled: Boolean(params),
-    onSuccess: onPresaleCreated,
-  });
+  const [isPending, setIsPending] = useState(false);
 
-  const displayError = useMemo(() => {
-    if (validationError) return validationError;
-    if (combinedError) {
-      return getFriendlyTxErrorMessage(combinedError, "Presale simulation");
-    }
-    return null;
-  }, [validationError, combinedError]);
-
-  const handleCreatePresale = () => {
-    if (displayError) {
-      toast.error(displayError);
+  const handleCreatePresale = async () => {
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
-    write();
+
+    if (!params) {
+      toast.error("Invalid presale parameters");
+      return;
+    }
+
+    try {
+      setIsPending(true);
+      const hash = await writeContractAsync({
+        address: presaleFactory,
+        abi: PresaleFactory.abi as Abi,
+        functionName: "createPresale",
+        args: [params],
+      });
+      onPresaleCreated(hash);
+      toast.info("Creating presale...");
+    } catch (error: any) {
+      toast.error(error.shortMessage || "Failed to create presale");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -245,36 +259,65 @@ function AdminCreatePresaleForm({
           value={saleAmount}
           onChange={handleChange}
         />
-        {saleAmount && hardCap && Number(saleAmount) > 0 && Number(hardCap) > 0 && (
-          <div className="rounded border border-black/20 bg-gray-50 p-3 text-xs">
-            <p className="font-semibold uppercase tracking-wide text-gray-700">Calculated Rate</p>
-            <p>
-              {(Number(saleAmount) / Number(hardCap)).toFixed(2)} tokens per{" "}
-              {paymentToken ? "payment token" : "ABEY"}
-            </p>
-          </div>
-        )}
+        {saleAmount &&
+          hardCap &&
+          Number(saleAmount) > 0 &&
+          Number(hardCap) > 0 && (
+            <div className="rounded border border-black/20 bg-gray-50 p-3 text-xs">
+              <p className="font-semibold uppercase tracking-wide text-gray-700">
+                Calculated Rate
+              </p>
+              <p>
+                {(Number(saleAmount) / Number(hardCap)).toFixed(2)} tokens per{" "}
+                {paymentToken ? "payment token" : "ABEY"}
+              </p>
+            </div>
+          )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="softCap">Soft Cap</Label>
-          <Input id="softCap" type="number" placeholder="10" value={softCap} onChange={handleChange} />
+          <Input
+            id="softCap"
+            type="number"
+            placeholder="10"
+            value={softCap}
+            onChange={handleChange}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="hardCap">Hard Cap</Label>
-          <Input id="hardCap" type="number" placeholder="100" value={hardCap} onChange={handleChange} />
+          <Input
+            id="hardCap"
+            type="number"
+            placeholder="100"
+            value={hardCap}
+            onChange={handleChange}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="minContribution">Min Contribution</Label>
-          <Input id="minContribution" type="number" placeholder="0.1" value={minContribution} onChange={handleChange} />
+          <Input
+            id="minContribution"
+            type="number"
+            placeholder="0.1"
+            value={minContribution}
+            onChange={handleChange}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="maxContribution">Max Contribution</Label>
-          <Input id="maxContribution" type="number" placeholder="10" value={maxContribution} onChange={handleChange} />
+          <Input
+            id="maxContribution"
+            type="number"
+            placeholder="10"
+            value={maxContribution}
+            onChange={handleChange}
+          />
         </div>
       </div>
 
@@ -290,10 +333,10 @@ function AdminCreatePresaleForm({
 
       <Button
         onClick={handleCreatePresale}
-        disabled={isSimulating || isWritePending}
+        disabled={isPending}
         className="w-full py-6 text-base font-black uppercase tracking-wider border-4 border-black bg-[#FF7F41] text-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#1E5BFF] hover:text-white"
       >
-        {isSimulating ? "Simulating..." : isWritePending ? "Creating Presale..." : "Create Presale (Admin)"}
+        {isPending ? "Creating Presale..." : "Create Presale (Admin)"}
       </Button>
     </>
   );
@@ -304,7 +347,9 @@ function AdminCreatePresaleContent() {
   const { address } = useAccount();
   const { setPresales } = useBlockchainStore();
 
-  const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(undefined);
+  const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(
+    undefined,
+  );
   const [formData, setFormData] = useState<PresaleFormData>({
     saleToken: "",
     paymentToken: "",
@@ -335,7 +380,11 @@ function AdminCreatePresaleContent() {
           data: log.data,
           topics: log.topics,
         });
-        if (event.eventName === "PresaleCreated" && event.args && "presale" in event.args) {
+        if (
+          event.eventName === "PresaleCreated" &&
+          event.args &&
+          "presale" in event.args
+        ) {
           return event.args.presale as `0x${string}`;
         }
       } catch {
@@ -361,27 +410,44 @@ function AdminCreatePresaleContent() {
     (presaleAddress: `0x${string}`, txHash: string) => {
       console.log("Presale created at:", presaleAddress, "tx:", txHash);
     },
-    []
+    [],
   );
 
   useEffect(() => {
-    if (isConfirmed && newPresaleAddress && creationHash && !hasProcessedRef.current) {
+    if (
+      isConfirmed &&
+      newPresaleAddress &&
+      creationHash &&
+      !hasProcessedRef.current
+    ) {
       hasProcessedRef.current = true;
       toast.success(
-        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`
+        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`,
       );
       setPresales([]);
       handlePresaleCreated(newPresaleAddress, creationHash);
       navigate(`/dashboard/presales/manage/${newPresaleAddress}`);
     }
-  }, [isConfirmed, newPresaleAddress, creationHash, setPresales, handlePresaleCreated, navigate]);
+  }, [
+    isConfirmed,
+    newPresaleAddress,
+    creationHash,
+    setPresales,
+    handlePresaleCreated,
+    navigate,
+  ]);
 
   // Handle case where tx confirmed but logs not decoded (PAPI limitation)
   useEffect(() => {
-    if (isConfirmed && !newPresaleAddress && creationHash && !hasProcessedRef.current) {
+    if (
+      isConfirmed &&
+      !newPresaleAddress &&
+      creationHash &&
+      !hasProcessedRef.current
+    ) {
       hasProcessedRef.current = true;
       toast.success(
-        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`
+        `Presale created! Tx: ${creationHash.slice(0, 10)}...${creationHash.slice(-8)}`,
       );
       setPresales([]);
       navigate("/admin/presales");
@@ -399,7 +465,9 @@ function AdminCreatePresaleContent() {
           <span className="font-bold">Back to Admin</span>
         </Link>
         <div className="border-b-4 border-black bg-[#FF7F41] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
-          <h1 className="text-4xl font-black uppercase tracking-wider">Create Presale</h1>
+          <h1 className="text-4xl font-black uppercase tracking-wider">
+            Create Presale
+          </h1>
         </div>
       </div>
 

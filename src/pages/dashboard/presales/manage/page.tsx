@@ -3,16 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { LaunchpadPresaleContract, abeychainDevnet } from "@/config";
-import {
-  useLaunchpadPresale,
-  type PresaleWithStatus,
-} from "@/lib/hooks/useLaunchpadPresales";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { erc20Abi, formatUnits, isAddress, type Address } from "viem";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { LaunchpadPresaleContract } from "@/config";
 import {
   useAccount,
   useReadContract,
@@ -20,6 +11,16 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
+import {
+  useLaunchpadPresale,
+  type PresaleWithStatus,
+} from "@/lib/hooks/useLaunchpadPresales";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { erc20Abi, formatUnits, isAddress, type Address } from "viem";
+import { useChainId, useConfig } from "wagmi";
 
 export default function ManagePresalePage() {
   const { address: presaleAddress } = useParams<{ address: string }>();
@@ -156,12 +157,17 @@ function ManagePresaleView({
   presale: PresaleWithStatus;
   refetchPresale: () => void;
 }) {
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
+  const config = useConfig();
+  const chainId = useChainId();
+
+  const explorerUrl = config.chains.find((chain) => chain.id === chainId)
+    ?.blockExplorers?.default.url;
+
   const [singleWhitelist, setSingleWhitelist] = useState("");
   const [bulkWhitelist, setBulkWhitelist] = useState("");
   const [removeAddress, setRemoveAddress] = useState("");
   const [activeOwnerAction, setActiveOwnerAction] = useState<string | null>(
-    null
+    null,
   );
   const [activeWhitelistAction, setActiveWhitelistAction] = useState<
     string | null
@@ -195,6 +201,10 @@ function ManagePresaleView({
       enabled: Boolean(presale.saleToken),
     },
   });
+
+  // const { address: userAddress } = useAccount();
+  //
+  const {} = useAccount();
 
   const { address: userAddress } = useAccount();
 
@@ -265,7 +275,7 @@ function ManagePresaleView({
       if (!Number.isFinite(numeric)) return "0";
       return numeric.toLocaleString(undefined, { maximumFractionDigits });
     },
-    [saleTokenDecimals]
+    [saleTokenDecimals],
   );
 
   const {
@@ -330,7 +340,9 @@ function ManagePresaleView({
 
   useEffect(() => {
     if (whitelistError) {
-      toast.error(getFriendlyTxErrorMessage(whitelistError, "Whitelist update"));
+      toast.error(
+        getFriendlyTxErrorMessage(whitelistError, "Whitelist update"),
+      );
     }
   }, [whitelistError]);
 
@@ -399,7 +411,7 @@ function ManagePresaleView({
   const handleApproveTokens = () => {
     if (totalRequiredAmount === 0n) {
       toast.error(
-        "Unable to determine the token amount. Double-check your hard cap and rate."
+        "Unable to determine the token amount. Double-check your hard cap and rate.",
       );
       return;
     }
@@ -414,7 +426,7 @@ function ManagePresaleView({
   const handleDepositTokens = () => {
     if (saleAmount === 0n) {
       toast.error(
-        "Unable to determine the token amount. Double-check your hard cap and rate."
+        "Unable to determine the token amount. Double-check your hard cap and rate.",
       );
       return;
     }
@@ -431,7 +443,7 @@ function ManagePresaleView({
 
   const runOwnerAction = (
     action: string,
-    config: Parameters<typeof writeOwnerAction>[0]
+    config: Parameters<typeof writeOwnerAction>[0],
   ) => {
     setActiveOwnerAction(action);
     writeOwnerAction(config);
@@ -467,7 +479,7 @@ function ManagePresaleView({
   const handleWithdrawTokens = () => {
     if (!presale.claimEnabled) {
       toast.error(
-        "Please finalize the presale before withdrawing unsold tokens."
+        "Please finalize the presale before withdrawing unsold tokens.",
       );
       return;
     }
@@ -481,7 +493,7 @@ function ManagePresaleView({
 
   const runWhitelistAction = (
     action: string,
-    config: Parameters<typeof writeWhitelist>[0]
+    config: Parameters<typeof writeWhitelist>[0],
   ) => {
     setActiveWhitelistAction(action);
     writeWhitelist(config);
@@ -511,7 +523,7 @@ function ManagePresaleView({
       .filter(Boolean);
     if (entries.length === 0) {
       toast.error(
-        "Paste one or more wallet addresses separated by commas or line breaks."
+        "Paste one or more wallet addresses separated by commas or line breaks.",
       );
       return;
     }
@@ -624,10 +636,11 @@ function ManagePresaleView({
               hasDeposited ||
               presaleHasEnded
             }
-            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${hasSufficientAllowance || hasDeposited || presaleHasEnded
+            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              hasSufficientAllowance || hasDeposited || presaleHasEnded
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-white text-black"
-              }`}
+            }`}
           >
             {approveBusy
               ? "Approving..."
@@ -636,8 +649,8 @@ function ManagePresaleView({
                 : hasSufficientAllowance || hasDeposited
                   ? "✓ Approved"
                   : `Approve ${formatTokenDisplay(
-                    totalRequiredAmount
-                  )} ${saleTokenSymbol}`}
+                      totalRequiredAmount,
+                    )} ${saleTokenSymbol}`}
           </Button>
           <Button
             onClick={handleDepositTokens}
@@ -648,12 +661,13 @@ function ManagePresaleView({
               hasDeposited ||
               presaleHasEnded
             }
-            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${hasDeposited || presaleHasEnded
+            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              hasDeposited || presaleHasEnded
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : hasSufficientAllowance
                   ? "bg-[#42C9FF] text-black ring-4 ring-yellow-400 ring-opacity-75"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+            }`}
           >
             {depositBusy
               ? "Depositing..."
@@ -816,10 +830,11 @@ function ManagePresaleView({
           <Button
             onClick={handleWithdrawProceeds}
             disabled={ownerActionBusy || !presale.claimEnabled}
-            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${!presale.claimEnabled
+            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              !presale.claimEnabled
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-[#C4F1BE] text-black"
-              }`}
+            }`}
           >
             {ownerActionBusy && activeOwnerAction === "withdrawProceeds"
               ? "Withdrawing..."
@@ -828,10 +843,11 @@ function ManagePresaleView({
           <Button
             onClick={handleWithdrawTokens}
             disabled={ownerActionBusy || !presale.claimEnabled}
-            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${!presale.claimEnabled
+            className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
+              !presale.claimEnabled
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-[#FFE38A] text-black"
-              }`}
+            }`}
           >
             {ownerActionBusy && activeOwnerAction === "withdrawTokens"
               ? "Withdrawing..."

@@ -3,19 +3,32 @@
  * Admin is determined by the Ownable owner() on the PresaleFactory contract
  */
 
-import { PresaleFactory, ADMIN_ADDRESSES, CONTRACT_ADDRESSES } from '@/config';
-import { useReadContract } from '@/lib/hooks';
-import type { Address } from 'viem';
+import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
+import { useReadContract } from "@/lib/hooks";
+
+import { type Address } from "viem";
+
+const ADMIN_ADDRESSES: Address[] = [
+  "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED" as Address,
+  ...((import.meta.env.VITE_ADMIN_ADDRESSES ?? "")
+    .split(",")
+    .map((addr: string) => addr.trim())
+    .filter(Boolean) as Address[]),
+];
 
 /**
  * Hook to get the factory owner address
  */
 export function useFactoryOwner() {
   const { presaleFactory } = CONTRACT_ADDRESSES;
-  const { data: factoryOwner, isLoading, refetch } = useReadContract({
+  const {
+    data: factoryOwner,
+    isLoading,
+    refetch,
+  } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: 'owner',
+    functionName: "owner",
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -33,10 +46,14 @@ export function useFactoryOwner() {
  */
 export function useFeeRecipient() {
   const { presaleFactory } = CONTRACT_ADDRESSES;
-  const { data: feeRecipient, isLoading, refetch } = useReadContract({
+  const {
+    data: feeRecipient,
+    isLoading,
+    refetch,
+  } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: 'owner',
+    functionName: "owner",
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -56,11 +73,16 @@ export function useIsAdmin(address: Address | undefined) {
   const { factoryOwner, isLoading } = useFactoryOwner();
 
   const isInStaticList = Boolean(
-    address && ADMIN_ADDRESSES.some(adminAddr => adminAddr.toLowerCase() === address.toLowerCase())
+    address &&
+    ADMIN_ADDRESSES.some(
+      (adminAddr) => adminAddr.toLowerCase() === address.toLowerCase(),
+    ),
   );
 
   const isOnChainOwner = Boolean(
-    address && factoryOwner && address.toLowerCase() === factoryOwner.toLowerCase()
+    address &&
+    factoryOwner &&
+    address.toLowerCase() === factoryOwner.toLowerCase(),
   );
 
   return {
@@ -79,7 +101,7 @@ export function useIsFeeRecipient(address: Address | undefined) {
   const isFeeRecipient = Boolean(
     address &&
     feeRecipient &&
-    address.toLowerCase() === feeRecipient.toLowerCase()
+    address.toLowerCase() === feeRecipient.toLowerCase(),
   );
 
   return {

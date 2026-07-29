@@ -1,7 +1,6 @@
-
 import { Input } from "@/components/ui/input";
 import { NFTCard } from "@/components/ui/nft-card";
-import { CONTRACT_ADDRESSES, NFTFactoryContract } from "@/config";
+import { CONTRACT_ADDRESSES, NFTFactory } from "@/config";
 import { useReadContract } from "@/lib/hooks";
 import { Search } from "lucide-react";
 import { useState } from "react";
@@ -11,9 +10,9 @@ export default function NFTsPage() {
   const nftFactory = CONTRACT_ADDRESSES.nftFactory;
 
   const { data: nfts, isLoading } = useReadContract({
-    abi: NFTFactoryContract.abi,
+    abi: NFTFactory.abi,
     address: nftFactory,
-    functionName: 'deployments',
+    functionName: "deployments",
   });
 
   return (
@@ -21,7 +20,9 @@ export default function NFTsPage() {
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 max-w-7xl">
         <div className="mb-12 sm:mb-20 text-right lg:text-left">
           <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase leading-none mb-6 tracking-tight">
-            NFT<br />Marketplace
+            NFT
+            <br />
+            Marketplace
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl font-light max-w-2xl ml-auto lg:ml-0">
             Discover, mint, and trade unique NFT collections.
@@ -42,9 +43,11 @@ export default function NFTsPage() {
 
         {isLoading && <p>Loading collections...</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {nfts && Array.isArray(nfts) ? (nfts as Array<{ nft: `0x${string}` }>).map((nft) => (
-            <NFTCard nftAddress={nft.nft} key={nft.nft} />
-          )) : null}
+          {nfts && Array.isArray(nfts)
+            ? (nfts as Array<{ nft: `0x${string}` }>).map((nft) => (
+                <NFTCard nftAddress={nft.nft} key={nft.nft} />
+              ))
+            : null}
         </div>
       </div>
     </div>

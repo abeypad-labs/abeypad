@@ -32,7 +32,10 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-black uppercase tracking-wider", className)}
+      className={cn(
+        "leading-none font-black uppercase tracking-wider",
+        className,
+      )}
       {...props}
     />
   );
@@ -75,7 +78,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center px-6 [.border-t]:pt-6 [.border-t]:border-t-[3px] [.border-t]:border-black", className)}
+      className={cn(
+        "flex items-center px-6 [.border-t]:pt-6 [.border-t]:border-t-[3px] [.border-t]:border-black",
+        className,
+      )}
       {...props}
     />
   );

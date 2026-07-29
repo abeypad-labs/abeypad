@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./AppLayout";
-import AdminDashboard from "./pages/admin/page";
 import AdminCreatePresalePage from "./pages/admin/create-presale/page";
+import AdminDashboard from "./pages/admin/page";
 import AdminPresales from "./pages/admin/presales/page";
 import AdminWhitelist from "./pages/admin/whitelist/page";
 import CreateNftPage from "./pages/dashboard/create/nft/page";
@@ -17,11 +17,11 @@ import TokenLockerPage from "./pages/dashboard/tools/token-locker/page";
 import UserDashboardPage from "./pages/dashboard/user/page";
 import LockDetailPage from "./pages/locks/[id]/page";
 import NFTDetailPage from "./pages/nfts/[id]/page";
-import DomainsPage from "./pages/domains/page";
 import NFTsPage from "./pages/nfts/page";
 import Home from "./pages/page";
 import ProjectDetailPage from "./pages/projects/[id]/page";
 import ProjectsPage from "./pages/projects/page";
+import NotFoundPage from "./pages/404";
 import RootLayout from "./RootLayout";
 
 function App() {
@@ -33,25 +33,43 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard/create" element={<CreateHubPage />} />
             <Route path="/dashboard/create/nft" element={<CreateNftPage />} />
-            <Route path="/dashboard/create/presale" element={<CreatePresalePage />} />
-            <Route path="/dashboard/create/project" element={<CreateProjectPage />} />
-            <Route path="/dashboard/create/token" element={<CreateTokenPage />} />
+            <Route
+              path="/dashboard/create/presale"
+              element={<CreatePresalePage />}
+            />
+            <Route
+              path="/dashboard/create/project"
+              element={<CreateProjectPage />}
+            />
+            <Route
+              path="/dashboard/create/token"
+              element={<CreateTokenPage />}
+            />
             <Route path="/dashboard/presales" element={<PresalesListPage />} />
-            <Route path="/dashboard/presales/manage/:address" element={<ManagePresalePage />} />
+            <Route
+              path="/dashboard/presales/manage/:address"
+              element={<ManagePresalePage />}
+            />
             <Route path="/dashboard/staking" element={<StakingPage />} />
             <Route path="/dashboard/tools/airdrop" element={<AirdropPage />} />
-            <Route path="/dashboard/tools/token-locker" element={<TokenLockerPage />} />
+            <Route
+              path="/dashboard/tools/token-locker"
+              element={<TokenLockerPage />}
+            />
             <Route path="/dashboard/user" element={<UserDashboardPage />} />
-            <Route path="/domains" element={<DomainsPage />} />
             <Route path="/nfts" element={<NFTsPage />} />
             <Route path="/nfts/:id" element={<NFTDetailPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/locks/:id" element={<LockDetailPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/create-presale" element={<AdminCreatePresalePage />} />
+            <Route
+              path="/admin/create-presale"
+              element={<AdminCreatePresalePage />}
+            />
             <Route path="/admin/presales" element={<AdminPresales />} />
             <Route path="/admin/whitelist" element={<AdminWhitelist />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { abeychainDevnet, CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
 import {
   useAccount,
   useReadContract,
@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { erc20Abi, maxUint256, parseUnits, type Abi } from "viem";
+import { useChainId, useConfig } from "wagmi";
 
 interface LockData {
   id: bigint;
@@ -97,8 +98,9 @@ function LockProgressBar({
       </div>
       <Progress
         value={progress}
-        className={`h-3 border-2 border-black ${isExpired ? "bg-green-200" : "bg-gray-200"
-          }`}
+        className={`h-3 border-2 border-black ${
+          isExpired ? "bg-green-200" : "bg-gray-200"
+        }`}
       />
       <div className="text-center text-xs font-bold">
         {isExpired ? (
@@ -129,7 +131,7 @@ function LockCard({
   onTransfer: (lockId: bigint) => void;
   unlockingId: bigint | null;
   isOwner: boolean;
-  explorerUrl: string;
+  explorerUrl: string | undefined;
 }) {
   // Safe conversions
   let unlockTimestamp = 0;
@@ -151,12 +153,13 @@ function LockCard({
   return (
     <Card className="border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0 overflow-hidden">
       <CardHeader
-        className={`border-b-2 border-black p-4 ${isWithdrawn
-          ? "bg-gray-200"
-          : isUnlocked
-            ? "bg-[#90EE90]"
-            : "bg-[#FFE38A]"
-          }`}
+        className={`border-b-2 border-black p-4 ${
+          isWithdrawn
+            ? "bg-gray-200"
+            : isUnlocked
+              ? "bg-[#90EE90]"
+              : "bg-[#FFE38A]"
+        }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -862,12 +865,17 @@ function TransferLockModal({
 
 export default function TokenLockerPage() {
   const { address } = useAccount();
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
-  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+  const { tokenLocker } = CONTRACT_ADDRESSES;
+
+  const config = useConfig();
+  const chainId = useChainId();
+  const chain = config.chains.find((c) => c.id === chainId);
+  const explorerUrl = chain?.blockExplorers?.default.url;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [extendingLockId, setExtendingLockId] = useState<bigint | null>(null);
   const [transferringLockId, setTransferringLockId] = useState<bigint | null>(
-    null
+    null,
   );
   const [unlockingId, setUnlockingId] = useState<bigint | null>(null);
 
@@ -911,11 +919,11 @@ export default function TokenLockerPage() {
 
   const activeLocks = useMemo(
     () => userLocks.filter((l) => !l.withdrawn),
-    [userLocks]
+    [userLocks],
   );
   const withdrawnLocks = useMemo(
     () => userLocks.filter((l) => l.withdrawn),
-    [userLocks]
+    [userLocks],
   );
 
   return (

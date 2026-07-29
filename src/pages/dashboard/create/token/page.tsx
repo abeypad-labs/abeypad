@@ -9,14 +9,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TokenFactory, CONTRACT_ADDRESSES, abeychainDevnet } from "@/config";
+import { CONTRACT_ADDRESSES, TokenFactory } from "@/config";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "@/lib/hooks";
+import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import {
+  CheckCircle2,
+  Coins,
+  ExternalLink,
+  LayoutDashboard,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { parseEventLogs, parseUnits } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
-import { Coins, ExternalLink, CheckCircle2, LayoutDashboard, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { useChainId, useConfig } from "wagmi";
 
 const TokenType = {
   Plain: 0,
@@ -30,10 +42,20 @@ type TokenType = (typeof TokenType)[keyof typeof TokenType];
 
 export default function CreateTokenPage() {
   const { address } = useAccount();
+  const config = useConfig();
+  const chainId = useChainId();
+  const chain = config.chains.find((c) => c.id === chainId);
   const { tokenFactory } = CONTRACT_ADDRESSES;
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
-  const { data: hash, writeContract, isPending, error, reset } = useWriteContract();
+  const explorerUrl = chain?.blockExplorers?.default.url;
+  const {
+    data: hash,
+    writeContract,
+    isPending,
+    error,
+    reset,
+  } = useWriteContract();
   const navigate = useNavigate();
+  const { setUserToken } = useUserAssetsStore();
 
   const [tokenType, setTokenType] = useState<TokenType>(TokenType.Plain);
   const [name, setName] = useState("");
@@ -43,7 +65,14 @@ export default function CreateTokenPage() {
   const [initialRecipient, setInitialRecipient] = useState("");
   const [taxWallet, setTaxWallet] = useState("");
   const [taxBps, setTaxBps] = useState("0");
-  const [createdTokenAddress, setCreatedTokenAddress] = useState<string | null>(null);
+  const [createdTokenAddress, setCreatedTokenAddress] = useState<string | null>(
+    null,
+  );
+  const [showModal, setShowModal] = useState(false);
+  const [txStatus, setTxStatus] = useState<
+    "idle" | "pending" | "confirming" | "success" | "error"
+  >("idle");
+  const [txError, setTxError] = useState<string | null>(null);
 
   const processedHash = useRef<string | null>(null);
 
@@ -52,8 +81,31 @@ export default function CreateTokenPage() {
   }, [address]);
 
   const handleCreateToken = () => {
+    console.log("[CreateToken] Starting token creation...");
+    console.log("[CreateToken] Current state:", {
+      tokenType,
+      name,
+      symbol,
+      decimals,
+      initialSupply,
+      initialRecipient,
+      taxWallet,
+      taxBps,
+      address,
+      tokenFactory,
+    });
+
+    // Validate inputs
+    if (!name || !symbol || !initialSupply || !initialRecipient) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setCreatedTokenAddress(null);
     processedHash.current = null;
+    setTxStatus("pending");
+    setTxError(null);
+    setShowModal(true);
 
     const tokenParams = {
       name,
@@ -63,38 +115,67 @@ export default function CreateTokenPage() {
       initialRecipient: initialRecipient as `0x${string}`,
     };
 
-    let functionName:
-      | "createPlainToken"
-      | "createMintableToken"
-      | "createBurnableToken"
-      | "createTaxableToken"
-      | "createNonMintableToken";
-    const args: unknown[] = [tokenParams];
+    console.log("[CreateToken] Token params:", tokenParams);
 
+    // Call writeContract directly for each token type to ensure type safety
     switch (tokenType) {
       case TokenType.Plain:
-        functionName = "createPlainToken";
+        console.log("[CreateToken] Calling createPlainToken");
+        writeContract({
+          address: tokenFactory,
+          abi: TokenFactory.abi,
+          functionName: "createPlainToken",
+          args: [tokenParams],
+        });
         break;
       case TokenType.Mintable:
-        functionName = "createMintableToken";
+        console.log("[CreateToken] Calling createMintableToken");
+        writeContract({
+          address: tokenFactory,
+          abi: TokenFactory.abi,
+          functionName: "createMintableToken",
+          args: [tokenParams],
+        });
         break;
       case TokenType.Burnable:
-        functionName = "createBurnableToken";
+        console.log("[CreateToken] Calling createBurnableToken");
+        writeContract({
+          address: tokenFactory,
+          abi: TokenFactory.abi,
+          functionName: "createBurnableToken",
+          args: [tokenParams],
+        });
         break;
       case TokenType.Taxable: {
-        functionName = "createTaxableToken";
-        args.push({ taxWallet: taxWallet as `0x${string}`, taxBps: parseInt(taxBps) });
+        const taxParams = {
+          taxWallet: taxWallet as `0x${string}`,
+          taxBps: BigInt(taxBps), // Use BigInt to match ABI's uint96
+        };
+        console.log(
+          "[CreateToken] Calling createTaxableToken with tax params:",
+          taxParams,
+        );
+        writeContract({
+          address: tokenFactory,
+          abi: TokenFactory.abi,
+          functionName: "createTaxableToken",
+          args: [tokenParams, taxParams],
+        });
         break;
       }
       case TokenType.NonMintable:
-        functionName = "createNonMintableToken";
+        console.log("[CreateToken] Calling createNonMintableToken");
+        writeContract({
+          address: tokenFactory,
+          abi: TokenFactory.abi,
+          functionName: "createNonMintableToken",
+          args: [tokenParams],
+        });
         break;
       default:
         toast.error("Invalid token type selected");
         return;
     }
-
-    writeContract({ address: tokenFactory, abi: TokenFactory.abi, functionName, args: args as never });
   };
 
   const {
@@ -106,6 +187,13 @@ export default function CreateTokenPage() {
   // Handle write errors
   useEffect(() => {
     if (error) {
+      console.error("[CreateToken] Write contract error:", error);
+      console.error(
+        "[CreateToken] Error message:",
+        getFriendlyTxErrorMessage(error, "Token creation"),
+      );
+      setTxStatus("error");
+      setTxError(getFriendlyTxErrorMessage(error, "Token creation"));
       toast.error(getFriendlyTxErrorMessage(error, "Token creation"));
       reset();
     }
@@ -113,8 +201,20 @@ export default function CreateTokenPage() {
 
   // On confirmation: parse token address from receipt logs, toast, redirect
   useEffect(() => {
+    console.log("[CreateToken] Confirmation effect triggered:", {
+      isConfirmed,
+      hasReceipt: !!receipt,
+      hash,
+      processedHash: processedHash.current,
+    });
+
     if (!isConfirmed || !receipt || processedHash.current === hash) return;
     processedHash.current = hash ?? null;
+
+    console.log("[CreateToken] Transaction confirmed!");
+    console.log("[CreateToken] Transaction hash:", hash);
+    console.log("[CreateToken] Receipt:", receipt);
+    console.log("[CreateToken] Receipt logs count:", receipt.logs.length);
 
     // Pull the deployed token address straight from the TokenCreated event —
     // no extra RPC call needed, the address is in the receipt topics.
@@ -125,16 +225,42 @@ export default function CreateTokenPage() {
         logs: receipt.logs,
         eventName: "TokenCreated",
       });
+      console.log("[CreateToken] Parsed TokenCreated logs:", logs);
       newToken = (logs[0]?.args as { token?: string })?.token ?? null;
-    } catch {
+      console.log("[CreateToken] Extracted token address:", newToken);
+    } catch (parseError) {
+      console.error("[CreateToken] Failed to parse event logs:", parseError);
       // parsing failed, proceed without the address
     }
 
     setCreatedTokenAddress(newToken);
     if (newToken) {
+      console.log("[CreateToken] Token created successfully:", newToken);
+      setTxStatus("success");
       toast.success("Token created! Redirecting to your dashboard…");
+      // Save the created token to user assets store
+      if (address) {
+        console.log("[CreateToken] Saving token to user assets store");
+        setUserToken(address as `0x${string}`, {
+          address: newToken as `0x${string}`,
+          name,
+          symbol,
+          decimals: parseInt(decimals),
+          totalSupply: parseUnits(initialSupply, parseInt(decimals)),
+          createdAt: Date.now(),
+        });
+      }
     } else {
-      toast.error("Transaction succeeded but no token was created. The factory contract may not be deployed on this network.");
+      console.error(
+        "[CreateToken] No token address found in logs - transaction may have reverted",
+      );
+      setTxStatus("error");
+      setTxError(
+        "Transaction succeeded but no token was created. The factory contract may not be deployed on this network.",
+      );
+      toast.error(
+        "Transaction succeeded but no token was created. The factory contract may not be deployed on this network.",
+      );
     }
 
     setName("");
@@ -146,34 +272,156 @@ export default function CreateTokenPage() {
     reset();
 
     if (newToken) {
-      setTimeout(() => navigate("/dashboard/user"), 2500);
+      setTimeout(() => {
+        setShowModal(false);
+        navigate("/dashboard/user");
+      }, 3000);
     }
   }, [isConfirmed, receipt, hash, reset, navigate]);
 
+  // Log transaction hash when it's received
+  useEffect(() => {
+    if (hash) {
+      console.log("[CreateToken] Transaction submitted!");
+      console.log("[CreateToken] Transaction hash:", hash);
+      console.log("[CreateToken] Explorer URL:", `${explorerUrl}/tx/${hash}`);
+      setTxStatus("confirming");
+    }
+  }, [hash, explorerUrl]);
+
+  // Log pending state
+  useEffect(() => {
+    console.log("[CreateToken] isPending changed:", isPending);
+  }, [isPending]);
+
+  // Log confirming state
+  useEffect(() => {
+    console.log("[CreateToken] isConfirming changed:", isConfirming);
+  }, [isConfirming]);
+
   const isBusy = isPending || isConfirming;
+
+  console.log("[CreateToken] Render state:", {
+    isBusy,
+    isPending,
+    isConfirming,
+    isConfirmed,
+    hasHash: !!hash,
+    hasReceipt: !!receipt,
+    createdTokenAddress,
+  });
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
-      {/* Full-page mining overlay */}
-      {isConfirming && (
+      {/* Full-page transaction status modal */}
+      {showModal && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="border-4 border-black bg-[#FFE38A] p-8 shadow-[8px_8px_0_rgba(0,0,0,1)] flex flex-col items-center gap-4 max-w-sm w-full mx-4">
-            <Loader2 className="w-12 h-12 animate-spin" />
-            <p className="font-black uppercase tracking-wider text-xl text-center">
-              Deploying Token…
-            </p>
-            <p className="text-sm text-gray-700 text-center">
-              Transaction submitted. Waiting for block confirmation.
-            </p>
-            {hash && (
-              <a
-                href={`${explorerUrl}/tx/${hash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
-              >
-                {hash.slice(0, 20)}…{hash.slice(-8)}
-              </a>
+            {/* Pending State - Waiting for wallet */}
+            {txStatus === "pending" && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Confirm in Wallet
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Please confirm the transaction in your wallet...
+                </p>
+              </>
+            )}
+
+            {/* Confirming State - Transaction submitted */}
+            {txStatus === "confirming" && (
+              <>
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Deploying Token…
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Transaction submitted. Waiting for block confirmation.
+                </p>
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View on Explorer
+                  </a>
+                )}
+              </>
+            )}
+
+            {/* Success State */}
+            {txStatus === "success" && (
+              <>
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Token Created!
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  Your token has been deployed successfully.
+                </p>
+                {createdTokenAddress && (
+                  <div className="w-full">
+                    <p className="text-xs text-gray-500 uppercase font-bold mb-1">
+                      Token Address
+                    </p>
+                    <code className="block bg-white p-2 border-2 border-black font-mono text-xs break-all">
+                      {createdTokenAddress}
+                    </code>
+                  </div>
+                )}
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <p className="text-xs text-gray-600 text-center">
+                  Redirecting to dashboard...
+                </p>
+              </>
+            )}
+
+            {/* Error State */}
+            {txStatus === "error" && (
+              <>
+                <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                  <span className="text-white text-2xl font-black">!</span>
+                </div>
+                <p className="font-black uppercase tracking-wider text-xl text-center">
+                  Transaction Failed
+                </p>
+                <p className="text-sm text-gray-700 text-center">
+                  {txError || "An error occurred during token creation."}
+                </p>
+                {hash && (
+                  <a
+                    href={`${explorerUrl}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs underline font-mono break-all text-center text-gray-600 hover:text-black"
+                  >
+                    View Transaction
+                  </a>
+                )}
+                <Button
+                  onClick={() => {
+                    setShowModal(false);
+                    setTxStatus("idle");
+                    setTxError(null);
+                  }}
+                  className="mt-4 w-full border-4 border-black bg-white text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-gray-100"
+                >
+                  Close
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -181,11 +429,10 @@ export default function CreateTokenPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <div className="-rotate-[0.45deg] sm:-rotate-[0.2deg] border-4 border-black bg-[#42C9FF] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <div className="-rotate-[0.45deg] sm:-rotate-[0.2deg] border-4 border-black bg-[#22C55E] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wider flex items-center gap-3">
             <Coins className="w-8 h-8" /> Create Token
           </h1>
-          <p className="text-sm text-gray-700 mt-2">Deploy your own ARC-20 token on the blockchain.</p>
         </div>
       </div>
 
@@ -200,7 +447,9 @@ export default function CreateTokenPage() {
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div>
-              <p className="text-xs text-gray-500 uppercase font-bold mb-1">Token Address</p>
+              <p className="text-xs text-gray-500 uppercase font-bold mb-1">
+                Token Address
+              </p>
               <code className="block bg-gray-100 p-3 border-2 border-black font-mono text-sm break-all">
                 {createdTokenAddress}
               </code>
@@ -217,7 +466,10 @@ export default function CreateTokenPage() {
                   View on Explorer
                 </Button>
               </a>
-              <Link to={`/dashboard/tools/token-locker?token=${createdTokenAddress}`} className="flex-1">
+              <Link
+                to={`/dashboard/tools/token-locker?token=${createdTokenAddress}`}
+                className="flex-1"
+              >
                 <Button className="rotate-[0.3deg] w-full border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
                   Lock Tokens
                 </Button>
@@ -244,38 +496,65 @@ export default function CreateTokenPage() {
       {!createdTokenAddress && (
         <Card className="before:hidden rotate-[0.35deg] max-w-2xl mx-auto border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-0 gap-0">
           <CardHeader className="border-b-2 border-black bg-white p-6">
-            <CardTitle className="font-black uppercase tracking-wider">Token Details</CardTitle>
+            <CardTitle className="font-black uppercase tracking-wider">
+              Token Details
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="token-type" className="font-bold uppercase text-xs">Token Type</Label>
+              <Label
+                htmlFor="token-type"
+                className="font-bold uppercase text-xs"
+              >
+                Token Type
+              </Label>
               <Select
                 onValueChange={(v) => setTokenType(parseInt(v) as TokenType)}
                 defaultValue={TokenType.Plain.toString()}
               >
-                <SelectTrigger id="token-type" className="border-2 border-black">
+                <SelectTrigger
+                  id="token-type"
+                  className="border-2 border-black"
+                >
                   <SelectValue placeholder="Select token type" />
                 </SelectTrigger>
                 <SelectContent className="border-2 border-black">
-                  <SelectItem value={TokenType.Plain.toString()}>Plain</SelectItem>
-                  <SelectItem value={TokenType.Mintable.toString()}>Mintable</SelectItem>
-                  <SelectItem value={TokenType.Burnable.toString()}>Burnable</SelectItem>
-                  <SelectItem value={TokenType.Taxable.toString()}>Taxable</SelectItem>
-                  <SelectItem value={TokenType.NonMintable.toString()}>Non-Mintable</SelectItem>
+                  <SelectItem value={TokenType.Plain.toString()}>
+                    Plain
+                  </SelectItem>
+                  <SelectItem value={TokenType.Mintable.toString()}>
+                    Mintable
+                  </SelectItem>
+                  <SelectItem value={TokenType.Burnable.toString()}>
+                    Burnable
+                  </SelectItem>
+                  <SelectItem value={TokenType.Taxable.toString()}>
+                    Taxable
+                  </SelectItem>
+                  <SelectItem value={TokenType.NonMintable.toString()}>
+                    Non-Mintable
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
-                {tokenType === TokenType.Plain && "A standard ARC-20 token with basic transfer functionality."}
-                {tokenType === TokenType.Mintable && "Allows the owner to mint new tokens after deployment."}
-                {tokenType === TokenType.Burnable && "Allows holders to burn (destroy) their tokens."}
-                {tokenType === TokenType.Taxable && "Applies a tax on transfers, sent to a designated wallet."}
-                {tokenType === TokenType.NonMintable && "Fixed supply token that cannot be minted after creation."}
+                {tokenType === TokenType.Plain &&
+                  "A standard token with basic transfer functionality."}
+                {tokenType === TokenType.Mintable &&
+                  "Allows the owner to mint new tokens after deployment."}
+                {tokenType === TokenType.Burnable &&
+                  "Allows holders to burn (destroy) their tokens."}
+                {tokenType === TokenType.Taxable &&
+                  "Applies a tax on transfers, sent to a designated wallet."}
+                {tokenType === TokenType.NonMintable &&
+                  "Fixed supply token that cannot be minted after creation."}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="font-bold uppercase text-xs">Token Name</Label>
+                <Label htmlFor="name" className="font-bold uppercase text-xs">
+                  Token Name
+                </Label>
                 <Input
                   id="name"
                   placeholder="e.g. My Token"
@@ -285,7 +564,9 @@ export default function CreateTokenPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="symbol" className="font-bold uppercase text-xs">Symbol</Label>
+                <Label htmlFor="symbol" className="font-bold uppercase text-xs">
+                  Symbol
+                </Label>
                 <Input
                   id="symbol"
                   placeholder="e.g. MTK"
@@ -298,7 +579,12 @@ export default function CreateTokenPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="decimals" className="font-bold uppercase text-xs">Decimals</Label>
+                <Label
+                  htmlFor="decimals"
+                  className="font-bold uppercase text-xs"
+                >
+                  Decimals
+                </Label>
                 <Input
                   id="decimals"
                   type="number"
@@ -309,7 +595,12 @@ export default function CreateTokenPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="initial-supply" className="font-bold uppercase text-xs">Initial Supply</Label>
+                <Label
+                  htmlFor="initial-supply"
+                  className="font-bold uppercase text-xs"
+                >
+                  Initial Supply
+                </Label>
                 <Input
                   id="initial-supply"
                   type="number"
@@ -322,7 +613,12 @@ export default function CreateTokenPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="initial-recipient" className="font-bold uppercase text-xs">Initial Recipient</Label>
+              <Label
+                htmlFor="initial-recipient"
+                className="font-bold uppercase text-xs"
+              >
+                Initial Recipient
+              </Label>
               <Input
                 id="initial-recipient"
                 placeholder="e.g. 0x..."
@@ -330,14 +626,23 @@ export default function CreateTokenPage() {
                 onChange={(e) => setInitialRecipient(e.target.value)}
                 className="border-2 border-black font-mono text-sm"
               />
-              <p className="text-xs text-gray-500">Defaults to your connected wallet address.</p>
+              <p className="text-xs text-gray-500">
+                Defaults to your connected wallet address.
+              </p>
             </div>
 
             {tokenType === TokenType.Taxable && (
               <div className="space-y-4 pt-4 border-t-2 border-black">
-                <h3 className="font-black uppercase text-sm">Taxable Token Configuration</h3>
+                <h3 className="font-black uppercase text-sm">
+                  Taxable Token Configuration
+                </h3>
                 <div className="space-y-2">
-                  <Label htmlFor="tax-wallet" className="font-bold uppercase text-xs">Tax Wallet</Label>
+                  <Label
+                    htmlFor="tax-wallet"
+                    className="font-bold uppercase text-xs"
+                  >
+                    Tax Wallet
+                  </Label>
                   <Input
                     id="tax-wallet"
                     placeholder="e.g. 0x..."
@@ -347,7 +652,12 @@ export default function CreateTokenPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tax-bps" className="font-bold uppercase text-xs">Tax (in BPS, 1% = 100)</Label>
+                  <Label
+                    htmlFor="tax-bps"
+                    className="font-bold uppercase text-xs"
+                  >
+                    Tax (in BPS, 1% = 100)
+                  </Label>
                   <Input
                     id="tax-bps"
                     type="number"
@@ -363,7 +673,7 @@ export default function CreateTokenPage() {
             <Button
               onClick={handleCreateToken}
               disabled={isBusy || !name || !symbol}
-              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="-rotate-[0.35deg] w-full border-4 border-black bg-[#22C55E] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isPending && (
                 <>

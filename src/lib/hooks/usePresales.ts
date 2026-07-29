@@ -1,16 +1,12 @@
-import { useEffect, useMemo } from 'react';
-import { PresaleFactoryContract, CONTRACT_ADDRESSES } from '@/config';
-import { useReadContract, useReadContracts } from '@/lib/hooks';
-import { useBlockchainStore } from '@/lib/store/blockchain-store';
-import type { Address } from 'viem';
+import { useEffect, useMemo } from "react";
+import { PresaleFactoryContract, CONTRACT_ADDRESSES } from "@/config";
+import { useReadContract, useReadContracts } from "@/lib/hooks";
+import { useBlockchainStore } from "@/lib/store/blockchain-store";
+import type { Address } from "viem";
 
 export function usePresales(forceRefetch = false) {
-  const {
-    getPresales,
-    setPresales,
-    setPresalesLoading,
-    isPresalesStale,
-  } = useBlockchainStore();
+  const { getPresales, setPresales, setPresalesLoading, isPresalesStale } =
+    useBlockchainStore();
 
   const cachedPresales = getPresales();
   const isStale = isPresalesStale();
@@ -18,10 +14,14 @@ export function usePresales(forceRefetch = false) {
   const { presaleFactory } = CONTRACT_ADDRESSES;
 
   // First get total count of presales
-  const { data: totalPresales, isLoading: isLoadingTotal, refetch: refetchTotal } = useReadContract({
+  const {
+    data: totalPresales,
+    isLoading: isLoadingTotal,
+    refetch: refetchTotal,
+  } = useReadContract({
     abi: PresaleFactoryContract.abi,
     address: presaleFactory,
-    functionName: 'totalPresales',
+    functionName: "totalPresales",
     query: {
       enabled: shouldFetch,
     },
@@ -34,12 +34,16 @@ export function usePresales(forceRefetch = false) {
     return Array.from({ length: count }, (_, i) => ({
       abi: PresaleFactoryContract.abi,
       address: presaleFactory,
-      functionName: 'allPresales' as const,
+      functionName: "allPresales" as const,
       args: [BigInt(i)],
     }));
   }, [presaleFactory, totalPresales]);
 
-  const { data: addressResults, isLoading: isLoadingAddresses, refetch: refetchAddresses } = useReadContracts({
+  const {
+    data: addressResults,
+    isLoading: isLoadingAddresses,
+    refetch: refetchAddresses,
+  } = useReadContracts({
     contracts: addressQueries,
     query: {
       enabled: addressQueries.length > 0,

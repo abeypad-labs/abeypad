@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { useAccount, useReadContract } from "@/lib/hooks";
 import { useFeeRecipient } from "@/lib/utils/admin";
 import { useUpdatePresaleFees } from "@/lib/hooks/useAdminActions";
-import { useLaunchpadPresales, type PresaleWithStatus } from "@/lib/hooks/useLaunchpadPresales";
+import {
+  useLaunchpadPresales,
+  type PresaleWithStatus,
+} from "@/lib/hooks/useLaunchpadPresales";
 import { LaunchpadPresaleContract } from "@/config";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -26,14 +29,8 @@ function PresaleCard({
   const [newTokenFeeBps, setNewTokenFeeBps] = useState("");
   const [newProceedsFeeBps, setNewProceedsFeeBps] = useState("");
 
-  const {
-    updateFees,
-    isBusy,
-    isSuccess,
-    isError,
-    error,
-    reset,
-  } = useUpdatePresaleFees();
+  const { updateFees, isBusy, isSuccess, isError, error, reset } =
+    useUpdatePresaleFees();
 
   // Fetch current fees
   const { data: currentTokenFeeBps } = useReadContract({
@@ -115,7 +112,9 @@ function PresaleCard({
             <CardTitle className="font-black uppercase tracking-wider text-lg">
               {tokenSymbol ?? "Loading..."} Presale
             </CardTitle>
-            <Badge className={`${getStatusColor(presale.status)} text-white font-bold uppercase text-xs`}>
+            <Badge
+              className={`${getStatusColor(presale.status)} text-white font-bold uppercase text-xs`}
+            >
               {presale.status}
             </Badge>
           </div>
@@ -131,15 +130,26 @@ function PresaleCard({
         {/* Presale Info */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <p className="text-gray-500 text-xs uppercase font-bold">Hard Cap</p>
+            <p className="text-gray-500 text-xs uppercase font-bold">
+              Hard Cap
+            </p>
             <p className="font-bold">{formatEther(presale.hardCap)} ABEY</p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs uppercase font-bold">Total Raised</p>
-            <p className="font-bold">{Math.round(Number(formatEther(presale.totalRaised))).toLocaleString()} ABEY</p>
+            <p className="text-gray-500 text-xs uppercase font-bold">
+              Total Raised
+            </p>
+            <p className="font-bold">
+              {Math.round(
+                Number(formatEther(presale.totalRaised)),
+              ).toLocaleString()}{" "}
+              ABEY
+            </p>
           </div>
           <div>
-            <p className="text-gray-500 text-xs uppercase font-bold">Progress</p>
+            <p className="text-gray-500 text-xs uppercase font-bold">
+              Progress
+            </p>
             <p className="font-bold">{presale.progress.toFixed(1)}%</p>
           </div>
           <div>
@@ -150,7 +160,9 @@ function PresaleCard({
 
         {/* Address */}
         <div>
-          <p className="text-gray-500 text-xs uppercase font-bold mb-1">Presale Address</p>
+          <p className="text-gray-500 text-xs uppercase font-bold mb-1">
+            Presale Address
+          </p>
           <p className="font-mono text-xs break-all bg-gray-100 p-2 border border-gray-300">
             {presale.address}
           </p>
@@ -159,7 +171,9 @@ function PresaleCard({
         {/* Current Fees */}
         <div className="flex items-center gap-4 p-3 bg-[#FFF2D5] border-2 border-black">
           <div>
-            <p className="text-xs text-gray-600 uppercase font-bold">Token Fee</p>
+            <p className="text-xs text-gray-600 uppercase font-bold">
+              Token Fee
+            </p>
             <p className="font-bold">
               {currentTokenFeeBps !== undefined
                 ? `${Number(currentTokenFeeBps) / 100}%`
@@ -167,7 +181,9 @@ function PresaleCard({
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-600 uppercase font-bold">Proceeds Fee</p>
+            <p className="text-xs text-gray-600 uppercase font-bold">
+              Proceeds Fee
+            </p>
             <p className="font-bold">
               {currentProceedsFeeBps !== undefined
                 ? `${Number(currentProceedsFeeBps) / 100}%`
@@ -189,7 +205,9 @@ function PresaleCard({
         {/* Update Fees Form */}
         {showFeeForm && isFeeRecipient && (
           <div className="p-4 bg-white border-2 border-black space-y-3">
-            <p className="text-sm font-bold">Update fees (in basis points, 100 = 1%)</p>
+            <p className="text-sm font-bold">
+              Update fees (in basis points, 100 = 1%)
+            </p>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-gray-600 uppercase font-bold">
@@ -234,19 +252,22 @@ function AdminPresalesContent() {
   const { address } = useAccount();
   const { feeRecipient } = useFeeRecipient();
   const { presales, isLoading, refetch } = useLaunchpadPresales("all", true);
-  const [filter, setFilter] = useState<"all" | "live" | "upcoming" | "ended">("all");
+  const [filter, setFilter] = useState<"all" | "live" | "upcoming" | "ended">(
+    "all",
+  );
 
   const isFeeRecipient = Boolean(
     address &&
     feeRecipient &&
-    address.toLowerCase() === feeRecipient.toLowerCase()
+    address.toLowerCase() === feeRecipient.toLowerCase(),
   );
 
   const filteredPresales = presales?.filter((p) => {
     if (filter === "all") return true;
     if (filter === "live") return p.status === "live";
     if (filter === "upcoming") return p.status === "upcoming";
-    if (filter === "ended") return ["ended", "finalized", "cancelled"].includes(p.status);
+    if (filter === "ended")
+      return ["ended", "finalized", "cancelled"].includes(p.status);
     return true;
   });
 
@@ -262,7 +283,9 @@ function AdminPresalesContent() {
           <span className="font-bold">Back to Admin</span>
         </Link>
         <div className="border-b-4 border-black bg-[#42C9FF] p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
-          <h1 className="text-4xl font-black uppercase tracking-wider">Manage Presales</h1>
+          <h1 className="text-4xl font-black uppercase tracking-wider">
+            Manage Presales
+          </h1>
           <p className="text-sm text-gray-700 mt-2">
             View all presales and update fees.
             {isFeeRecipient && (
@@ -279,36 +302,41 @@ function AdminPresalesContent() {
         <Button
           variant={filter === "all" ? "default" : "outline"}
           onClick={() => setFilter("all")}
-          className={`border-2 border-black font-bold uppercase text-xs ${filter === "all" ? "bg-black text-white" : ""
-            }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${
+            filter === "all" ? "bg-black text-white" : ""
+          }`}
         >
           All ({presales?.length ?? 0})
         </Button>
         <Button
           variant={filter === "live" ? "default" : "outline"}
           onClick={() => setFilter("live")}
-          className={`border-2 border-black font-bold uppercase text-xs ${filter === "live" ? "bg-green-500 text-white" : ""
-            }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${
+            filter === "live" ? "bg-green-500 text-white" : ""
+          }`}
         >
           Live ({presales?.filter((p) => p.status === "live").length ?? 0})
         </Button>
         <Button
           variant={filter === "upcoming" ? "default" : "outline"}
           onClick={() => setFilter("upcoming")}
-          className={`border-2 border-black font-bold uppercase text-xs ${filter === "upcoming" ? "bg-yellow-500 text-white" : ""
-            }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${
+            filter === "upcoming" ? "bg-yellow-500 text-white" : ""
+          }`}
         >
-          Upcoming ({presales?.filter((p) => p.status === "upcoming").length ?? 0})
+          Upcoming (
+          {presales?.filter((p) => p.status === "upcoming").length ?? 0})
         </Button>
         <Button
           variant={filter === "ended" ? "default" : "outline"}
           onClick={() => setFilter("ended")}
-          className={`border-2 border-black font-bold uppercase text-xs ${filter === "ended" ? "bg-gray-500 text-white" : ""
-            }`}
+          className={`border-2 border-black font-bold uppercase text-xs ${
+            filter === "ended" ? "bg-gray-500 text-white" : ""
+          }`}
         >
           Ended (
           {presales?.filter((p) =>
-            ["ended", "finalized", "cancelled"].includes(p.status)
+            ["ended", "finalized", "cancelled"].includes(p.status),
           ).length ?? 0}
           )
         </Button>

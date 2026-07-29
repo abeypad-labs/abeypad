@@ -50,7 +50,7 @@ const getErrorText = (error: unknown) => {
 
 export const getFriendlyTxErrorMessage = (
   error: unknown,
-  actionLabel = "Transaction"
+  actionLabel = "Transaction",
 ) => {
   const text = getErrorText(error);
   if (
@@ -90,15 +90,10 @@ export const getFriendlyTxErrorMessage = (
   ) {
     return "Wallet metadata for ABEY looks stale. Disconnect and reconnect the wallet, then retry.";
   }
-  if (
-    text.includes("badproof") ||
-    text.includes("badsigner")
-  ) {
+  if (text.includes("badproof") || text.includes("badsigner")) {
     return "The signed payload did not match the selected wallet account. Re-select the same SS58 account in Talisman/SubWallet and retry.";
   }
-  if (
-    text.includes("invalidtxerror")
-  ) {
+  if (text.includes("invalidtxerror")) {
     return "Transaction was rejected before execution. Retry once; if it persists, reconnect the wallet.";
   }
   return `${actionLabel} failed. Please try again.`;

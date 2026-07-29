@@ -1,89 +1,43 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { TokenInfo } from "@/components/TokenInfo";
+import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
-// import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
-import { useMyDomains } from "@/lib/hooks/useMyDomains";
-// import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { abeychainDevnet } from "@/config/chains";
-import { useAccount, useReadContract } from "@/lib/hooks";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowRight, ChevronLeft, ChevronRight, Clock, ExternalLink, Globe, ImageIcon, Lock, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Plus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
 import { erc721Abi, formatUnits } from "viem";
+import { useConfig } from "wagmi";
 
-// function TokenInfo({ tokenAddress, onPresaleClick }: { tokenAddress: `0x${string}`; onPresaleClick: () => void }) {
-//   const { address } = useAccount();
-//   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
-//     abi: erc20Abi,
-//     address: tokenAddress,
-//     functionName: 'symbol'
-//   })
-//   const { data: name, isLoading: isLoadingName } = useReadContract({
-//     abi: erc20Abi,
-//     address: tokenAddress,
-//     functionName: 'name'
-//   })
-//   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
-//   //   address as Address | undefined
-//   // );
-
-//   const isLoading = isLoadingSymbol || isLoadingName;
-
-//   if (isLoading) {
-//     return (
-//       <div className="py-3 animate-pulse">
-//         <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
-//         <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-//       </div>
-//     )
-//   }
-
-//   return (
-//     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
-//       <div className="flex-1 min-w-0">
-//         <h3 className="font-black text-lg uppercase">
-//           {name as string || 'Unknown Token'} ({symbol as string || 'N/A'})
-//         </h3>
-//         <p className="text-xs text-gray-500 break-all font-mono">{tokenAddress}</p>
-//       </div>
-//       <div className="flex flex-wrap gap-2 flex-shrink-0">
-//         <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-//           <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
-//             Lock
-//           </Link>
-//         </Button>
-//         <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-//           <Link to={`/dashboard/tools/airdrop?token=${tokenAddress}`}>
-//             Airdrop</Link>
-//         </Button>
-//         <Button size="sm" asChild className="border-2 border-black bg-[#42C9FF] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#1FB9E7]">
-//           <Link to={`/dashboard/create/presale?token=${tokenAddress}`}>
-//             <FileText className="w-3 h-3 mr-1" /> Presale
-//           </Link>
-//         </Button>
-//       </div>
-//     </div>
-//   )
-// }
-
-function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddress: `0x${string}`; explorerUrl: string }) {
+function NFTCollectionInfo({
+  collectionAddress,
+  explorerUrl,
+}: {
+  collectionAddress: `0x${string}`;
+  explorerUrl: string | undefined;
+}) {
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
     abi: erc721Abi,
     address: collectionAddress,
-    functionName: 'symbol',
+    functionName: "symbol",
   });
   const { data: name, isLoading: isLoadingName } = useReadContract({
     abi: erc721Abi,
     address: collectionAddress,
-    functionName: 'name',
+    functionName: "name",
   });
 
   if (isLoadingSymbol || isLoadingName) {
@@ -99,13 +53,25 @@ function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddre
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
       <div className="flex-1 min-w-0">
         <h3 className="font-black text-lg uppercase">
-          {(name as string) || 'Unknown Collection'} ({(symbol as string) || 'N/A'})
+          {(name as string) || "Unknown Collection"} (
+          {(symbol as string) || "N/A"})
         </h3>
-        <p className="text-xs text-gray-500 break-all font-mono">{collectionAddress}</p>
+        <p className="text-xs text-gray-500 break-all font-mono">
+          {collectionAddress}
+        </p>
       </div>
       <div className="flex flex-wrap gap-2 flex-shrink-0">
-        <Button variant="outline" size="sm" asChild className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-          <a href={`${explorerUrl}/address/${collectionAddress}`} target="_blank" rel="noopener noreferrer">
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]"
+        >
+          <a
+            href={`${explorerUrl}/address/${collectionAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <ExternalLink className="w-3 h-3 mr-1" /> Explorer
           </a>
         </Button>
@@ -115,10 +81,12 @@ function NFTCollectionInfo({ collectionAddress, explorerUrl }: { collectionAddre
 }
 
 function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
-  const { presales, isLoading } = useLaunchpadPresales('all', false);
+  const { presales, isLoading } = useLaunchpadPresales("all", false);
 
   // Find the presale in the list
-  const presaleData = presales?.find(p => p.address.toLowerCase() === presaleAddress.toLowerCase());
+  const presaleData = presales?.find(
+    (p) => p.address.toLowerCase() === presaleAddress.toLowerCase(),
+  );
 
   if (isLoading || !presaleData) {
     return (
@@ -129,17 +97,25 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
     );
   }
 
-  const progress = presaleData.hardCap > 0n
-    ? Math.round(Number((presaleData.totalRaised * 100n) / presaleData.hardCap))
-    : 0;
+  const progress =
+    presaleData.hardCap > 0n
+      ? Math.round(
+          Number((presaleData.totalRaised * 100n) / presaleData.hardCap),
+        )
+      : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'live': return 'bg-green-500';
-      case 'upcoming': return 'bg-yellow-500';
-      case 'finalized': return 'bg-blue-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case "live":
+        return "bg-green-500";
+      case "upcoming":
+        return "bg-yellow-500";
+      case "finalized":
+        return "bg-blue-500";
+      case "cancelled":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
     }
   };
 
@@ -149,16 +125,24 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-black text-lg uppercase">
-              {presaleData.saleTokenSymbol || 'Token'} Presale
+              {presaleData.saleTokenSymbol || "Token"} Presale
             </h3>
-            <span className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${getStatusColor(presaleData.status)}`}>
+            <span
+              className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${getStatusColor(presaleData.status)}`}
+            >
               {presaleData.status}
             </span>
           </div>
-          <p className="text-xs text-gray-500 break-all font-mono">{presaleAddress}</p>
+          <p className="text-xs text-gray-500 break-all font-mono">
+            {presaleAddress}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2 flex-shrink-0">
-          <Button size="sm" asChild className="border-2 border-black bg-[#FFE38A] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
+          <Button
+            size="sm"
+            asChild
+            className="border-2 border-black bg-[#FFE38A] text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]"
+          >
             <Link to={`/dashboard/presales/manage/${presaleAddress}`}>
               Manage <ExternalLink className="ml-1 h-3 w-3" />
             </Link>
@@ -170,7 +154,14 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
             <span className="text-gray-500">
-              {Math.round(Number(formatUnits(presaleData.totalRaised, 18))).toLocaleString()} / {Math.round(Number(formatUnits(presaleData.hardCap, 18))).toLocaleString()} ABEY
+              {Math.round(
+                Number(formatUnits(presaleData.totalRaised, 18)),
+              ).toLocaleString()}{" "}
+              /{" "}
+              {Math.round(
+                Number(formatUnits(presaleData.hardCap, 18)),
+              ).toLocaleString()}{" "}
+              ABEY
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />
@@ -180,7 +171,21 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
   );
 }
 
-function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; amount: bigint; lockDate: bigint; unlockDate: bigint; withdrawn: boolean; name: string; tokenSymbol?: string; formattedAmount: string } }) {
+function LockPreviewCard({
+  lock,
+}: {
+  lock: {
+    id: bigint;
+    token: `0x${string}`;
+    amount: bigint;
+    lockDate: bigint;
+    unlockDate: bigint;
+    withdrawn: boolean;
+    name: string;
+    tokenSymbol?: string;
+    formattedAmount: string;
+  };
+}) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -192,7 +197,8 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
   }, []);
 
   // Safe bigint to string conversion
-  const lockIdString = lock.id !== undefined && lock.id !== null ? String(lock.id) : '0';
+  const lockIdString =
+    lock.id !== undefined && lock.id !== null ? String(lock.id) : "0";
 
   // Safe number conversions with fallbacks
   let lockTimestamp = 0;
@@ -206,17 +212,22 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
   const totalDuration = unlockTimestamp - lockTimestamp;
   const elapsed = now - lockTimestamp;
-  const progress = totalDuration > 0 ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100)) : 0;
+  const progress =
+    totalDuration > 0
+      ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100))
+      : 0;
   const isExpired = unlockTimestamp > 0 && now >= unlockTimestamp;
 
   // Safe distance calculation
-  let timeRemaining = 'Ready';
+  let timeRemaining = "Ready";
   if (!isExpired && unlockTimestamp > 0) {
     try {
-      timeRemaining = formatDistanceToNow(new Date(unlockTimestamp), { addSuffix: true });
+      timeRemaining = formatDistanceToNow(new Date(unlockTimestamp), {
+        addSuffix: true,
+      });
     } catch (e) {
       console.error("Error formatting distance:", e);
-      timeRemaining = 'Unknown';
+      timeRemaining = "Unknown";
     }
   }
 
@@ -224,22 +235,35 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
     <div className="border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-black text-sm uppercase">{lock.name || `Lock #${lockIdString}`}</span>
+          <span className="font-black text-sm uppercase">
+            {lock.name || `Lock #${lockIdString}`}
+          </span>
         </div>
-        <span className={`px-2 py-0.5 text-xs font-bold uppercase ${lock.withdrawn ? 'bg-gray-400 text-white' : isExpired ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'}`}>
-          {lock.withdrawn ? 'Withdrawn' : isExpired ? 'Unlockable' : 'Locked'}
+        <span
+          className={`px-2 py-0.5 text-xs font-bold uppercase ${lock.withdrawn ? "bg-gray-400 text-white" : isExpired ? "bg-green-500 text-white" : "bg-yellow-500 text-black"}`}
+        >
+          {lock.withdrawn ? "Withdrawn" : isExpired ? "Unlockable" : "Locked"}
         </span>
       </div>
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-bold">{lock.formattedAmount || '0'} {lock.tokenSymbol || ''}</span>
+        <span className="text-sm font-bold">
+          {lock.formattedAmount || "0"} {lock.tokenSymbol || ""}
+        </span>
         <span className="text-xs text-gray-500">{timeRemaining}</span>
       </div>
       {!lock.withdrawn && (
-        <Progress value={progress} className={`h-1.5 border border-black ${isExpired ? 'bg-green-100' : 'bg-gray-100'}`} />
+        <Progress
+          value={progress}
+          className={`h-1.5 border border-black ${isExpired ? "bg-green-100" : "bg-gray-100"}`}
+        />
       )}
       <div className="mt-3 flex justify-end">
         <Link to={`/locks/${lockIdString}`}>
-          <Button size="sm" variant="outline" className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]"
+          >
             View <ArrowRight className="w-3 h-3 ml-1" />
           </Button>
         </Link>
@@ -250,14 +274,28 @@ function LockPreviewCard({ lock }: { lock: { id: bigint; token: `0x${string}`; a
 
 export default function UserDashboardPage() {
   const { address, isConnected } = useAccount();
-  const { tokens: createdTokens, isLoading, isError: isTokenError } = useUserTokens();
-  const { nfts: createdNFTs, isLoading: isLoadingNFTs, isError: isNFTError } = useUserNFTs();
-  const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales('all', false);
+  const {
+    tokens: createdTokens,
+    isLoading,
+    isError: isTokenError,
+  } = useUserTokens();
+  const {
+    nfts: createdNFTs,
+    isLoading: isLoadingNFTs,
+    isError: isNFTError,
+  } = useUserNFTs();
+  const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales(
+    "all",
+    false,
+  );
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
+  const config = useConfig();
+  const chainId = useChainId();
+  const chain = config.chains.find((c) => c.id === chainId);
+  const explorerUrl = chain?.blockExplorers?.default.url;
   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
   //   address as Address | undefined
   // );
-  const explorerUrl = abeychainDevnet.blockExplorers.default.url;
   // const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenPage, setTokenPage] = useState(0);
   const [nftPage, setNftPage] = useState(0);
@@ -267,10 +305,10 @@ export default function UserDashboardPage() {
   const TOKENS_PER_PAGE = 3;
   const tokenList = [...((createdTokens as `0x${string}`[]) || [])].reverse();
   const totalTokenPages = Math.ceil(tokenList.length / TOKENS_PER_PAGE);
-  // const paginatedTokens = tokenList.slice(
-  //   tokenPage * TOKENS_PER_PAGE,
-  //   (tokenPage + 1) * TOKENS_PER_PAGE
-  // );
+  const paginatedTokens = tokenList.slice(
+    tokenPage * TOKENS_PER_PAGE,
+    (tokenPage + 1) * TOKENS_PER_PAGE,
+  );
 
   // Pagination for NFT collections (newest first)
   const NFTS_PER_PAGE = 3;
@@ -278,24 +316,26 @@ export default function UserDashboardPage() {
   const totalNFTPages = Math.ceil(nftList.length / NFTS_PER_PAGE);
   const paginatedNFTs = nftList.slice(
     nftPage * NFTS_PER_PAGE,
-    (nftPage + 1) * NFTS_PER_PAGE
+    (nftPage + 1) * NFTS_PER_PAGE,
   );
 
   // Filter presales owned by the user
-  const myPresales = presales?.filter(
-    (p) => address && p.owner?.toLowerCase() === address.toLowerCase()
-  ) || [];
+  const myPresales =
+    presales?.filter(
+      (p) => address && p.owner?.toLowerCase() === address.toLowerCase(),
+    ) || [];
 
-  const activeLocks = [...(userLocks?.filter(l => !l.withdrawn) || [])].reverse();
-
-  const { domains, isLoading: isLoadingDomains } = useMyDomains(address as Address | undefined);
-
+  const activeLocks = [
+    ...(userLocks?.filter((l) => !l.withdrawn) || []),
+  ].reverse();
 
   if (!isConnected) {
     return (
       <div className="container mx-auto px-4 py-12 text-black">
         <div className="border-b-4 border-black bg-[#FFE38A] p-4 sm:p-6 shadow-[4px_4px_0_rgba(0,0,0,1)] mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">Your Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">
+            Your Dashboard
+          </h1>
         </div>
         <Card className="-rotate-[0.45deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <CardContent className="py-12 text-center">
@@ -315,10 +355,9 @@ export default function UserDashboardPage() {
         <div className="border-b-4 border-black bg-[#FFE38A] p-4 sm:p-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">Your Dashboard</h1>
-              <p className="text-xs sm:text-sm font-mono mt-1 sm:mt-2 truncate">
-                {address?.slice(0, 6)}...{address?.slice(-4)}
-              </p>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-wider">
+                Your Dashboard
+              </h1>
             </div>
           </div>
         </div>
@@ -333,7 +372,10 @@ export default function UserDashboardPage() {
             </CardTitle>
             {tokenList.length > 0 && (
               <Link to="/dashboard/create/token">
-                <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                <Button
+                  size="sm"
+                  className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]"
+                >
                   <Plus className="w-3 h-3 mr-1" /> New Token
                 </Button>
               </Link>
@@ -351,23 +393,32 @@ export default function UserDashboardPage() {
             </div>
           ) : isTokenError ? (
             <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
-              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
-              <p className="text-xs text-red-600">The TokenFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
+              <p className="font-black text-red-700 uppercase text-sm mb-1">
+                Contract Unavailable
+              </p>
+              <p className="text-xs text-red-600">
+                The TokenFactory contract is not deployed at the configured
+                address. Contact the team to deploy contracts on Abeychain.
+              </p>
             </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
-              {/* {paginatedTokens.map((token, index) => (
-                <div key={token} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
-                  <TokenInfo tokenAddress={token} onPresaleClick={() => setIsModalOpen(true)} />
+              {paginatedTokens.map((token, index) => (
+                <div
+                  key={token}
+                  className={
+                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
+                  }
+                >
+                  <TokenInfo tokenAddress={token} />
                 </div>
-              ))} */}
-              {/* Pagination Controls */}
+              ))}
               {totalTokenPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setTokenPage(p => Math.max(0, p - 1))}
+                    onClick={() => setTokenPage((p) => Math.max(0, p - 1))}
                     disabled={tokenPage === 0}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -379,7 +430,9 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setTokenPage(p => Math.min(totalTokenPages - 1, p + 1))}
+                    onClick={() =>
+                      setTokenPage((p) => Math.min(totalTokenPages - 1, p + 1))
+                    }
                     disabled={tokenPage >= totalTokenPages - 1}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -390,10 +443,12 @@ export default function UserDashboardPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any tokens yet.</p>
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                You have not created any tokens yet.
+              </p>
               <Link to="/dashboard/create/token">
-                <Button className="border-4 border-black bg-[#22C55E] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
-                  <Plus className="w-4 h-4 mr-1" /> Create Your First Token
+                <Button className="border-4 border-black bg-[#22C55E] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#16A34A]">
+                  Create Your First Token
                 </Button>
               </Link>
             </div>
@@ -406,11 +461,14 @@ export default function UserDashboardPage() {
         <CardHeader className="border-b-2 border-black bg-[#FF7F41] p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
-              <ImageIcon className="w-5 h-5" /> My NFT Collections
+              My NFT Collections
             </CardTitle>
             {nftList.length > 0 && (
               <Link to="/dashboard/create/nft">
-                <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                <Button
+                  size="sm"
+                  className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]"
+                >
                   <Plus className="w-3 h-3 mr-1" /> New Collection
                 </Button>
               </Link>
@@ -428,14 +486,27 @@ export default function UserDashboardPage() {
             </div>
           ) : isNFTError ? (
             <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
-              <p className="font-black text-red-700 uppercase text-sm mb-1">Contract Unavailable</p>
-              <p className="text-xs text-red-600">The NFTFactory contract is not deployed at the configured address. Contact the team to deploy contracts on Abeychain.</p>
+              <p className="font-black text-red-700 uppercase text-sm mb-1">
+                Contract Unavailable
+              </p>
+              <p className="text-xs text-red-600">
+                The NFTFactory contract is not deployed at the configured
+                address. Contact the team to deploy contracts on Abeychain.
+              </p>
             </div>
           ) : nftList.length > 0 ? (
             <div className="space-y-3">
               {paginatedNFTs.map((collection, index) => (
-                <div key={collection} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
-                  <NFTCollectionInfo collectionAddress={collection} explorerUrl={explorerUrl} />
+                <div
+                  key={collection}
+                  className={
+                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
+                  }
+                >
+                  <NFTCollectionInfo
+                    collectionAddress={collection}
+                    explorerUrl={explorerUrl}
+                  />
                 </div>
               ))}
               {totalNFTPages > 1 && (
@@ -443,7 +514,7 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setNftPage(p => Math.max(0, p - 1))}
+                    onClick={() => setNftPage((p) => Math.max(0, p - 1))}
                     disabled={nftPage === 0}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -455,7 +526,9 @@ export default function UserDashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setNftPage(p => Math.min(totalNFTPages - 1, p + 1))}
+                    onClick={() =>
+                      setNftPage((p) => Math.min(totalNFTPages - 1, p + 1))
+                    }
                     disabled={nftPage >= totalNFTPages - 1}
                     className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
                   >
@@ -466,82 +539,12 @@ export default function UserDashboardPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">You have not created any NFT collections yet.</p>
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                You have not created any NFT collections yet.
+              </p>
               <Link to="/dashboard/create/nft">
-                <Button className="border-4 border-black bg-[#FF7F41] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
-                  <Plus className="w-4 h-4 mr-1" /> Create Your First Collection
-                </Button>
-              </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* My .abey Names */}
-      <Card className="rotate-[0.3deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
-        <CardHeader className="border-b-2 border-black bg-[#FFF2D5] p-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
-              <Globe className="w-5 h-5" /> My .abey Names
-            </CardTitle>
-            <Link to="/domains">
-              <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
-                <Plus className="w-3 h-3 mr-1" /> Register Name
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          {isLoadingDomains ? (
-            <div className="space-y-3 animate-pulse">
-              <div className="h-14 bg-gray-200 rounded mb-3"></div>
-              <div className="h-14 bg-gray-200 rounded"></div>
-            </div>
-          ) : domains.length > 0 ? (
-            <div className="space-y-3">
-              {domains.map((domain, i) => (
-                <div
-                  key={domain.label}
-                  className={`border-2 border-black p-4 [box-shadow:2px_2px_0_rgba(0,0,0,1)] flex flex-wrap items-center justify-between gap-3 ${i % 2 === 0 ? "-rotate-[0.25deg]" : "rotate-[0.25deg]"} ${domain.isExpired ? "bg-[#FFE4E4]" : "bg-[#FFFDF7]"}`}
-                >
-                  <div>
-                    <p className="font-mono font-black text-base">{domain.fullName}</p>
-                    <div className="flex flex-wrap items-center gap-3 mt-1 text-xs font-bold text-black/60">
-                      {domain.expiry && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {domain.isExpired ? "Expired" : "Expires"}{" "}
-                          {domain.expiry.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-                        </span>
-                      )}
-                      {domain.resolvedAddr ? (
-                        <span className="font-mono">→ {domain.resolvedAddr.slice(0, 6)}…{domain.resolvedAddr.slice(-4)}</span>
-                      ) : (
-                        <span className="text-black/40">No address set</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {domain.isExpired && (
-                      <span className="border-[2px] border-black bg-[#FF7F41] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em]">
-                        Expired
-                      </span>
-                    )}
-                    <Link to="/domains">
-                      <Button size="sm" variant="outline" className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]">
-                        Manage <ArrowRight className="w-3 h-3 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base font-medium">You have no .abey names yet.</p>
-              <Link to="/domains">
-                <Button className="border-4 border-black bg-[#B8EF53] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#a3d94a]">
-                  <Globe className="w-4 h-4 mr-1" /> Register Your Name
+                <Button className="border-4 border-black bg-[#FF7F41] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
+                  Create Your First Collection
                 </Button>
               </Link>
             </div>
@@ -568,23 +571,35 @@ export default function UserDashboardPage() {
             ) : myPresales.length > 0 ? (
               <div className="space-y-3">
                 {myPresales.slice(0, 3).map((presale, index) => (
-                  <div key={presale.address} className={index % 2 === 0 ? "rotate-[0.35deg]" : "-rotate-[0.35deg]"}>
+                  <div
+                    key={presale.address}
+                    className={
+                      index % 2 === 0 ? "rotate-[0.35deg]" : "-rotate-[0.35deg]"
+                    }
+                  >
                     <PresaleInfo presaleAddress={presale.address} />
                   </div>
                 ))}
                 {myPresales.length > 3 && (
                   <Link to="/dashboard/presales" className="block text-center">
-                    <Button variant="outline" size="sm" className="border-2 border-black font-bold text-xs uppercase">
-                      View All ({myPresales.length}) <ArrowRight className="w-3 h-3 ml-1" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-black font-bold text-xs uppercase"
+                    >
+                      View All ({myPresales.length}){" "}
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   </Link>
                 )}
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No presales yet</p>
+                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                  No presales yet
+                </p>
                 <Link to="/dashboard/create/presale">
-                  <Button className="border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
+                  <Button className="border-4 border-black bg-[#42C9FF] text-white font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]">
                     Create Presale
                   </Button>
                 </Link>
@@ -601,7 +616,11 @@ export default function UserDashboardPage() {
                 My Token Locks
               </CardTitle>
               <Link to="/dashboard/tools/token-locker">
-                <Button size="sm" variant="outline" className="border-2 border-black font-bold text-xs uppercase">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-2 border-black font-bold text-xs uppercase"
+                >
                   Manage
                 </Button>
               </Link>
@@ -622,7 +641,14 @@ export default function UserDashboardPage() {
                   if (!lock || lock.id === undefined) return null;
                   try {
                     return (
-                      <div key={lock.id.toString()} className={index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"}>
+                      <div
+                        key={lock.id.toString()}
+                        className={
+                          index % 2 === 0
+                            ? "-rotate-[0.35deg]"
+                            : "rotate-[0.35deg]"
+                        }
+                      >
                         <LockPreviewCard lock={lock} />
                       </div>
                     );
@@ -632,19 +658,29 @@ export default function UserDashboardPage() {
                   }
                 })}
                 {activeLocks.length > 3 && (
-                  <Link to="/dashboard/tools/token-locker" className="block text-center">
-                    <Button variant="outline" size="sm" className="border-2 border-black font-bold text-xs uppercase">
-                      View All ({activeLocks.length}) <ArrowRight className="w-3 h-3 ml-1" />
+                  <Link
+                    to="/dashboard/tools/token-locker"
+                    className="block text-center"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-black font-bold text-xs uppercase"
+                    >
+                      View All ({activeLocks.length}){" "}
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   </Link>
                 )}
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No active locks</p>
+                <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
+                  No active locks
+                </p>
                 <Link to="/dashboard/tools/token-locker">
-                  <Button className="border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
-                    <Lock className="w-4 h-4 mr-1" /> Create Lock
+                  <Button className="border-4 border-black bg-[#FFE38A] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]">
+                    Create Lock
                   </Button>
                 </Link>
               </div>
