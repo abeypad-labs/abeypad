@@ -3,27 +3,29 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
-// import { defineChain } from "viem/utils";
+import { megaethTestnet } from "viem/chains";
+import { defineChain } from "viem/utils";
 import { WagmiProvider, http } from "wagmi";
- import { megaethTestnet } from "viem/chains";
 
-// const abeychainDevnet = defineChain({
-//   id: 178,
-//   name: 'Abeychain Testnet',
-//   nativeCurrency: {
-//     decimals: 18,
-//     name: 'ABEY',
-//     symbol: 'ABEY',
-//   },
-//   rpcUrls: {
-//     default: {
-//       http: ['https://testrpc.abeychain.com'],
-//     },
-//   },
-//   blockExplorers: {
-//     default: { name: 'Abeyscan Testnet', url: 'https://testnet.abeyscan.com' },
-//   },
-// });
+const abeychainDevnet = defineChain({
+  id: 178,
+  name: 'Abeychain Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'ABEY',
+    symbol: 'ABEY',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://testrpc.abeychain.com'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Abeyscan Testnet', url: 'https://testnet.abeyscan.com' },
+  },
+});
+
+console.log({abeychainDevnet})
 
 const config = getDefaultConfig({
   appName: "AbeyPad",
