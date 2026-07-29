@@ -10,3 +10,4 @@ export default function AppLayout() {
     </Sidebar>
   );
 }
+// curl -s -o /dev/null -w "%{http_code}" https://testrpc.abeychain.com
