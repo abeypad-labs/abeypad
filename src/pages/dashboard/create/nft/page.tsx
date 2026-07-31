@@ -16,19 +16,17 @@ import {
   useWriteContract,
 } from "@/lib/hooks";
 import { useUserAssetsStore } from "@/lib/store/user-assets-store";
-import { cn } from "@/lib/utils/utils";
 import { uploadNFTImageWithMetadata } from "@/lib/utils/pinata";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { cn } from "@/lib/utils/utils";
 import {
   AlertCircle,
   CheckCircle2,
   ExternalLink,
-  FileImage,
-  ImageIcon,
   LayoutDashboard,
   Loader2,
   Upload,
-  X,
+  X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
