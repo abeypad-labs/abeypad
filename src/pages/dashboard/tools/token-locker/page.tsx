@@ -25,13 +25,13 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { erc20Abi, maxUint256, parseUnits, type Abi } from "viem";
+import { erc20Abi, parseUnits, type Abi, type Address } from "viem";
 import { useChainId, useConfig } from "wagmi";
 
 interface LockData {
   id: bigint;
-  token: `0x${string}`;
-  owner: `0x${string}`;
+  token: Address;
+  owner: Address;
   amount: bigint;
   lockDate: bigint;
   unlockDate: bigint;
@@ -145,6 +145,8 @@ function LockCard({
   const isValidDate = unlockTimestamp > 0 && !isNaN(unlockDate.getTime());
   const isUnlocked = isValidDate && unlockDate < new Date();
   const isWithdrawn = lock.withdrawn;
+
+
 
   // Safe id conversion
   const lockIdString =
@@ -373,7 +375,7 @@ function CreateLockModal({
       address: normalizedTokenAddress,
       abi: erc20Abi,
       functionName: "approve",
-      args: [tokenLocker, maxUint256],
+      args: [tokenLocker, parsedAmount],
     });
   };
 

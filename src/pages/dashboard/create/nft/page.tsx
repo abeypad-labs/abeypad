@@ -16,12 +16,17 @@ import {
   useWriteContract,
 } from "@/lib/hooks";
 import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { uploadNFTImageWithMetadata } from "@/lib/utils/pinata";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { cn } from "@/lib/utils/utils";
 import {
+  AlertCircle,
   CheckCircle2,
   ExternalLink,
   LayoutDashboard,
   Loader2,
+  Upload,
+  X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -66,11 +71,105 @@ export default function CreateNftPage() {
   >("idle");
   const [txError, setTxError] = useState<string | null>(null);
 
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  console.log({imageFile})
+
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (address) {
       setPayoutWallet(address);
     }
   }, [address]);
+
+  const handleImageUpload = async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Image must be less than 50MB");
+      return;
+    }
+
+    setImageFile(file);
+    setUploadStatus("uploading");
+    setUploadError(null);
+
+    // Create local preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      toast.info("Uploading image to IPFS via Pinata…");
+
+      const { imageUri: imgUri, metadataUri } =
+        await uploadNFTImageWithMetadata(
+          file,
+          name || "Unnamed Collection",
+          symbol || "NFT",
+        );
+
+      setImageUri(imgUri);
+      setBaseURI(metadataUri);
+      setUploadStatus("done");
+
+      toast.success("Image uploaded to IPFS! Metadata JSON generated.");
+    } catch (err) {
+      console.error("[CreateNFT] Upload failed:", err);
+      const message =
+        err instanceof Error ? err.message : "Unknown upload error";
+      setUploadStatus("error");
+      setUploadError(message);
+      toast.error(`Upload failed: ${message}`);
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUri(null);
+    setBaseURI("");
+    setUploadStatus("idle");
+    setUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleCreateNFT = () => {
     if (!address) {
@@ -213,6 +312,7 @@ export default function CreateNftPage() {
       setSymbol("");
       setBaseURI("");
       setMaxSupply("");
+      clearImage();
       setSaleStart("");
       setSaleEnd("");
       setWalletLimit("");
@@ -457,14 +557,121 @@ export default function CreateNftPage() {
                 />
               </div>
             </div>
+            {/* Image Upload — replaces manual Base URI input */}
             <div className="space-y-2">
-              <Label htmlFor="base-uri">Base URI</Label>
-              <Input
-                id="base-uri"
-                placeholder="ipfs://..."
-                value={baseURI}
-                onChange={(e) => setBaseURI(e.target.value)}
+              <Label>Collection Image</Label>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
               />
+
+              {/* Drop zone / upload area */}
+              {uploadStatus === "idle" && !imagePreview && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  className={cn(
+                    "border-4 border-dashed border-black p-8 rounded-lg",
+                    "flex flex-col items-center justify-center gap-3",
+                    "cursor-pointer hover:bg-gray-50 transition-colors",
+                    "min-h-[200px]",
+                  )}
+                >
+                  <Upload className="w-10 h-10 text-gray-500" />
+                  <p className="font-bold uppercase tracking-wider text-sm text-center">
+                    Click to upload or drag & drop
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    PNG, JPG, GIF, WebP (max 50MB)
+                  </p>
+                </div>
+              )}
+
+              {/* Uploading state */}
+              {uploadStatus === "uploading" && (
+                <div className="border-4 border-black bg-gray-50 p-8 rounded-lg flex flex-col items-center justify-center gap-3 min-h-[200px]">
+                  <Loader2 className="w-10 h-10 animate-spin text-black" />
+                  <p className="font-bold uppercase tracking-wider text-sm text-center">
+                    Uploading to IPFS…
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Uploading image &amp; generating metadata
+                  </p>
+                </div>
+              )}
+
+              {/* Upload error state */}
+              {uploadStatus === "error" && (
+                <div className="border-4 border-red-500 bg-red-50 p-6 rounded-lg flex flex-col items-center gap-3">
+                  <AlertCircle className="w-10 h-10 text-red-500" />
+                  <p className="font-bold uppercase tracking-wider text-sm text-center text-red-700">
+                    Upload Failed
+                  </p>
+                  <p className="text-xs text-red-600 text-center">
+                    {uploadError}
+                  </p>
+                  <Button
+                    onClick={clearImage}
+                    variant="outline"
+                    className="border-2 border-red-500 text-red-700"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              )}
+
+              {/* Upload success — show preview + metadata URI */}
+              {(uploadStatus === "done" || imagePreview) && (
+                <div className="border-4 border-black bg-gray-50 p-4 rounded-lg space-y-3">
+                  <div className="flex items-start gap-4">
+                    {/* Image preview */}
+                    <div className="relative w-28 h-28 shrink-0 border-2 border-black overflow-hidden rounded-lg bg-white">
+                      {imagePreview && (
+                        <img
+                          src={imagePreview}
+                          alt="NFT preview"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+
+                    {/* Upload info */}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                        <span className="text-sm font-bold text-green-700">
+                          Uploaded to IPFS
+                        </span>
+                      </div>
+                      {imageUri && (
+                        <p className="text-xs font-mono text-gray-500 break-all">
+                          Image: {imageUri}
+                        </p>
+                      )}
+                      {baseURI && (
+                        <p className="text-xs font-mono text-gray-500 break-all">
+                          Metadata: {baseURI}
+                        </p>
+                      )}
+                      <Button
+                        onClick={clearImage}
+                        variant="outline"
+                        size="sm"
+                        className="border-2 border-black text-xs h-7"
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Remove &amp; re-upload
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -567,7 +774,7 @@ export default function CreateNftPage() {
 
             <Button
               onClick={handleCreateNFT}
-              disabled={isBusy || !name || !symbol}
+              disabled={isBusy || !name || !symbol || uploadStatus !== "done"}
               className="-rotate-[0.35deg] w-full border-4 border-black bg-[#22C55E] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isPending && (

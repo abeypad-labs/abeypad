@@ -227,48 +227,52 @@ export function PresaleCard({ presale }: { presale: PresaleWithStatus }) {
         {/* Social icons */}
         <div className="flex items-center gap-2 mb-4">
           {socials.twitter && socials.twitter !== "#" && (
-            <a
-              href={socials.twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="w-9 h-9 -rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(socials.twitter, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-9 h-9 -rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors cursor-pointer"
             >
               <Twitter className="w-4 h-4" />
-            </a>
+            </button>
           )}
           {socials.telegram && socials.telegram !== "#" && (
-            <a
-              href={socials.telegram}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="w-9 h-9 rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(socials.telegram, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-9 h-9 rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors cursor-pointer"
             >
               <Send className="w-4 h-4" />
-            </a>
+            </button>
           )}
           {socials.discord && socials.discord !== "#" && (
-            <a
-              href={socials.discord}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="w-9 h-9 -rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(socials.discord, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-9 h-9 -rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
-            </a>
+            </button>
           )}
           {socials.website && socials.website !== "#" && (
-            <a
-              href={socials.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="w-9 h-9 rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(socials.website, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-9 h-9 rotate-[2deg] flex items-center justify-center border-[3px] border-black bg-[#FFF2D5] hover:bg-[#42C9FF] transition-colors cursor-pointer"
             >
               <Globe className="w-4 h-4" />
-            </a>
+            </button>
           )}
         </div>
 

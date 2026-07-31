@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
-import { useChainId, useReadContract } from "@/lib/hooks";
+import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
+import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
@@ -16,8 +17,9 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { erc20Abi, formatUnits, type Abi } from "viem";
 import { useConfig } from "wagmi";
 
@@ -202,6 +204,59 @@ export default function LockDetailPage() {
       return "locked";
     }
   }, [lock]);
+
+  const { address } = useAccount();
+
+  const isOwner =
+    !!lock &&
+    !!address &&
+    lock.owner.toLowerCase() === address.toLowerCase();
+
+  const {
+    data: unlockHash,
+    writeContract: unlockTokens,
+    isPending: isUnlocking,
+    error: unlockError,
+    reset: resetUnlock,
+  } = useWriteContract();
+
+  const { isLoading: isUnlockConfirming, isSuccess: isUnlockSuccess } =
+    useWaitForTransactionReceipt({
+      hash: unlockHash,
+    });
+
+  const isUnlockingTx = isUnlocking || isUnlockConfirming;
+
+  const handleUnlock = () => {
+    if (lockId === undefined) return;
+    unlockTokens({
+      address: tokenLocker,
+      abi: TokenLocker.abi as Abi,
+      functionName: "unlock",
+      args: [lockId],
+    });
+  };
+
+  const processedUnlockHash = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (unlockError) {
+      toast.error(getFriendlyTxErrorMessage(unlockError, "Unlock"));
+      resetUnlock();
+    }
+  }, [unlockError, resetUnlock]);
+
+  useEffect(() => {
+    if (
+      isUnlockSuccess &&
+      unlockHash &&
+      processedUnlockHash.current !== unlockHash
+    ) {
+      processedUnlockHash.current = unlockHash;
+      toast.success("Tokens unlocked successfully!");
+      resetUnlock();
+    }
+  }, [isUnlockSuccess, unlockHash, resetUnlock]);
 
   if (isLoadingLock) {
     return (
@@ -413,11 +468,22 @@ export default function LockDetailPage() {
               Lock Progress
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 sm:p-6 space-y-4">
             <LockProgressBar
               lockDate={lock.lockDate}
               unlockDate={lock.unlockDate}
             />
+
+            {lockStatus === "unlockable" && isOwner && (
+              <Button
+                onClick={handleUnlock}
+                disabled={isUnlockingTx}
+                className="w-full border-4 border-black bg-[#90EE90] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#7ADF7A] disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base py-5 sm:py-6"
+              >
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+                {isUnlockingTx ? "Withdrawing..." : "Withdraw Tokens"}
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
