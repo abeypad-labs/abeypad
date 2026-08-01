@@ -32,7 +32,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate public frontend configuration
+        env:
+          TESTNET_API_URL: ${{ vars.VITE_ABEY_TESTNET_API_URL }}
+          MAINNET_API_URL: ${{ vars.VITE_ABEY_MAINNET_API_URL }}
+        run: |
+          if [ -z "${TESTNET_API_URL}" ] || [ -z "${MAINNET_API_URL}" ]; then
+            echo "Set VITE_ABEY_TESTNET_API_URL and VITE_ABEY_MAINNET_API_URL as repository variables before deploying." >&2
+            exit 1
+          fi
+
       - name: Build application
+        env:
+          VITE_NETWORK: ${{ vars.VITE_NETWORK != '' && vars.VITE_NETWORK || 'mainnet' }}
+          VITE_ABEY_TESTNET_RPC_URL: ${{ vars.VITE_ABEY_TESTNET_RPC_URL != '' && vars.VITE_ABEY_TESTNET_RPC_URL || 'https://testrpc.abeychain.com' }}
+          VITE_ABEY_MAINNET_RPC_URL: ${{ vars.VITE_ABEY_MAINNET_RPC_URL != '' && vars.VITE_ABEY_MAINNET_RPC_URL || 'https://rpc.abeychain.com' }}
+          VITE_ABEY_TESTNET_API_URL: ${{ vars.VITE_ABEY_TESTNET_API_URL }}
+          VITE_ABEY_MAINNET_API_URL: ${{ vars.VITE_ABEY_MAINNET_API_URL }}
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ vars.VITE_WALLETCONNECT_PROJECT_ID }}
         run: npm run build
 
       - name: Verify built app entrypoint

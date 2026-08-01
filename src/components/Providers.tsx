@@ -2,37 +2,42 @@ import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
-import { useState } from "react";
-import { megaethTestnet } from "viem/chains";
-// import { defineChain } from "viem/utils";
-import { WagmiProvider, http } from "wagmi";
-
-// const abeychainDevnet = defineChain({
-//   id: 178,
-//   name: 'Abeychain Testnet',
-//   nativeCurrency: {
-//     decimals: 18,
-//     name: 'ABEY',
-//     symbol: 'ABEY',
-//   },
-//   rpcUrls: {
-//     default: {
-//       http: ['https://testrpc.abeychain.com'],
-//     },
-//   },
-//   blockExplorers: {
-//     default: { name: 'Abeyscan Testnet', url: 'https://testnet.abeyscan.com' },
-//   },
-// });
+import { useEffect, useRef, useState } from "react";
+import {
+  abeyMainnet,
+  abeyTestnet,
+  SUPPORTED_ABEY_CHAINS,
+} from "@/config/chains";
+import { useBlockchainStore } from "@/lib/store/blockchain-store";
+import { useLaunchpadPresaleStore } from "@/lib/store/launchpad-presale-store";
+import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { WagmiProvider, http, useChainId } from "wagmi";
 
 const config = getDefaultConfig({
   appName: "AbeyPad",
-  projectId: "9ef8a1835f8d9515949514f77259f972",
-  chains: [megaethTestnet],
+  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
+  chains: SUPPORTED_ABEY_CHAINS,
   transports: {
-    [megaethTestnet.id]: http(),
+    [abeyTestnet.id]: http(abeyTestnet.rpcUrls.default.http[0]),
+    [abeyMainnet.id]: http(abeyMainnet.rpcUrls.default.http[0]),
   },
 });
+
+function ChainCacheBoundary({ children }: { children: React.ReactNode }) {
+  const chainId = useChainId();
+  const previousChainId = useRef(chainId);
+
+  useEffect(() => {
+    if (previousChainId.current !== chainId) {
+      useBlockchainStore.getState().clearCache();
+      useLaunchpadPresaleStore.getState().clearCache();
+      useUserAssetsStore.getState().clearAllAssetsCache();
+      previousChainId.current = chainId;
+    }
+  }, [chainId]);
+
+  return children;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -41,7 +46,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider>{children}</RainbowKitProvider>
+          <RainbowKitProvider>
+            <ChainCacheBoundary>{children}</ChainCacheBoundary>
+          </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </ThemeProvider>

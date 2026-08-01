@@ -353,6 +353,8 @@ export function PresaleParticipationForm({
         {/* Claim Tokens Button - Always visible, disabled until finalized */}
         <Button
           onClick={handleClaimTokens}
+          loading={isClaimTokensPending || isClaimTokensConfirming}
+          loadingText="Claiming"
           disabled={
             !canClaimTokens ||
             isClaimTokensPending ||
@@ -385,6 +387,8 @@ export function PresaleParticipationForm({
         {isPresaleCancelled && (
           <Button
             onClick={handleClaimRefund}
+            loading={isClaimRefundPending || isClaimRefundConfirming}
+            loadingText="Claiming refund"
             disabled={
               !canClaimRefund || isClaimRefundPending || isClaimRefundConfirming
             }
@@ -502,6 +506,8 @@ export function PresaleParticipationForm({
           <Button
             type={needsApproval ? "button" : "submit"}
             onClick={needsApproval ? approve : undefined}
+            loading={isPending || isConfirming || isApproving}
+            loadingText={getButtonText()}
             disabled={
               isPending ||
               isConfirming ||

@@ -3,15 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
+import { TokenLocker } from "@/config";
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useContractAddresses,
 } from "@/lib/hooks";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { resolveAddressOrAns } from "@/features/ans/address";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   ExternalLink,
@@ -219,6 +221,8 @@ function LockCard({
             {isUnlocked ? (
               <Button
                 onClick={() => onUnlock(lock.id)}
+                loading={unlockingId === lock.id}
+                loadingText="Withdrawing"
                 disabled={unlockingId === lock.id}
                 className="col-span-2 border-4 border-black bg-[#90EE90] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#7ADF7A]"
               >
@@ -261,7 +265,7 @@ function CreateLockModal({
 }) {
   const [searchParams] = useSearchParams();
   const { address } = useAccount();
-  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+  const { tokenLocker } = useContractAddresses();
 
   const {
     data: lockHash,
@@ -631,21 +635,22 @@ function CreateLockModal({
           {needsApproval ? (
             <Button
               onClick={handleApprove}
+              loading={isApproving || isApproveConfirming}
+              loadingText="Approving"
               disabled={!isFormValid || isApproving || isApproveConfirming}
               className="w-full border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62]"
             >
-              {isApproving || isApproveConfirming
-                ? "Approving..."
-                : "Approve Tokens"}
+              Approve Tokens
             </Button>
           ) : (
             <Button
               onClick={handleLock}
+              loading={isLocking || isLockConfirming}
+              loadingText="Locking"
               disabled={!isFormValid || isLocking || isLockConfirming}
               className="w-full border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#1FB9E7]"
             >
-              <Lock className="w-4 h-4 mr-2" />
-              {isLocking || isLockConfirming ? "Locking..." : "Lock Tokens"}
+              <Lock className="w-4 h-4 mr-2" /> Lock Tokens
             </Button>
           )}
         </CardContent>
@@ -663,7 +668,7 @@ function ExtendLockModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+  const { tokenLocker } = useContractAddresses();
   const [additionalDays, setAdditionalDays] = useState("");
   const {
     data: hash,
@@ -751,10 +756,12 @@ function ExtendLockModal({
             </Button>
             <Button
               onClick={handleExtend}
+              loading={isPending || isConfirming}
+              loadingText="Extending"
               disabled={!additionalDays || isPending || isConfirming}
               className="flex-1 border-4 border-black bg-[#FFE38A] text-black font-black uppercase shadow-[3px_3px_0_rgba(0,0,0,1)]"
             >
-              {isPending || isConfirming ? "Extending..." : "Extend"}
+              Extend
             </Button>
           </div>
         </CardContent>
@@ -772,7 +779,8 @@ function TransferLockModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const tokenLocker = CONTRACT_ADDRESSES.tokenLocker;
+  const { tokenLocker } = useContractAddresses();
+  const chainId = useChainId();
   const [newOwner, setNewOwner] = useState("");
   const {
     data: hash,
@@ -785,12 +793,15 @@ function TransferLockModal({
     hash,
   });
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
+    let target: `0x${string}`;
+    try { target = await resolveAddressOrAns(newOwner, chainId); }
+    catch { toast.error("Enter a valid address or .abey name"); return; }
     writeContract({
       address: tokenLocker,
       abi: TokenLocker.abi as Abi,
       functionName: "transferLockOwnership",
-      args: [lockId, newOwner as `0x${string}`],
+      args: [lockId, target],
     });
   };
 
@@ -833,7 +844,7 @@ function TransferLockModal({
               New Owner Address
             </Label>
             <Input
-              placeholder="0x..."
+              placeholder="0x... or name.abey"
               value={newOwner}
               onChange={(e) => setNewOwner(e.target.value)}
               className="border-2 border-black font-mono"
@@ -849,12 +860,14 @@ function TransferLockModal({
             </Button>
             <Button
               onClick={handleTransfer}
+              loading={isPending || isConfirming}
+              loadingText="Transferring"
               disabled={
-                !newOwner || newOwner.length !== 42 || isPending || isConfirming
+                !newOwner || isPending || isConfirming
               }
               className="flex-1 border-4 border-black bg-[#FFB6C1] text-black font-black uppercase shadow-[3px_3px_0_rgba(0,0,0,1)]"
             >
-              {isPending || isConfirming ? "Transferring..." : "Transfer"}
+              Transfer
             </Button>
           </div>
         </CardContent>
@@ -865,7 +878,7 @@ function TransferLockModal({
 
 export default function TokenLockerPage() {
   const { address } = useAccount();
-  const { tokenLocker } = CONTRACT_ADDRESSES;
+  const { tokenLocker } = useContractAddresses();
 
   const config = useConfig();
   const chainId = useChainId();

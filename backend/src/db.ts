@@ -1,27 +1,43 @@
-import 'dotenv/config';
-import pg from 'pg';
+import { readdir, readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import pg from "pg";
+import { config } from "./config.js";
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error('DATABASE_URL is not set. Copy .env.example to .env and fill it in.');
+export const pool = new Pool({
+  connectionString: config.databaseUrl,
+  max: config.dbPoolMax,
+  connectionTimeoutMillis: 10_000,
+  idleTimeoutMillis: 30_000,
+  ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
+});
+
+let databaseReady = false;
+
+pool.on("error", (error) => {
+  databaseReady = false;
+  console.error("Unexpected PostgreSQL pool error", error);
+});
+
+export function isDatabaseReady() {
+  return databaseReady;
 }
 
-/**
- * Shared Postgres connection pool.
- *
- * Supabase enforces TLS. `rejectUnauthorized: false` negotiates SSL without
- * verifying the certificate chain — fine for getting started. For production
- * on the VPS, download Supabase's CA cert and pass `ssl: { ca }` instead so
- * the chain is verified (protects against MITM).
- */
-export const pool = new Pool({
-  connectionString,
-  max: Number(process.env.DB_POOL_MAX ?? 10),
-  ssl: { rejectUnauthorized: false },
-});
+export async function closeDb() {
+  await pool.end();
+}
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle Postgres client', err);
-});
+export async function runMigrations() {
+  try {
+    const sqlDir = resolve(process.cwd(), "sql");
+    const files = (await readdir(sqlDir)).filter((file) => file.endsWith(".sql")).sort();
+    for (const file of files) {
+      await pool.query(await readFile(resolve(sqlDir, file), "utf8"));
+    }
+    databaseReady = true;
+  } catch (error) {
+    databaseReady = false;
+    throw error;
+  }
+}

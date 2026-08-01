@@ -9,9 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CONTRACT_ADDRESSES, NFTFactory } from "@/config";
+import { NFTFactory } from "@/config";
 import {
   useAccount,
+  useContractAddresses,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "@/lib/hooks";
@@ -34,7 +35,7 @@ export default function CreateNftPage() {
   const config = useConfig();
   const chainId = useChainId();
   const chain = config.chains.find((c) => c.id === chainId);
-  const { nftFactory, nativeUSDC } = CONTRACT_ADDRESSES;
+  const { nftFactory, nativeUSDC } = useContractAddresses();
   const explorerUrl = chain?.blockExplorers?.default.url;
   const {
     data: hash,
@@ -567,22 +568,12 @@ export default function CreateNftPage() {
 
             <Button
               onClick={handleCreateNFT}
+              loading={isBusy}
+              loadingText={isPending ? "Confirm in Wallet" : "Creating"}
               disabled={isBusy || !name || !symbol}
               className="-rotate-[0.35deg] w-full border-4 border-black bg-[#22C55E] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isPending && (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Confirm in Wallet…
-                </>
-              )}
-              {isConfirming && (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating…
-                </>
-              )}
-              {!isBusy && "Create Collection"}
+              Create Collection
             </Button>
           </CardContent>
         </Card>

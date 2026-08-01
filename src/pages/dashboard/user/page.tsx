@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TokenInfo } from "@/components/TokenInfo";
-import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
+import { useAccount, useChainId } from "@/lib/hooks";
 import { useAllLocks } from "@/lib/hooks/useAllLocks";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
-import { useUserNFTs } from "@/lib/hooks/useUserNFTs";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
+import { ACTIVE_CHAIN_ID, isSupportedAbeyChain } from "@/config";
+import { useAnsOwnedNames } from "@/features/ans/hooks";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
@@ -19,66 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
-import { erc721Abi, formatUnits } from "viem";
-import { useConfig } from "wagmi";
-
-function NFTCollectionInfo({
-  collectionAddress,
-  explorerUrl,
-}: {
-  collectionAddress: `0x${string}`;
-  explorerUrl: string | undefined;
-}) {
-  const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
-    abi: erc721Abi,
-    address: collectionAddress,
-    functionName: "symbol",
-  });
-  const { data: name, isLoading: isLoadingName } = useReadContract({
-    abi: erc721Abi,
-    address: collectionAddress,
-    functionName: "name",
-  });
-
-  if (isLoadingSymbol || isLoadingName) {
-    return (
-      <div className="py-3 animate-pulse">
-        <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
-      <div className="flex-1 min-w-0">
-        <h3 className="font-black text-lg uppercase">
-          {(name as string) || "Unknown Collection"} (
-          {(symbol as string) || "N/A"})
-        </h3>
-        <p className="text-xs text-gray-500 break-all font-mono">
-          {collectionAddress}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2 flex-shrink-0">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)]"
-        >
-          <a
-            href={`${explorerUrl}/address/${collectionAddress}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink className="w-3 h-3 mr-1" /> Explorer
-          </a>
-        </Button>
-      </div>
-    </div>
-  );
-}
+import { formatUnits } from "viem";
 
 function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
   const { presales, isLoading } = useLaunchpadPresales("all", false);
@@ -279,26 +221,19 @@ export default function UserDashboardPage() {
     isLoading,
     isError: isTokenError,
   } = useUserTokens();
-  const {
-    nfts: createdNFTs,
-    isLoading: isLoadingNFTs,
-    isError: isNFTError,
-  } = useUserNFTs();
   const { presales, isLoading: isLoadingPresales } = useLaunchpadPresales(
     "all",
     false,
   );
   const { locks: userLocks, isLoading: isLoadingLocks } = useAllLocks();
-  const config = useConfig();
   const chainId = useChainId();
-  const chain = config.chains.find((c) => c.id === chainId);
-  const explorerUrl = chain?.blockExplorers?.default.url;
+  const ansChainId = isSupportedAbeyChain(chainId) ? chainId : ACTIVE_CHAIN_ID;
+  const ownedNames = useAnsOwnedNames(address, ansChainId);
   // const { isWhitelisted, isLoading: isLoadingWhitelist } = useWhitelistedCreator(
   //   address as Address | undefined
   // );
   // const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenPage, setTokenPage] = useState(0);
-  const [nftPage, setNftPage] = useState(0);
   // const navigate = useNavigate();
 
   // Pagination for tokens (newest first)
@@ -308,15 +243,6 @@ export default function UserDashboardPage() {
   const paginatedTokens = tokenList.slice(
     tokenPage * TOKENS_PER_PAGE,
     (tokenPage + 1) * TOKENS_PER_PAGE,
-  );
-
-  // Pagination for NFT collections (newest first)
-  const NFTS_PER_PAGE = 3;
-  const nftList = [...((createdNFTs as `0x${string}`[]) || [])].reverse();
-  const totalNFTPages = Math.ceil(nftList.length / NFTS_PER_PAGE);
-  const paginatedNFTs = nftList.slice(
-    nftPage * NFTS_PER_PAGE,
-    (nftPage + 1) * NFTS_PER_PAGE,
   );
 
   // Filter presales owned by the user
@@ -456,27 +382,22 @@ export default function UserDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* My NFT Collections - Full Width */}
+      {/* My .abey names - Full Width */}
       <Card className="rotate-[0.4deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
-        <CardHeader className="border-b-2 border-black bg-[#FF7F41] p-4">
+        <CardHeader className="border-b-2 border-black bg-[#B8EF53] p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
-              My NFT Collections
+              My .abey Names
             </CardTitle>
-            {nftList.length > 0 && (
-              <Link to="/dashboard/create/nft">
-                <Button
-                  size="sm"
-                  className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]"
-                >
-                  <Plus className="w-3 h-3 mr-1" /> New Collection
-                </Button>
-              </Link>
-            )}
+            <Link to="/names">
+              <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                <Plus className="w-3 h-3 mr-1" /> Register name
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          {isLoadingNFTs ? (
+          {ownedNames.isLoading ? (
             <div className="space-y-3">
               <div className="animate-pulse">
                 <div className="h-16 bg-gray-200 rounded mb-3"></div>
@@ -484,69 +405,27 @@ export default function UserDashboardPage() {
                 <div className="h-16 bg-gray-200 rounded"></div>
               </div>
             </div>
-          ) : isNFTError ? (
+          ) : ownedNames.isError ? (
             <div className="border-2 border-red-500 bg-red-50 p-4 text-center">
-              <p className="font-black text-red-700 uppercase text-sm mb-1">
-                Contract Unavailable
-              </p>
-              <p className="text-xs text-red-600">
-                The NFTFactory contract is not deployed at the configured
-                address. Contact the team to deploy contracts on Abeychain.
-              </p>
+              <p className="font-black text-red-700 uppercase text-sm mb-1">Names unavailable</p>
+              <p className="text-xs text-red-600">The .abey portfolio could not be loaded. Please retry.</p>
             </div>
-          ) : nftList.length > 0 ? (
-            <div className="space-y-3">
-              {paginatedNFTs.map((collection, index) => (
-                <div
-                  key={collection}
-                  className={
-                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
-                  }
-                >
-                  <NFTCollectionInfo
-                    collectionAddress={collection}
-                    explorerUrl={explorerUrl}
-                  />
+          ) : (ownedNames.data?.length ?? 0) > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {ownedNames.data?.map((name, index) => (
+                <div key={name.node} className={`border-2 border-black bg-white p-4 shadow-[3px_3px_0_#000] ${index % 2 ? "rotate-[0.25deg]" : "-rotate-[0.25deg]"}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0"><p className="truncate text-lg font-black">{name.fqdn}</p><p className="mt-1 truncate font-mono text-[10px] text-black/50">{name.resolvedAddress ?? "No address record"}</p></div>
+                    <span className={`border-2 border-black px-2 py-1 text-[9px] font-black uppercase ${name.custody === "wallet" ? "bg-[#B8EF53]" : "bg-[#F95D9B]"}`}>{name.custody === "wallet" ? "Owned" : "For sale"}</span>
+                  </div>
+                  <div className="mt-4 flex gap-2"><Button asChild size="sm"><Link to="/names">Manage</Link></Button>{name.custody === "wallet" && <Button asChild size="sm" variant="secondary"><Link to={`/names/marketplace?sell=${name.label}`}>Sell</Link></Button>}</div>
                 </div>
               ))}
-              {totalNFTPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNftPage((p) => Math.max(0, p - 1))}
-                    disabled={nftPage === 0}
-                    className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-1" /> Prev
-                  </Button>
-                  <span className="text-sm font-bold">
-                    Page {nftPage + 1} of {totalNFTPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setNftPage((p) => Math.min(totalNFTPages - 1, p + 1))
-                    }
-                    disabled={nftPage >= totalNFTPages - 1}
-                    className="border-2 border-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] disabled:opacity-50 disabled:shadow-none"
-                  >
-                    Next <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">
-                You have not created any NFT collections yet.
-              </p>
-              <Link to="/dashboard/create/nft">
-                <Button className="border-4 border-black bg-[#FF7F41] text-white uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] hover:bg-[#E45845]">
-                  Create Your First Collection
-                </Button>
-              </Link>
+            <div className="text-center py-10">
+              <p className="text-gray-600 mb-4 text-base sm:text-lg font-medium">No .abey names in this wallet yet.</p>
+              <Button asChild className="border-4 border-black bg-[#B8EF53] text-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"><Link to="/names">Find your name</Link></Button>
             </div>
           )}
         </CardContent>

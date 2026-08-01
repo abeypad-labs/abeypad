@@ -236,6 +236,8 @@ function PresaleCard({
             </div>
             <Button
               onClick={handleUpdateFees}
+              loading={isBusy}
+              loadingText="Updating"
               disabled={isBusy || !newTokenFeeBps || !newProceedsFeeBps}
               className="w-full border-4 border-black bg-[#42C9FF] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"
             >

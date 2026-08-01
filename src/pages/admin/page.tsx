@@ -1,4 +1,5 @@
 import { AdminRoute } from "@/components/admin/AdminRoute";
+import { ReservedNamesAdmin } from "@/components/admin/ReservedNamesAdmin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +9,10 @@ import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useStakingAdmin } from "@/lib/hooks/useStakingAdmin";
 import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { resolveAddressOrAns } from "@/features/ans/address";
 import {
   ArrowRight,
+  AtSign,
   BarChart3,
   Coins,
   CoinsIcon,
@@ -18,16 +21,17 @@ import {
   Settings,
   Shield,
   UserPlus,
-  Users,
   Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { isAddress, type Address } from "viem";
+import type { Address } from "viem";
+import { useChainId } from "wagmi";
 
 function AdminDashboardContent() {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { factoryOwner, isLoading: isLoadingOwner } = useFactoryOwner();
   const {
     feeRecipient,
@@ -63,12 +67,9 @@ function AdminDashboardContent() {
     }
   }, [isFeeRecipientError, feeRecipientError, resetFeeRecipient]);
 
-  const handleSetFeeRecipient = () => {
-    if (!newFeeRecipient || !isAddress(newFeeRecipient)) {
-      toast.error("Please enter a valid address");
-      return;
-    }
-    setFeeRecipient(newFeeRecipient as Address);
+  const handleSetFeeRecipient = async () => {
+    try { setFeeRecipient(await resolveAddressOrAns(newFeeRecipient, chainId)); }
+    catch { toast.error("Please enter a valid address or .abey name"); }
   };
 
   // Presale stats
@@ -105,6 +106,10 @@ function AdminDashboardContent() {
     isSupplyRewardsError,
     isReleaseRewardsSuccess,
     isReleaseRewardsError,
+    isSetApyBusy,
+    isAddToWhitelistBusy,
+    isSupplyRewardsBusy,
+    isReleaseRewardsBusy,
   } = useStakingAdmin();
 
   // Handle staking transaction results
@@ -155,7 +160,10 @@ function AdminDashboardContent() {
   };
 
   const handleAddToWhitelist = async () => {
-    const result = await addToWhitelist(userToWhitelist);
+    let target: Address;
+    try { target = await resolveAddressOrAns(userToWhitelist, chainId); }
+    catch { toast.error("Please enter a valid address or .abey name"); return; }
+    const result = await addToWhitelist(target);
     if (result.success) {
       setUserToWhitelist("");
     }
@@ -330,23 +338,6 @@ function AdminDashboardContent() {
           </Card>
         </Link>
 
-        <Link to="/admin/whitelist">
-          <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-purple-100 rounded">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-medium">Whitelist</p>
-                  <p className="text-xs text-gray-600">Creator config</p>
-                </div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-            </CardContent>
-          </Card>
-        </Link>
-
         <Link to="/dashboard/staking">
           <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 flex items-center justify-between">
@@ -363,7 +354,26 @@ function AdminDashboardContent() {
             </CardContent>
           </Card>
         </Link>
+
+        <a href="#reserved-names">
+          <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-cyan-100 rounded">
+                  <AtSign className="w-5 h-5 text-cyan-700" />
+                </div>
+                <div>
+                  <p className="font-medium">Reserved Names</p>
+                  <p className="text-xs text-gray-600">Assign 1-3 characters</p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400" />
+            </CardContent>
+          </Card>
+        </a>
       </div>
+
+      <ReservedNamesAdmin />
 
       {/* Staking Admin Section */}
       <div className="mb-8">
@@ -401,6 +411,9 @@ function AdminDashboardContent() {
                   </div>
                   <Button
                     onClick={handleSetRewardApy}
+                    loading={isSetApyBusy}
+                    loadingText="Setting APY"
+                    disabled={isSetApyBusy || !rewardAPY}
                     size="sm"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   >
@@ -423,7 +436,7 @@ function AdminDashboardContent() {
                       User Address
                     </label>
                     <Input
-                      placeholder="0x..."
+                      placeholder="0x... or name.abey"
                       value={userToWhitelist}
                       onChange={(e) => setUserToWhitelist(e.target.value)}
                       className="font-mono border-gray-300"
@@ -434,6 +447,9 @@ function AdminDashboardContent() {
                   </div>
                   <Button
                     onClick={handleAddToWhitelist}
+                    loading={isAddToWhitelistBusy}
+                    loadingText="Adding"
+                    disabled={isAddToWhitelistBusy || !userToWhitelist}
                     size="sm"
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                   >
@@ -467,6 +483,9 @@ function AdminDashboardContent() {
                   </div>
                   <Button
                     onClick={handleSupplyRewards}
+                    loading={isSupplyRewardsBusy}
+                    loadingText="Supplying"
+                    disabled={isSupplyRewardsBusy || !rewardAmount}
                     size="sm"
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white"
                   >
@@ -494,6 +513,9 @@ function AdminDashboardContent() {
                   </div>
                   <Button
                     onClick={handleReleaseRewards}
+                    loading={isReleaseRewardsBusy}
+                    loadingText="Releasing"
+                    disabled={isReleaseRewardsBusy}
                     size="sm"
                     className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
                   >
@@ -535,13 +557,15 @@ function AdminDashboardContent() {
             </label>
             <div className="flex gap-2">
               <Input
-                placeholder="0x..."
+                placeholder="0x... or name.abey"
                 value={newFeeRecipient}
                 onChange={(e) => setNewFeeRecipient(e.target.value)}
                 className="font-mono border-gray-300 flex-1"
               />
               <Button
                 onClick={handleSetFeeRecipient}
+                loading={isSettingFeeRecipient}
+                loadingText="Updating"
                 disabled={isSettingFeeRecipient || !newFeeRecipient}
                 className="bg-gray-800 hover:bg-gray-900 text-white"
               >

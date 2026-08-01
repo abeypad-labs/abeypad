@@ -1,16 +1,17 @@
 import { useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useReadContracts } from "@/lib/hooks";
-import { TokenFactory, NFTFactory, CONTRACT_ADDRESSES } from "@/config";
+import { TokenFactory, NFTFactory } from "@/config";
 import { erc20Abi } from "viem";
 import { LaunchpadNFTContract } from "@/config/abis/nft-factory";
 import type { Address } from "viem";
 import { useUserAssetsStore } from "@/lib/store/user-assets-store";
+import { useContractAddresses } from "./useContractAddresses";
 
 const CACHE_REFRESH_INTERVAL = 30000; // 30 seconds
 
 export function useUserTokens() {
   const { address } = useAccount();
-  const { tokenFactory } = CONTRACT_ADDRESSES;
+  const { tokenFactory } = useContractAddresses();
 
   const {
     getUserTokens,
@@ -151,7 +152,7 @@ export function useUserTokens() {
 
 export function useUserNFTCollections() {
   const { address } = useAccount();
-  const { nftFactory } = CONTRACT_ADDRESSES;
+  const { nftFactory } = useContractAddresses();
 
   const {
     getUserNFTCollections,

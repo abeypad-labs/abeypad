@@ -14,13 +14,13 @@ import {
 import {
   PresaleFactoryContract,
   LaunchpadPresaleContract,
-  CONTRACT_ADDRESSES,
 } from "@/config";
 import {
   useLaunchpadPresaleStore,
   type PresaleData,
   type PresaleStatus,
 } from "@/lib/store/launchpad-presale-store";
+import { useContractAddresses } from "./useContractAddresses";
 
 const AUTO_REFRESH_INTERVAL = 10000;
 
@@ -94,7 +94,7 @@ export function useLaunchpadPresales(
   } = useLaunchpadPresaleStore();
 
   const publicClient = usePublicClient();
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
   const [whitelistMap, setWhitelistMap] = useState<WhitelistMap>({});
 
   useEffect(() => {
@@ -466,7 +466,7 @@ export function useLaunchpadPresale(
     useLaunchpadPresaleStore();
 
   const publicClient = usePublicClient();
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
   const cachedPresale = presaleAddress ? getPresale(presaleAddress) : null;
   const [requiresWhitelist, setRequiresWhitelist] = useState<
     boolean | undefined

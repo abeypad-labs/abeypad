@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
+import { PresaleFactory } from "@/config";
+import { useContractAddresses } from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { useLaunchpadPresaleStore } from "@/lib/store/launchpad-presale-store";
-import { useWhitelistedCreator } from "@/lib/hooks/useWhitelistedCreator";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,7 +16,6 @@ import {
   parseEther,
   parseUnits,
   type Abi,
-  type Address,
   isAddress,
 } from "viem";
 import {
@@ -26,6 +25,8 @@ import {
   useWriteContract,
 } from "@/lib/hooks";
 import { useChainId, useConfig } from "wagmi";
+import { isAnsName } from "@/features/ans/address";
+import { useResolvedAnsAddress } from "@/features/ans/hooks";
 
 interface PresaleFormData {
   saleToken: string;
@@ -53,7 +54,8 @@ function CreatePresaleForm({
   onError?: (error: string) => void;
 }) {
   const { address } = useAccount();
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const chainId = useChainId();
+  const { presaleFactory } = useContractAddresses();
 
   const {
     saleToken,
@@ -68,6 +70,10 @@ function CreatePresaleForm({
     owner,
     requiresWhitelist,
   } = formData;
+  const ownerResolution = useResolvedAnsAddress(owner, chainId);
+  const resolvedOwner = isAddress(owner)
+    ? owner as `0x${string}`
+    : ownerResolution.data;
 
   // Fetch sale token decimals
   const { data: saleTokenDecimals } = useReadContract({
@@ -108,7 +114,9 @@ function CreatePresaleForm({
     if (paymentToken && !isAddress(paymentToken))
       return "Invalid Payment Token Address format.";
     if (!owner) return "Presale Owner address is required.";
-    if (!isAddress(owner)) return "Invalid Presale Owner address format.";
+    if (!isAddress(owner) && !isAnsName(owner)) return "Use an owner address or .abey name.";
+    if (isAnsName(owner) && ownerResolution.isLoading) return "Resolving owner .abey name...";
+    if (isAnsName(owner) && !resolvedOwner) return "Owner .abey name could not be resolved.";
     if (!startTime || !endTime) return "Start and End times are required.";
 
     const start = new Date(startTime).getTime();
@@ -143,6 +151,8 @@ function CreatePresaleForm({
     minContribution,
     maxContribution,
     owner,
+    ownerResolution.isLoading,
+    resolvedOwner,
   ]);
 
   // Construct contract creation parameters only when validation passes
@@ -169,7 +179,8 @@ function CreatePresaleForm({
           minContribution: parseEther(minContribution),
           maxContribution: parseEther(maxContribution),
         },
-        owner: owner as `0x${string}`,
+        owner: resolvedOwner!,
+        requiresWhitelist,
       };
     } catch {
       return undefined;
@@ -186,6 +197,8 @@ function CreatePresaleForm({
     minContribution,
     maxContribution,
     owner,
+    resolvedOwner,
+    requiresWhitelist,
     decimals,
   ]);
 
@@ -367,7 +380,7 @@ function CreatePresaleForm({
         <Label htmlFor="owner">Presale Owner</Label>
         <Input
           id="owner"
-          placeholder="0x..."
+          placeholder="0x... or name.abey"
           value={owner}
           onChange={handleChange}
         />
@@ -409,10 +422,12 @@ function CreatePresaleForm({
       </div>
       <Button
         onClick={handleCreatePresale}
+        loading={isPending}
+        loadingText="Creating Presale"
         disabled={isPending}
         className="w-full py-6 text-base font-bold uppercase tracking-wide"
       >
-        {isPending ? "Creating Presale..." : "Create Presale"}
+        Create Presale
       </Button>
     </>
   );
@@ -423,8 +438,6 @@ export default function CreatePresalePage() {
   const navigate = useNavigate();
   const { address } = useAccount();
   const { setPresales } = useBlockchainStore();
-  const { isWhitelisted, isLoading: isLoadingWhitelist } =
-    useWhitelistedCreator(address as Address | undefined);
   const [creationHash, setCreationHash] = useState<`0x${string}` | undefined>(
     undefined,
   );
@@ -591,60 +604,6 @@ export default function CreatePresalePage() {
     address,
     formData,
   ]);
-
-  // Show loading state while checking whitelist
-  if (isLoadingWhitelist || !address) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-black">
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="py-12 text-center">
-            <p className="text-lg text-gray-600">Checking access...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Show access denied message if not whitelisted
-  if (isWhitelisted === false) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-black">
-        <Card className="max-w-2xl mx-auto border-4 border-black shadow-[6px_6px_0_rgba(0,0,0,1)]">
-          <CardContent className="py-12 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-red-100 border-2 border-red-500 rounded-full flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-black uppercase tracking-wider">
-              Access Denied
-            </h2>
-            <p className="text-gray-600 max-w-md mx-auto">
-              You are not whitelisted to create presales. Please contact the
-              admin team to request access to the launchpad.
-            </p>
-            <Button
-              onClick={() => navigate("/dashboard/user")}
-              className="mt-4"
-              variant="outline"
-            >
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-12 text-black">

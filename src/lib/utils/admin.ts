@@ -3,24 +3,16 @@
  * Admin is determined by the Ownable owner() on the PresaleFactory contract
  */
 
-import { PresaleFactory, CONTRACT_ADDRESSES } from "@/config";
-import { useReadContract } from "@/lib/hooks";
+import { PresaleFactory } from "@/config";
+import { useContractAddresses, useReadContract } from "@/lib/hooks";
 
 import { type Address } from "viem";
-
-const ADMIN_ADDRESSES: Address[] = [
-  "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED" as Address,
-  ...((import.meta.env.VITE_ADMIN_ADDRESSES ?? "")
-    .split(",")
-    .map((addr: string) => addr.trim())
-    .filter(Boolean) as Address[]),
-];
 
 /**
  * Hook to get the factory owner address
  */
 export function useFactoryOwner() {
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
   const {
     data: factoryOwner,
     isLoading,
@@ -28,7 +20,7 @@ export function useFactoryOwner() {
   } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: "owner",
+    functionName: "factoryOwner",
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -45,7 +37,7 @@ export function useFactoryOwner() {
  * Hook to get the fee recipient address
  */
 export function useFeeRecipient() {
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
   const {
     data: feeRecipient,
     isLoading,
@@ -53,7 +45,7 @@ export function useFeeRecipient() {
   } = useReadContract({
     address: presaleFactory,
     abi: PresaleFactory.abi,
-    functionName: "owner",
+    functionName: "feeRecipient",
     query: {
       refetchInterval: 30000, // Refetch every 30 seconds
     },
@@ -72,13 +64,6 @@ export function useFeeRecipient() {
 export function useIsAdmin(address: Address | undefined) {
   const { factoryOwner, isLoading } = useFactoryOwner();
 
-  const isInStaticList = Boolean(
-    address &&
-    ADMIN_ADDRESSES.some(
-      (adminAddr) => adminAddr.toLowerCase() === address.toLowerCase(),
-    ),
-  );
-
   const isOnChainOwner = Boolean(
     address &&
     factoryOwner &&
@@ -86,8 +71,8 @@ export function useIsAdmin(address: Address | undefined) {
   );
 
   return {
-    isAdmin: isInStaticList || isOnChainOwner,
-    isLoading: isInStaticList ? false : isLoading,
+    isAdmin: isOnChainOwner,
+    isLoading,
     factoryOwner,
   };
 }

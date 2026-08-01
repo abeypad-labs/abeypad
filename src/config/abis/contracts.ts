@@ -1,34 +1,95 @@
-import { type Address } from "viem";
+import mainnetDeployment from "../deployments/abey-mainnet.json";
+import testnetDeployment from "../deployments/abey-testnet.json";
+import { getAddress, zeroAddress, type Address } from "viem";
 
-// mega contracts
-// for testing
-export const CONTRACT_ADDRESSES = {
-  tokenLocker: "0x3b1bCdA99Df192448137e6b592b95979bA0AC8fe" as Address,
-  airdropMultisender: "0xe47485b89419Ae3b591046d74baca815c5A46Cc4" as Address,
-  tokenFactory: "0xF74196387346F2083391f54E9011Dc87fbdF1277" as Address,
-  presaleFactory: "0xB22DF375fC125D54C123438af9D4a91Ac56891Fb" as Address,
-  stakeToken: "0x72d4db19e3ae6f8ed47b5337ab00d69685277cf4" as Address,
-  rewardToken: "0x72d4db19e3ae6f8ed47b5337ab00d69685277cf4" as Address,
-  nftFactory: "0xaA19CB732D3FD2F60914DF7A0C5a7c91175c9C6c" as Address,
-  staking: "0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9" as Address,
-  registry: "" as Address,
-  resolver: "" as Address,
-  registrar: "" as Address,
-  nativeUSDC: "0xA0b86a33E6441b8C9545f9CDf7Cb3eE2D45A3E5A" as Address,
+export type ContractAddressMap = {
+  tokenLocker: Address;
+  airdropMultisender: Address;
+  tokenFactory: Address;
+  presaleFactory: Address;
+  nftFactory: Address;
+  nftFactoryLens: Address;
+  registry: Address;
+  resolver: Address;
+  registrar: Address;
+  auctionHouse: Address;
+  marketplace: Address;
+  stakeToken: Address;
+  rewardToken: Address;
+  staking: Address;
+  nativeUSDC: Address;
 };
 
-// abey contracts
-// export const CONTRACT_ADDRESSES = {
-//     tokenLocker: "0x0274619238c6C9d136e37b095f50DF47F79a9Da0" as Address,
-//     airdropMultisender: "0xe47485b89419Ae3b591046d74baca815c5A46Cc4" as Address,
-//     tokenFactory: "0x12842D93e2122De7e8dd5c7462382C3b20254C90" as Address,
-//     presaleFactory: "0xE2154b769c22B743D4aAf271bd4Ba333E5706F43" as Address,
-//     stakeToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address,// MyMyMy Token
-//     rewardToken: "0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e" as Address, // MyMyMy Token
-//     nftFactory: "0xC5Aef050Fc94cB2Ff7633166468ee4D4A1BDEDD1" as Address,
-//     staking: "0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9" as Address,
-//     registry: "" as Address,
-//     resolver: "" as Address,
-//     registrar: "" as Address,
-//     nativeUSDC: "0xA0b86a33E6441b8C9545f9CDf7Cb3eE2D45A3E5A" as Address,
-// };
+export type AnsContractAddressMap = Pick<
+  ContractAddressMap,
+  "registry" | "resolver" | "registrar" | "auctionHouse" | "marketplace"
+>;
+
+function address(value: string): Address {
+  return getAddress(value);
+}
+
+const testnetContracts: ContractAddressMap = {
+  tokenLocker: address(testnetDeployment.contracts.TokenLocker.address),
+  airdropMultisender: address(
+    testnetDeployment.contracts.AirdropMultisender.address,
+  ),
+  tokenFactory: address(testnetDeployment.contracts.TokenFactory.address),
+  presaleFactory: address(testnetDeployment.contracts.PresaleFactory.address),
+  nftFactory: address(testnetDeployment.contracts.AbeyNFTFactory.address),
+  nftFactoryLens: address(testnetDeployment.contracts.NFTFactoryLens.address),
+  registry: address(testnetDeployment.contracts.ANSRegistryV2.address),
+  resolver: address(testnetDeployment.contracts.ANSResolverV2.address),
+  registrar: address(testnetDeployment.contracts.ANSRegistrarV2.address),
+  auctionHouse: address(testnetDeployment.contracts.ANSAuctionHouse.address),
+  marketplace: address(
+    testnetDeployment.contracts.ANSMarketplaceEscrow.address,
+  ),
+  // Staking was not part of the redeployment and remains testnet-only.
+  stakeToken: address("0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e"),
+  rewardToken: address("0xAf220dAFAa4B56e47Ab687269685916Ea81BFA8e"),
+  staking: address("0x11C3d68b9B9Cc09531BEcFb7dFc65d64b9a96bD9"),
+  nativeUSDC: zeroAddress,
+};
+
+const mainnetContracts: ContractAddressMap = {
+  tokenLocker: address(mainnetDeployment.contracts.TokenLocker.address),
+  airdropMultisender: address(
+    mainnetDeployment.contracts.AirdropMultisender.address,
+  ),
+  tokenFactory: address(mainnetDeployment.contracts.TokenFactory.address),
+  presaleFactory: address(mainnetDeployment.contracts.PresaleFactory.address),
+  nftFactory: address(mainnetDeployment.contracts.AbeyNFTFactory.address),
+  nftFactoryLens: address(mainnetDeployment.contracts.NFTFactoryLens.address),
+  registry: address(mainnetDeployment.contracts.ANSRegistryV2.address),
+  resolver: address(mainnetDeployment.contracts.ANSResolverV2.address),
+  registrar: address(mainnetDeployment.contracts.ANSRegistrarV2.address),
+  auctionHouse: address(mainnetDeployment.contracts.ANSAuctionHouse.address),
+  marketplace: address(
+    mainnetDeployment.contracts.ANSMarketplaceEscrow.address,
+  ),
+  stakeToken: zeroAddress,
+  rewardToken: zeroAddress,
+  staking: zeroAddress,
+  nativeUSDC: zeroAddress,
+};
+
+export const CONTRACT_ADDRESSES_BY_CHAIN = {
+  178: testnetContracts,
+  179: mainnetContracts,
+} as const satisfies Record<number, ContractAddressMap>;
+
+export function getContractAddresses(chainId: number): ContractAddressMap {
+  const contracts =
+    CONTRACT_ADDRESSES_BY_CHAIN[
+      chainId as keyof typeof CONTRACT_ADDRESSES_BY_CHAIN
+    ];
+  if (!contracts) throw new Error(`No AbeyPad deployment for chain ${chainId}`);
+  return contracts;
+}
+
+export function getAnsContractAddresses(chainId: number): AnsContractAddressMap {
+  const { registry, resolver, registrar, auctionHouse, marketplace } =
+    getContractAddresses(chainId);
+  return { registry, resolver, registrar, auctionHouse, marketplace };
+}

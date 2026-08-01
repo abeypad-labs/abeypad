@@ -10,6 +10,7 @@ import {
 import { PresaleParticipationForm } from "@/components/ui/presale-participation-form";
 import { formatUnits } from "viem";
 import { Badge } from "@/components/ui/badge";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 
 export default function ProjectDetailPage() {
   const { id } = useParams(); // This is the presale_address
@@ -175,8 +176,7 @@ export default function ProjectDetailPage() {
             {presale.saleTokenName} ({presale.saleTokenSymbol})
           </h1>
           <p className="text-lg text-gray-500">
-            Created by @{presale.owner.slice(0, 6)}...
-            {presale.owner.slice(-4)}
+            Created by @<AddressIdentity address={presale.owner} />
           </p>
           {presale.requiresWhitelist && (
             <Badge className="mt-2 bg-[#FFB3C1] text-black border border-black uppercase tracking-wider">

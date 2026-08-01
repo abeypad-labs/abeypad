@@ -5,18 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONTRACT_ADDRESSES, PresaleFactory } from "@/config";
+import { PresaleFactory } from "@/config";
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useContractAddresses,
 } from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useChainId } from "wagmi";
+import { isAnsName } from "@/features/ans/address";
+import { useResolvedAnsAddress } from "@/features/ans/hooks";
 import {
   decodeEventLog,
   erc20Abi,
@@ -49,7 +53,8 @@ function AdminCreatePresaleForm({
   onPresaleCreated: (hash: `0x${string}`) => void;
 }) {
   const { address } = useAccount();
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const chainId = useChainId();
+  const { presaleFactory } = useContractAddresses();
   const { writeContractAsync } = useWriteContract();
 
   const {
@@ -64,6 +69,10 @@ function AdminCreatePresaleForm({
     maxContribution,
     owner,
   } = formData;
+  const ownerResolution = useResolvedAnsAddress(owner, chainId);
+  const resolvedOwner = isAddress(owner)
+    ? owner as `0x${string}`
+    : ownerResolution.data;
 
   const { data: saleTokenDecimals } = useReadContract({
     address: saleToken as `0x${string}` | undefined,
@@ -94,7 +103,9 @@ function AdminCreatePresaleForm({
     if (paymentToken && !isAddress(paymentToken))
       return "Invalid Payment Token Address format.";
     if (!owner) return "Presale Owner address is required.";
-    if (!isAddress(owner)) return "Invalid Presale Owner address format.";
+    if (!isAddress(owner) && !isAnsName(owner)) return "Use an owner address or .abey name.";
+    if (isAnsName(owner) && ownerResolution.isLoading) return "Resolving owner .abey name...";
+    if (isAnsName(owner) && !resolvedOwner) return "Owner .abey name could not be resolved.";
     if (!startTime || !endTime) return "Start and End times are required.";
 
     const start = new Date(startTime).getTime();
@@ -128,6 +139,8 @@ function AdminCreatePresaleForm({
     minContribution,
     maxContribution,
     owner,
+    ownerResolution.isLoading,
+    resolvedOwner,
   ]);
 
   const params = useMemo(() => {
@@ -153,7 +166,8 @@ function AdminCreatePresaleForm({
           minContribution: parseEther(minContribution),
           maxContribution: parseEther(maxContribution),
         },
-        owner: owner as `0x${string}`,
+        owner: resolvedOwner!,
+        requiresWhitelist: false,
       };
     } catch {
       return undefined;
@@ -170,6 +184,7 @@ function AdminCreatePresaleForm({
     minContribution,
     maxContribution,
     owner,
+    resolvedOwner,
     decimals,
   ]);
 
@@ -325,7 +340,7 @@ function AdminCreatePresaleForm({
         <Label htmlFor="owner">Presale Owner</Label>
         <Input
           id="owner"
-          placeholder="0x... (defaults to your wallet)"
+          placeholder="0x... or name.abey"
           value={owner}
           onChange={handleChange}
         />
@@ -333,10 +348,12 @@ function AdminCreatePresaleForm({
 
       <Button
         onClick={handleCreatePresale}
+        loading={isPending}
+        loadingText="Creating Presale"
         disabled={isPending}
         className="w-full py-6 text-base font-black uppercase tracking-wider border-4 border-black bg-[#FF7F41] text-black shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#1E5BFF] hover:text-white"
       >
-        {isPending ? "Creating Presale..." : "Create Presale (Admin)"}
+        Create Presale (Admin)
       </Button>
     </>
   );

@@ -1,0 +1,409 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "factory_",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "factory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract INFTFactory"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAllCollections",
+    "inputs": [
+      {
+        "name": "offset",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "infos",
+        "type": "tuple[]",
+        "internalType": "struct NFTFactoryLens.CollectionInfo[]",
+        "components": [
+          {
+            "name": "nft",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "is721A",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "contractURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "baseURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "maxSupply",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalMinted",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "remaining",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "mintPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "walletLimit",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "saleStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "saleEnd",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "whitelistStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "owner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "payoutWallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeRecipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proceedsFeeBps",
+            "type": "uint96",
+            "internalType": "uint96"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollection",
+    "inputs": [
+      {
+        "name": "nft",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct NFTFactoryLens.CollectionInfo",
+        "components": [
+          {
+            "name": "nft",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "is721A",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "contractURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "baseURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "maxSupply",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalMinted",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "remaining",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "mintPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "walletLimit",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "saleStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "saleEnd",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "whitelistStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "owner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "payoutWallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeRecipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proceedsFeeBps",
+            "type": "uint96",
+            "internalType": "uint96"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollectionsByCreator",
+    "inputs": [
+      {
+        "name": "creator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "infos",
+        "type": "tuple[]",
+        "internalType": "struct NFTFactoryLens.CollectionInfo[]",
+        "components": [
+          {
+            "name": "nft",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "creator",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "is721A",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "contractURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "baseURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "maxSupply",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalMinted",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "remaining",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "mintPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "walletLimit",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "saleStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "saleEnd",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistEnabled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "whitelistStart",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "whitelistPrice",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "owner",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "payoutWallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeRecipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "proceedsFeeBps",
+            "type": "uint96",
+            "internalType": "uint96"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  }
+]
