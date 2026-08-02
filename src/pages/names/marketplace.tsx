@@ -469,7 +469,12 @@ export default function NamesMarketplacePage() {
                 const mine = address?.toLowerCase() === item.seller.toLowerCase();
                 return (
                   <article key={`listing-${item.listingId}`} className={`flex h-full flex-col border-[3px] border-black bg-white p-5 [box-shadow:7px_7px_0_#000] ${index % 2 ? 'rotate-[0.25deg]' : '-rotate-[0.25deg]'}`}>
-                    <div className="flex items-start justify-between"><MarketBadge color="bg-[#42C9FF]">Buy now</MarketBadge><MarketBadge color={item.status === 'active' ? 'bg-[#B8EF53]' : 'bg-[#DDD]'}>{item.status}</MarketBadge></div>
+                    <div className="flex items-start justify-between">
+                      <MarketBadge color="bg-[#42C9FF]">Buy now</MarketBadge>
+                      {item.status === "ended" && (
+                        <MarketBadge color="bg-[#DDD]">Ended</MarketBadge>
+                      )}
+                    </div>
                     <h3 className="mt-5 text-2xl font-black">{item.fqdn}</h3><p className="mt-1 text-xs font-bold text-black/50">Seller <AddressIdentity address={item.seller} /></p>
                     <div className="mt-5 border-y-2 border-black py-3"><p className="text-2xl font-black">{formatAbey(item.price)}</p><p className="mt-0.5 text-xs font-black text-black/45">{formatUsd(item.price, abeyPriceUsd)}</p></div>
                     <div className="mt-auto pt-5">{item.active && (mine ? <Button loading={activeAction === `listing:cancel:${item.listingId}`} loadingText="Cancelling" disabled={activeAction !== null} variant="destructive" className="w-full" onClick={() => cancelListing(item)}>Cancel listing</Button> : <Button loading={activeAction === `listing:buy:${item.listingId}`} loadingText="Buying" disabled={activeAction !== null} className="w-full" onClick={() => buyListing(item)}>Buy now</Button>)}</div>
@@ -790,7 +795,16 @@ function AuctionCard({
   const cancelAction = `auction:${source}:cancel:${item.auctionId}`;
   return (
     <article className="border-[3px] border-black bg-white p-5 [box-shadow:7px_7px_0_#000]">
-      <div className="flex items-start justify-between gap-3"><MarketBadge color={source === 'primary' ? 'bg-[#F95D9B]' : 'bg-[#F5CF85]'}>{source === 'primary' ? 'Premium auction' : 'Resale auction'}</MarketBadge><MarketBadge color={item.status === 'active' ? 'bg-[#B8EF53]' : 'bg-[#DDD]'}>{item.status}</MarketBadge></div>
+      <div className="flex items-start justify-between gap-3">
+        <MarketBadge
+          color={source === "primary" ? "bg-[#F95D9B]" : "bg-[#F5CF85]"}
+        >
+          {source === "primary" ? "Premium auction" : "Resale auction"}
+        </MarketBadge>
+        {item.status === "ended" && (
+          <MarketBadge color="bg-[#DDD]">Ended</MarketBadge>
+        )}
+      </div>
       <h3 className="mt-5 text-2xl font-black">{item.fqdn}</h3>
       <div className="mt-2 flex items-center gap-2 text-xs font-bold text-black/55"><Clock3 className="h-4 w-4" />{timeLeft(item.endTime)} · {item.bidCount} bid{item.bidCount === 1 ? '' : 's'}</div>
       <div className="mt-5 border-2 border-black bg-[#FFF8E8] p-4">
