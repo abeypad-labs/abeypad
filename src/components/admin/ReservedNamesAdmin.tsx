@@ -1,4 +1,9 @@
-import { ANSRegistrar } from "@/config";
+import {
+  ACTIVE_CHAIN_ID,
+  ANSRegistrar,
+  isSupportedAbeyChain,
+} from "@/config";
+import { ansApi } from "@/features/ans/api";
 import { useAnsTransaction } from "@/features/ans/hooks";
 import {
   useAccount,
@@ -12,14 +17,46 @@ import {
   isAddress,
   keccak256,
   stringToBytes,
+  type Address,
   zeroAddress,
 } from "viem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAnsName, resolveAddressOrAns } from "@/features/ans/address";
 import { useChainId } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
 
 const YEAR_SECONDS = 365n * 24n * 60n * 60n;
+
+async function reconcileAllocatedName(
+  label: string,
+  beneficiary: Address,
+  chainId: number,
+) {
+  const retryDelays = [0, 600, 1_000, 1_600, 2_400];
+
+  for (const delay of retryDelays) {
+    if (delay > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, delay));
+    }
+
+    try {
+      const liveName = await ansApi.search(label, chainId);
+      if (
+        !liveName.available &&
+        liveName.owner?.toLowerCase() === beneficiary.toLowerCase()
+      ) {
+        const portfolio = await ansApi.ownedNames(beneficiary, chainId);
+        if (portfolio.some((name) => name.label === label)) return true;
+      }
+    } catch {
+      // The transaction is already confirmed. Retry reconciliation without
+      // turning a temporary API delay into a failed allocation message.
+    }
+  }
+
+  return false;
+}
 
 function normalizeLabel(value: string) {
   return value.trim().toLowerCase().replace(/\.abey$/i, "");
@@ -37,9 +74,13 @@ function validateLabel(value: string) {
 
 export function ReservedNamesAdmin() {
   const { address } = useAccount();
-  const chainId = useChainId();
+  const connectedChainId = useChainId();
+  const chainId = isSupportedAbeyChain(connectedChainId)
+    ? connectedChainId
+    : ACTIVE_CHAIN_ID;
   const { registrar } = useContractAddresses();
   const { execute } = useAnsTransaction();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [beneficiary, setBeneficiary] = useState<string | null>(null);
   const [years, setYears] = useState(1);
@@ -58,6 +99,7 @@ export function ReservedNamesAdmin() {
     address: registrar,
     abi: ANSRegistrar.abi,
     functionName: "owner",
+    chainId,
   });
 
   const {
@@ -68,6 +110,7 @@ export function ReservedNamesAdmin() {
     abi: ANSRegistrar.abi,
     functionName: "controllers",
     args: [address ?? zeroAddress],
+    chainId,
     query: { enabled: Boolean(address) },
   });
 
@@ -80,6 +123,7 @@ export function ReservedNamesAdmin() {
     abi: ANSRegistrar.abi,
     functionName: "available",
     args: [label],
+    chainId,
     query: { enabled: canReadLabel },
   });
 
@@ -91,6 +135,7 @@ export function ReservedNamesAdmin() {
     abi: ANSRegistrar.abi,
     functionName: "effectivePolicy",
     args: [label],
+    chainId,
     query: { enabled: canReadLabel },
   });
 
@@ -162,6 +207,17 @@ export function ReservedNamesAdmin() {
         },
         `${label}.abey assigned`,
       );
+
+      const wasReconciled = await reconcileAllocatedName(
+        label,
+        resolvedBeneficiary,
+        chainId,
+      );
+      await queryClient.invalidateQueries({ queryKey: ["ans", chainId] });
+
+      if (!wasReconciled) {
+        toast.info("Name assigned. Portfolio is still syncing.");
+      }
 
       setName("");
       await Promise.all([

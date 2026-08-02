@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useChainId } from "wagmi";
 import { isAnsName } from "@/features/ans/address";
 import { useResolvedAnsAddress } from "@/features/ans/hooks";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 import {
   decodeEventLog,
   erc20Abi,
@@ -300,6 +301,9 @@ function AdminCreatePresaleForm({
             value={softCap}
             onChange={handleChange}
           />
+          {!paymentToken && Number(softCap) > 0 && (
+            <AbeyUsdValue value={softCap} />
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="hardCap">Hard Cap</Label>
@@ -310,6 +314,9 @@ function AdminCreatePresaleForm({
             value={hardCap}
             onChange={handleChange}
           />
+          {!paymentToken && Number(hardCap) > 0 && (
+            <AbeyUsdValue value={hardCap} />
+          )}
         </div>
       </div>
 
@@ -323,6 +330,9 @@ function AdminCreatePresaleForm({
             value={minContribution}
             onChange={handleChange}
           />
+          {!paymentToken && Number(minContribution) > 0 && (
+            <AbeyUsdValue value={minContribution} />
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="maxContribution">Max Contribution</Label>
@@ -333,6 +343,9 @@ function AdminCreatePresaleForm({
             value={maxContribution}
             onChange={handleChange}
           />
+          {!paymentToken && Number(maxContribution) > 0 && (
+            <AbeyUsdValue value={maxContribution} />
+          )}
         </div>
       </div>
 

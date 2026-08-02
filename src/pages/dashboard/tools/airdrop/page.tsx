@@ -30,6 +30,7 @@ import { erc20Abi, formatUnits, maxUint256, parseUnits } from "viem";
 import { isAddress } from "viem";
 import { useChainId } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 export default function AirdropPage() {
   const [searchParams] = useSearchParams();
@@ -473,8 +474,9 @@ export default function AirdropPage() {
                       {Number(
                         formatUnits(reactBalance.value, 18),
                       ).toLocaleString()}{" "}
-                      ABEY
+                      $ABEY
                     </p>
+                    <AbeyUsdValue value={reactBalance.value} unit="wei" />
                   </div>
                   <Coins className="w-8 h-8 text-[#42C9FF]" />
                 </div>
@@ -554,8 +556,15 @@ export default function AirdropPage() {
                       ).toLocaleString()}
                     </p>
                     <p className="text-xs font-bold text-gray-600">
-                      {displaySymbol}
+                      {sendType === "react" ? "$ABEY" : displaySymbol}
                     </p>
+                    {sendType === "react" && (
+                      <AbeyUsdValue
+                        value={totalAmount}
+                        unit="wei"
+                        className="mt-1 block text-[10px] font-black text-black/45"
+                      />
+                    )}
                   </div>
                 </div>
                 {!hasSufficientBalance && totalAmount > 0n && (

@@ -10,6 +10,8 @@ export type AnsName = {
   expiry: bigint;
   resolver: Address | null;
   resolvedAddress: Address | null;
+  resolverName: string | null;
+  resolverNameUpdatedBlock: bigint;
   registeredTxHash: Hex | null;
   registeredBlock: bigint | null;
   registeredAt: string | null;
@@ -91,4 +93,3 @@ export type ReservedName = {
   activationTxHash: Hex | null;
   activatedAt: string | null;
 };
-

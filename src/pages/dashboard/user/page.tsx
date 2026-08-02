@@ -9,6 +9,7 @@ import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
 import { useUserTokens } from "@/lib/hooks/useUserTokens";
 import { ACTIVE_CHAIN_ID, isSupportedAbeyChain } from "@/config";
 import { useAnsOwnedNames } from "@/features/ans/hooks";
+import { PrimaryNameControl } from "@/features/ans/PrimaryNameControl";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
   const { presales, isLoading } = useLaunchpadPresales("all", false);
@@ -95,7 +97,8 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
         <div className="mt-3">
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
-            <span className="text-gray-500">
+            <span className="text-right text-gray-500">
+              <span className="block">
               {Math.round(
                 Number(formatUnits(presaleData.totalRaised, 18)),
               ).toLocaleString()}{" "}
@@ -103,7 +106,13 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
               {Math.round(
                 Number(formatUnits(presaleData.hardCap, 18)),
               ).toLocaleString()}{" "}
-              ABEY
+              $ABEY
+              </span>
+              <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] font-black text-black/45">
+                <AbeyUsdValue value={presaleData.totalRaised} unit="wei" className="inline" />
+                <span>/</span>
+                <AbeyUsdValue value={presaleData.hardCap} unit="wei" className="inline" />
+              </span>
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />
@@ -263,7 +272,7 @@ export default function UserDashboardPage() {
             Your Dashboard
           </h1>
         </div>
-        <Card className="-rotate-[0.45deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <Card className="before:hidden -rotate-[0.45deg] border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <CardContent className="py-12 text-center">
             <p className="text-lg text-gray-600 mb-4">
               Please connect your wallet to view your dashboard.
@@ -290,7 +299,7 @@ export default function UserDashboardPage() {
       </div>
 
       {/* My Created Tokens - Full Width */}
-      <Card className="-rotate-[0.5deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mt-2 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+      <Card className="before:hidden -rotate-[0.5deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mt-2 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
         <CardHeader className="border-b-2 border-black bg-[#FFE8BD] p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
@@ -329,15 +338,8 @@ export default function UserDashboardPage() {
             </div>
           ) : tokenList.length > 0 ? (
             <div className="space-y-3">
-              {paginatedTokens.map((token, index) => (
-                <div
-                  key={token}
-                  className={
-                    index % 2 === 0 ? "-rotate-[0.35deg]" : "rotate-[0.35deg]"
-                  }
-                >
-                  <TokenInfo tokenAddress={token} />
-                </div>
+              {paginatedTokens.map((token) => (
+                <TokenInfo key={token} tokenAddress={token} />
               ))}
               {totalTokenPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
@@ -383,13 +385,13 @@ export default function UserDashboardPage() {
       </Card>
 
       {/* My .abey names - Full Width */}
-      <Card className="rotate-[0.4deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+      <Card className="before:hidden rotate-[0.4deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 mb-6 shadow-[4px_4px_0_rgba(0,0,0,1)]">
         <CardHeader className="border-b-2 border-black bg-[#B8EF53] p-4">
           <div className="flex items-center justify-between">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2 text-black">
               My .abey Names
             </CardTitle>
-            <Link to="/names">
+            <Link to="/names" className="hidden sm:block">
               <Button size="sm" className="border-2 border-black bg-white text-black font-bold text-xs uppercase shadow-[2px_2px_0_rgba(0,0,0,1)]">
                 <Plus className="w-3 h-3 mr-1" /> Register name
               </Button>
@@ -411,15 +413,58 @@ export default function UserDashboardPage() {
               <p className="text-xs text-red-600">The .abey portfolio could not be loaded. Please retry.</p>
             </div>
           ) : (ownedNames.data?.length ?? 0) > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {ownedNames.data?.map((name, index) => (
-                <div key={name.node} className={`border-2 border-black bg-white p-4 shadow-[3px_3px_0_#000] ${index % 2 ? "rotate-[0.25deg]" : "-rotate-[0.25deg]"}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0"><p className="truncate text-lg font-black">{name.fqdn}</p><p className="mt-1 truncate font-mono text-[10px] text-black/50">{name.resolvedAddress ?? "No address record"}</p></div>
-                    <span className={`border-2 border-black px-2 py-1 text-[9px] font-black uppercase ${name.custody === "wallet" ? "bg-[#B8EF53]" : "bg-[#F95D9B]"}`}>{name.custody === "wallet" ? "Owned" : "For sale"}</span>
+            <div className="space-y-3">
+              {ownedNames.data?.map((name) => (
+                <article
+                  key={name.node}
+                  className="relative w-full overflow-hidden border-2 border-black bg-[#FFF8E8] shadow-[3px_3px_0_#000]"
+                >
+                  <div
+                    aria-hidden="true"
+                    className="absolute right-0 top-0 h-14 w-14 -translate-y-8 translate-x-8 rotate-12 border-2 border-black bg-[#F95D9B]"
+                  />
+                  <div className="relative flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h3 className="truncate text-xl font-black tracking-tight sm:text-2xl">
+                          {name.fqdn}
+                        </h3>
+                        <span className="bg-[#B8EF53] px-2 py-1 text-[9px] font-black uppercase tracking-wider">
+                          {name.custody === "wallet" ? "Owned" : "For sale"}
+                        </span>
+                        <PrimaryNameControl
+                          name={name}
+                          className="h-7 rounded-none border-0 bg-transparent px-2 text-[9px] shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-white/70"
+                        />
+                      </div>
+                      <p className="mt-1 break-all font-mono text-[11px] font-bold text-black/45 sm:text-xs">
+                        {name.resolvedAddress ?? name.registrant}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1 border-t border-black/15 pt-2 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-none border-0 bg-transparent shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-white/70"
+                      >
+                        <Link to="/names">Manage</Link>
+                      </Button>
+                      {name.custody === "wallet" && (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-none border-0 bg-transparent shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-white/70"
+                        >
+                          <Link to={`/names/marketplace?sell=${name.label}`}>
+                            Sell
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-4 flex gap-2"><Button asChild size="sm"><Link to="/names">Manage</Link></Button>{name.custody === "wallet" && <Button asChild size="sm" variant="secondary"><Link to={`/names/marketplace?sell=${name.label}`}>Sell</Link></Button>}</div>
-                </div>
+                </article>
               ))}
             </div>
           ) : (
@@ -433,7 +478,7 @@ export default function UserDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* My Presales */}
-        <Card className="rotate-[0.55deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <Card className="before:hidden rotate-[0.55deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <CardHeader className="border-b-2 border-black bg-[#42C9FF] p-4">
             <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2">
               My Presales
@@ -488,13 +533,16 @@ export default function UserDashboardPage() {
         </Card>
 
         {/* My Locks */}
-        <Card className="-rotate-[0.55deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 shadow-[4px_4px_0_rgba(0,0,0,1)]">
+        <Card className="before:hidden -rotate-[0.55deg] border-4 border-black bg-[#FFFDF7] p-0 gap-0 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <CardHeader className="border-b-2 border-black bg-[#FFE38A] p-4">
             <div className="flex items-center justify-between">
               <CardTitle className="font-black uppercase tracking-wider flex items-center gap-2">
                 My Token Locks
               </CardTitle>
-              <Link to="/dashboard/tools/token-locker">
+              <Link
+                to="/dashboard/tools/token-locker"
+                className="hidden sm:block"
+              >
                 <Button
                   size="sm"
                   variant="outline"

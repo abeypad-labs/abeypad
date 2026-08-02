@@ -42,6 +42,7 @@ export type AnsNameLookup = {
   owner: Address | null;
   resolver: Address | null;
   resolvedAddress: Address | null;
+  resolverName: string | null;
 };
 
 export type AnsResolution = {
@@ -73,6 +74,7 @@ export type AnsOwnedName = {
   custody: "wallet" | "marketplace_listing" | "marketplace_auction";
   seller: Address | null;
   isExpired: boolean;
+  isPrimary: boolean;
 };
 
 export type AnsPricing = {

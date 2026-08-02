@@ -95,6 +95,7 @@ function serializeName(name: AnsName) {
     ...name,
     expiry: name.expiry.toString(),
     registeredBlock: name.registeredBlock?.toString() ?? null,
+    resolverNameUpdatedBlock: name.resolverNameUpdatedBlock.toString(),
     updatedBlock: name.updatedBlock.toString(),
     isExpired: name.expiry <= now,
   };
@@ -393,8 +394,19 @@ export async function registerRoutes(app: FastifyInstance) {
       };
     }
     refreshAnsIndexInBackground();
-    const names = await listNamesForOwner(chainId, getAddress(params.data.address));
-    return { chainId, owner: getAddress(params.data.address), names: names.map(serializeName) };
+    const owner = getAddress(params.data.address);
+    const [names, primaryName] = await Promise.all([
+      listNamesForOwner(chainId, owner),
+      getPrimaryName(chainId, owner),
+    ]);
+    return {
+      chainId,
+      owner,
+      names: names.map((name) => ({
+        ...serializeName(name),
+        isPrimary: name.node.toLowerCase() === primaryName?.node.toLowerCase(),
+      })),
+    };
   });
 
   app.get("/api/public/ans/auctions", async (request, reply) => {

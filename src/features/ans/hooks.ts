@@ -1,10 +1,20 @@
 import { ansApi } from "./api";
 import { isAnsName, resolveAddressOrAns } from "./address";
+import {
+  ACTIVE_CHAIN_ID,
+  getAbeyChain,
+  isSupportedAbeyChain,
+} from "@/config";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Abi, Address } from "viem";
 import { isAddress } from "viem";
-import { usePublicClient, useWriteContract } from "wagmi";
+import {
+  useChainId,
+  usePublicClient,
+  useSwitchChain,
+  useWriteContract,
+} from "wagmi";
 
 export function useAnsPricing(
   name: string,
@@ -63,15 +73,29 @@ type ContractRequest = {
 };
 
 export function useAnsTransaction() {
-  const publicClient = usePublicClient();
+  const connectedChainId = useChainId();
+  const targetChainId = isSupportedAbeyChain(connectedChainId)
+    ? connectedChainId
+    : ACTIVE_CHAIN_ID;
+  const targetChain = getAbeyChain(targetChainId);
+  const publicClient = usePublicClient({ chainId: targetChainId });
   const queryClient = useQueryClient();
+  const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
 
   const execute = async (request: ContractRequest, successMessage: string) => {
     try {
-      const hash = await writeContractAsync(request as never);
+      // Always reconcile the connector itself before writing. This prevents a
+      // stale MetaMask network (for example Sepolia) from receiving an ANS
+      // transaction even when the UI is already rendering Abey deployment data.
+      await switchChainAsync({ chainId: targetChain.id });
+      const hash = await writeContractAsync({
+        ...request,
+        chainId: targetChain.id,
+      } as never);
       toast.info("Transaction submitted", { description: `${hash.slice(0, 10)}…` });
-      await publicClient?.waitForTransactionReceipt({ hash });
+      if (!publicClient) throw new Error(`${targetChain.name} RPC is unavailable`);
+      await publicClient.waitForTransactionReceipt({ hash });
       toast.success(successMessage);
       await queryClient.invalidateQueries({ queryKey: ["ans"] });
       return hash;

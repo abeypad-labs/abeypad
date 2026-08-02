@@ -9,6 +9,7 @@ import {
   NetworkSwitcher,
 } from "@/components/NetworkSwitcher";
 import { useAbeyPriceUsd } from "@/lib/hooks/useAbeyPriceUsd";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 import { useIsAdmin } from "@/lib/utils/admin";
 import {
   Layers,
@@ -75,13 +76,22 @@ const SidebarContent = () => {
           </span>
         </Link>
         <NetworkSwitcher />
+        {!isConnected && (
+          <button
+            onClick={openConnectModal}
+            type="button"
+            className="mt-3 w-full border-[2px] border-black bg-[#B8EF53] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-black [box-shadow:3px_3px_0_0_#000] transition-colors hover:bg-[#A6DD4A]"
+          >
+            Connect Wallet
+          </button>
+        )}
       </div>
 
       {isConnected && (
         <div className="mx-4 mt-4 -rotate-[0.45deg] border-[2px] border-black bg-[#FFF2D5] p-4 text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000]">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-mono font-black uppercase">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
+              {address && <AddressIdentity address={address} />}
             </span>
             <WalletMinimal size={18} strokeWidth={2.5} />
           </div>
@@ -182,15 +192,6 @@ const SidebarContent = () => {
             Create
           </Link>
 
-          {!isConnected && (
-            <button
-              onClick={openConnectModal}
-              type="button"
-              className={`${actionButtonClass} bg-[#B8EF53] text-black`}
-            >
-              Connect Wallet
-            </button>
-          )}
         </div>
       </nav>
     </div>

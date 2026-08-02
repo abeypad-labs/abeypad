@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
 const networks = [abeyTestnet, abeyMainnet] as const;
+const ABEY_LOGO_URL =
+  "https://assets.coingecko.com/coins/images/22146/standard/Abey_Logo-2000x2000.png?1705684832";
 
 function networkTone(chainId: number | undefined) {
   if (chainId === abeyMainnet.id) return "bg-[#B8EF53]";
@@ -33,10 +35,12 @@ export function ActiveNetworkBadge() {
         networkTone(activeChain?.id),
       )}
     >
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-black/35 motion-reduce:animate-none" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-black" />
-      </span>
+      <img
+        src={ABEY_LOGO_URL}
+        alt=""
+        aria-hidden="true"
+        className="h-3.5 w-3.5 rounded-full object-cover"
+      />
       {activeChain ? shortName : "Wrong chain"}
     </div>
   );
@@ -97,7 +101,12 @@ export function NetworkSwitcher() {
             {pending ? (
               <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
             ) : selected ? (
-              <span className="h-2 w-2 rounded-full bg-black" />
+              <img
+                src={ABEY_LOGO_URL}
+                alt=""
+                aria-hidden="true"
+                className="h-3.5 w-3.5 rounded-full object-cover"
+              />
             ) : null}
             {network.id === abeyTestnet.id ? "Testnet" : "Mainnet"}
           </button>

@@ -1,5 +1,7 @@
 import { TelegramIcon } from "@/components/ui/icons/telegram-icon";
 import { XIcon as XSocialIcon } from "@/components/ui/icons/x-icon";
+import { WalletIdenticon } from "@/components/WalletIdenticon";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 import { useConnectModal } from "@/lib/hooks";
 import { useCountUp } from "@/lib/hooks/useCountUp";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
@@ -30,9 +32,6 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openConnectModal } = useConnectModal();
   const { address } = useAccount();
-  const walletLabel = address
-    ? `${address.slice(0, 6)}...${address.slice(-4)}`
-    : null;
   const { allPresales, isLoading: isLoadingPresales } =
     useLaunchpadPresales("all");
 
@@ -106,8 +105,8 @@ export default function Home() {
                   title={address}
                   className="inline-flex items-center gap-2 border-[3px] border-black bg-[#B8EF53] px-4 py-2 text-xs font-black uppercase tracking-[0.1em] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] transition-all hover:-translate-x-1 hover:-translate-y-1 hover:[box-shadow:0_0_0_1px_#000,9px_9px_0_0_#000]"
                 >
-                  <span className="h-2.5 w-2.5 rounded-full border-2 border-black bg-white" />
-                  <span className="font-mono">{walletLabel}</span>
+                  <WalletIdenticon address={address} className="h-5 w-5" />
+                  <AddressIdentity address={address} className="font-mono" />
                 </Link>
               ) : (
                 <button
@@ -160,10 +159,13 @@ export default function Home() {
                   className="flex items-center justify-between border-[3px] border-black bg-[#B8EF53] px-4 py-3 text-xs font-black uppercase tracking-[0.12em]"
                 >
                   <span className="inline-flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full border-2 border-black bg-white" />
+                    <WalletIdenticon address={address} className="h-5 w-5" />
                     Connected
                   </span>
-                  <span className="font-mono tracking-normal">{walletLabel}</span>
+                  <AddressIdentity
+                    address={address}
+                    className="font-mono tracking-normal"
+                  />
                 </Link>
               ) : (
                 <button

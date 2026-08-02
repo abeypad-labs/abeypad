@@ -19,6 +19,7 @@ import {
   applyRelease,
   applyRenewal,
   applyResolvedAddress,
+  applyResolverName,
   applyResolver,
   getSyncBlock,
   recordMarketplaceEvent,
@@ -53,7 +54,10 @@ const registryReadAbi = parseAbi([
   "function resolver(bytes32 node) view returns (address)",
 ]);
 
-const resolverReadAbi = parseAbi(["function addr(bytes32 node) view returns (address)"]);
+const resolverReadAbi = parseAbi([
+  "function addr(bytes32 node) view returns (address)",
+  "function name(bytes32 node) view returns (string)",
+]);
 
 export const primaryAuctionAbi = parseAbi([
   "function auctionCount() view returns (uint256)",
@@ -85,7 +89,10 @@ const registryEvents = {
   resolver: parseAbiItem("event NewResolver(bytes32 indexed node,address resolver)"),
 };
 
-const resolverEvent = parseAbiItem("event AddrChanged(bytes32 indexed node,address addr)");
+const resolverEvents = {
+  address: parseAbiItem("event AddrChanged(bytes32 indexed node,address addr)"),
+  name: parseAbiItem("event NameChanged(bytes32 indexed node,string name)"),
+};
 
 const primaryEvents = [
   parseAbiItem("event AuctionCreated(uint256 indexed auctionId,string name,uint256 reservePrice,uint64 startTime,uint64 endTime,uint256 duration)"),
@@ -239,21 +246,38 @@ async function syncRegistry(fromBlock: bigint, toBlock: bigint) {
 }
 
 async function syncResolver(fromBlock: bigint, toBlock: bigint) {
-  const logs = await ansClient.getLogs({
-    address: deployment.contracts.resolver,
-    event: resolverEvent,
-    fromBlock,
-    toBlock,
-  });
+  const [addressLogs, nameLogs] = await Promise.all([
+    ansClient.getLogs({
+      address: deployment.contracts.resolver,
+      event: resolverEvents.address,
+      fromBlock,
+      toBlock,
+    }),
+    ansClient.getLogs({
+      address: deployment.contracts.resolver,
+      event: resolverEvents.name,
+      fromBlock,
+      toBlock,
+    }),
+  ]);
   const db = await pool.connect();
   try {
     await db.query("begin");
-    for (const log of logs) {
+    for (const log of addressLogs) {
       if (log.blockNumber == null) continue;
       await applyResolvedAddress(db, {
         chainId: deployment.chainId,
         node: log.args.node as Hex,
         address: getAddress(log.args.addr as string),
+        block: log.blockNumber,
+      });
+    }
+    for (const log of nameLogs) {
+      if (log.blockNumber == null) continue;
+      await applyResolverName(db, {
+        chainId: deployment.chainId,
+        node: log.args.node as Hex,
+        name: log.args.name as string,
         block: log.blockNumber,
       });
     }
@@ -473,12 +497,18 @@ export async function readAnsName(labelInput: string) {
     ansClient.getBlockNumber(),
   ]);
   let resolvedAddress: Address | null = null;
+  let resolverName: string | null = null;
   if (resolver !== zeroAddress) {
     try {
-      const resolved = await ansClient.readContract({ address: resolver, abi: resolverReadAbi, functionName: "addr", args: [node] });
+      const [resolved, configuredName] = await Promise.all([
+        ansClient.readContract({ address: resolver, abi: resolverReadAbi, functionName: "addr", args: [node] }),
+        ansClient.readContract({ address: resolver, abi: resolverReadAbi, functionName: "name", args: [node] }),
+      ]);
       resolvedAddress = resolved === zeroAddress ? null : resolved;
+      resolverName = configuredName || null;
     } catch {
       resolvedAddress = null;
+      resolverName = null;
     }
   }
   const result = {
@@ -492,6 +522,7 @@ export async function readAnsName(labelInput: string) {
     owner: owner === zeroAddress ? null : owner,
     resolver: resolver === zeroAddress ? null : resolver,
     resolvedAddress,
+    resolverName,
   };
   if (!available && owner !== zeroAddress) {
     await upsertLiveName({
@@ -502,6 +533,7 @@ export async function readAnsName(labelInput: string) {
       expiry,
       resolver: resolver === zeroAddress ? null : resolver,
       resolvedAddress,
+      resolverName,
       block: head,
     }).catch((error) => logger.warn("Could not reconcile live ANS name", {
       label,

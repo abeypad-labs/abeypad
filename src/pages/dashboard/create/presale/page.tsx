@@ -27,6 +27,7 @@ import {
 import { useChainId, useConfig } from "wagmi";
 import { isAnsName } from "@/features/ans/address";
 import { useResolvedAnsAddress } from "@/features/ans/hooks";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 interface PresaleFormData {
   saleToken: string;
@@ -342,6 +343,9 @@ function CreatePresaleForm({
             value={softCap}
             onChange={handleChange}
           />
+          {!paymentToken && Number(softCap) > 0 && (
+            <AbeyUsdValue value={softCap} />
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="hardCap">Hard Cap</Label>
@@ -352,6 +356,9 @@ function CreatePresaleForm({
             value={hardCap}
             onChange={handleChange}
           />
+          {!paymentToken && Number(hardCap) > 0 && (
+            <AbeyUsdValue value={hardCap} />
+          )}
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -364,6 +371,9 @@ function CreatePresaleForm({
             value={minContribution}
             onChange={handleChange}
           />
+          {!paymentToken && Number(minContribution) > 0 && (
+            <AbeyUsdValue value={minContribution} />
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="maxContribution">Max Contribution</Label>
@@ -374,6 +384,9 @@ function CreatePresaleForm({
             value={maxContribution}
             onChange={handleChange}
           />
+          {!paymentToken && Number(maxContribution) > 0 && (
+            <AbeyUsdValue value={maxContribution} />
+          )}
         </div>
       </div>
       <div className="space-y-2">

@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatEther } from "viem";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 import {
   useReadContracts,
   useWaitForTransactionReceipt,
@@ -121,8 +122,15 @@ export default function NFTDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span>Price</span>
-                <span className="font-bold">
-                  {formatEther((mintPrice?.result as bigint) ?? BigInt(0))} ABEY
+                <span className="text-right font-bold">
+                  <span className="block">
+                    {formatEther((mintPrice?.result as bigint) ?? BigInt(0))} $ABEY
+                  </span>
+                  <AbeyUsdValue
+                    value={(mintPrice?.result as bigint) ?? 0n}
+                    unit="wei"
+                    className="block text-[10px] font-black text-black/45"
+                  />
                 </span>
               </div>
               <div className="w-full bg-gray-200 border-2 border-black h-4 mt-4">

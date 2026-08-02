@@ -3,10 +3,10 @@ import {
   getBackendApiUrl,
   isSupportedAbeyChain,
 } from "@/config";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useChainId } from "wagmi";
 
-const DEFAULT_REFRESH_INTERVAL_MS = 60_000;
+const DEFAULT_REFRESH_INTERVAL_MS = 15_000;
 
 interface UseAbeyPriceUsdOptions {
   refreshIntervalMs?: number;
@@ -22,44 +22,24 @@ export function useAbeyPriceUsd(
   const chainId = isSupportedAbeyChain(connectedChainId)
     ? connectedChainId
     : ACTIVE_CHAIN_ID;
-  const [price, setPrice] = useState<{
-    chainId: number;
-    valueUsd: number;
-  } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchAbeyPrice = async () => {
-      try {
-        const response = await fetch(
-          `${getBackendApiUrl(chainId)}/api/public/price/abey?chainId=${chainId}`,
-        );
-        if (!response.ok) return;
-
-        const data = (await response.json()) as PriceResponse;
-        const nextPrice = data.priceUsd;
-
-        if (
-          !cancelled &&
-          typeof nextPrice === "number" &&
-          Number.isFinite(nextPrice)
-        ) {
-          setPrice({ chainId, valueUsd: nextPrice });
-        }
-      } catch (error) {
-        console.error("Failed to fetch ABEY price:", error);
+  const price = useQuery({
+    queryKey: ["abey-price-usd", chainId],
+    queryFn: async () => {
+      const response = await fetch(
+        `${getBackendApiUrl(chainId)}/api/public/price/abey?chainId=${chainId}`,
+      );
+      if (!response.ok) throw new Error("ABEY price is unavailable");
+      const data = (await response.json()) as PriceResponse;
+      if (typeof data.priceUsd !== "number" || !Number.isFinite(data.priceUsd)) {
+        throw new Error("ABEY price response is invalid");
       }
-    };
+      return data.priceUsd;
+    },
+    staleTime: refreshIntervalMs,
+    refetchInterval: refreshIntervalMs,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
 
-    void fetchAbeyPrice();
-    const intervalId = window.setInterval(fetchAbeyPrice, refreshIntervalMs);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [chainId, refreshIntervalMs]);
-
-  return price?.chainId === chainId ? price.valueUsd : null;
+  return price.data ?? null;
 }

@@ -9,6 +9,7 @@ import { formatUnits } from "viem";
 import { useAccount } from "@/lib/hooks";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 function PresaleRow({
   presale,
   index,
@@ -75,7 +76,8 @@ function PresaleRow({
         <div className="mt-3">
           <div className="flex justify-between text-xs mb-1">
             <span className="font-bold">{progress}% Funded</span>
-            <span className="text-gray-500">
+            <span className="text-right text-gray-500">
+              <span className="block">
               {Math.round(
                 Number(formatUnits(presale.totalRaised, 18)),
               ).toLocaleString()}{" "}
@@ -83,7 +85,13 @@ function PresaleRow({
               {Math.round(
                 Number(formatUnits(presale.hardCap, 18)),
               ).toLocaleString()}{" "}
-              ABEY
+              $ABEY
+              </span>
+              <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] font-black text-black/45">
+                <AbeyUsdValue value={presale.totalRaised} unit="wei" className="inline" />
+                <span>/</span>
+                <AbeyUsdValue value={presale.hardCap} unit="wei" className="inline" />
+              </span>
             </span>
           </div>
           <Progress value={progress} className="h-2 border border-black" />

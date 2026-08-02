@@ -11,6 +11,7 @@ import { PresaleParticipationForm } from "@/components/ui/presale-participation-
 import { formatUnits } from "viem";
 import { Badge } from "@/components/ui/badge";
 import { AddressIdentity } from "@/features/ans/AddressIdentity";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 export default function ProjectDetailPage() {
   const { id } = useParams(); // This is the presale_address
@@ -62,8 +63,14 @@ export default function ProjectDetailPage() {
                         ),
                       ),
                     ).toLocaleString()}{" "}
-                    {presale.paymentTokenSymbol}
+                    {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
                   </p>
+                  {presale.paymentTokenSymbol === "ABEY" && (
+                    <AbeyUsdValue
+                      value={presale.totalRaised}
+                      unit="wei"
+                    />
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="font-bold">Hard Cap</p>
@@ -72,8 +79,11 @@ export default function ProjectDetailPage() {
                       presale.hardCap,
                       presale.paymentTokenDecimals || 18,
                     )}{" "}
-                    {presale.paymentTokenSymbol}
+                    {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
                   </p>
+                  {presale.paymentTokenSymbol === "ABEY" && (
+                    <AbeyUsdValue value={presale.hardCap} unit="wei" />
+                  )}
                 </div>
               </div>
             </div>
@@ -120,8 +130,11 @@ export default function ProjectDetailPage() {
                   presale.softCap,
                   presale.paymentTokenDecimals || 18,
                 )}{" "}
-                {presale.paymentTokenSymbol}
+                {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
               </p>
+              {presale.paymentTokenSymbol === "ABEY" && (
+                <AbeyUsdValue value={presale.softCap} unit="wei" />
+              )}
             </div>
             <div>
               <p className="font-bold">Sale Ends</p>

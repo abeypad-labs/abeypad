@@ -26,6 +26,8 @@ function mapName(row: Record<string, unknown>): AnsName {
     expiry: asBigInt(row.expiry),
     resolver: (row.resolver as Address | null) ?? null,
     resolvedAddress: (row.resolved_address as Address | null) ?? null,
+    resolverName: (row.resolver_name as string | null) ?? null,
+    resolverNameUpdatedBlock: asBigInt(row.resolver_name_updated_block),
     registeredTxHash: (row.registered_tx_hash as Hex | null) ?? null,
     registeredBlock: asNullableBigInt(row.registered_block),
     registeredAt: row.registered_at ? new Date(row.registered_at as string).toISOString() : null,
@@ -185,6 +187,30 @@ export async function applyResolvedAddress(
   );
 }
 
+export async function applyResolverName(
+  db: Queryable,
+  input: { chainId: number; node: Hex; name: string; block: bigint },
+) {
+  await db.query(
+    `insert into abeypad_ans.names
+       (chain_id, node, resolver_name, resolver_name_updated_block, updated_block)
+     values ($1, lower($2), $3, $4, $4)
+     on conflict (chain_id, node) do update set
+       resolver_name = case
+         when excluded.resolver_name_updated_block >= abeypad_ans.names.resolver_name_updated_block
+           then excluded.resolver_name
+         else abeypad_ans.names.resolver_name
+       end,
+       resolver_name_updated_block = greatest(
+         abeypad_ans.names.resolver_name_updated_block,
+         excluded.resolver_name_updated_block
+       ),
+       updated_block = greatest(abeypad_ans.names.updated_block, excluded.updated_block),
+       updated_at = now()`,
+    [input.chainId, input.node, input.name, input.block.toString()],
+  );
+}
+
 export async function upsertLiveName(input: {
   chainId: number;
   node: Hex;
@@ -193,12 +219,14 @@ export async function upsertLiveName(input: {
   expiry: bigint;
   resolver: Address | null;
   resolvedAddress: Address | null;
+  resolverName: string | null;
   block: bigint;
 }) {
   await pool.query(
     `insert into abeypad_ans.names
-       (chain_id, node, label, fqdn, owner, expiry, resolver, resolved_address, updated_block, updated_at)
-     values ($1, lower($2), $3, $4, lower($5), $6, lower($7), lower($8), $9, now())
+       (chain_id, node, label, fqdn, owner, expiry, resolver, resolved_address,
+        resolver_name, resolver_name_updated_block, updated_block, updated_at)
+     values ($1, lower($2), $3, $4, lower($5), $6, lower($7), lower($8), $9, $10, $10, now())
      on conflict (chain_id, node) do update set
        label = excluded.label,
        fqdn = excluded.fqdn,
@@ -206,6 +234,12 @@ export async function upsertLiveName(input: {
        expiry = excluded.expiry,
        resolver = excluded.resolver,
        resolved_address = excluded.resolved_address,
+       resolver_name_updated_block = case
+         when abeypad_ans.names.resolver_name is distinct from excluded.resolver_name
+           then excluded.resolver_name_updated_block
+         else abeypad_ans.names.resolver_name_updated_block
+       end,
+       resolver_name = excluded.resolver_name,
        released_at = null,
        updated_block = greatest(abeypad_ans.names.updated_block, excluded.updated_block),
        updated_at = now()`,
@@ -218,6 +252,7 @@ export async function upsertLiveName(input: {
       input.expiry.toString(),
       input.resolver,
       input.resolvedAddress,
+      input.resolverName,
       input.block.toString(),
     ],
   );
@@ -263,9 +298,23 @@ export async function listNamesForOwner(chainId: number, owner: Address) {
 export async function getPrimaryName(chainId: number, address: Address) {
   const names = await listNamesForOwner(chainId, address);
   const now = BigInt(Math.floor(Date.now() / 1000));
-  return names.find((name) => name.expiry > now && name.resolvedAddress?.toLowerCase() === address.toLowerCase())
-    ?? names.find((name) => name.expiry > now)
-    ?? null;
+  const latestPrimaryUpdate = names
+    .filter((name) =>
+      name.expiry > now &&
+      name.fqdn !== null &&
+      name.resolvedAddress?.toLowerCase() === address.toLowerCase()
+    )
+    .sort((a, b) => Number(b.resolverNameUpdatedBlock - a.resolverNameUpdatedBlock))[0];
+
+  if (
+    !latestPrimaryUpdate?.resolverName ||
+    latestPrimaryUpdate.resolverName.toLowerCase() !==
+      latestPrimaryUpdate.fqdn?.toLowerCase()
+  ) {
+    return null;
+  }
+
+  return latestPrimaryUpdate;
 }
 
 function mapPrimaryAuction(row: Record<string, unknown>): PrimaryAuction {

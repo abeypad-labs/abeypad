@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { formatEther, type Address, erc20Abi } from "viem";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
 import { ArrowLeft, ExternalLink, RefreshCw } from "lucide-react";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 function PresaleCard({
   presale,
@@ -133,7 +134,8 @@ function PresaleCard({
             <p className="text-gray-500 text-xs uppercase font-bold">
               Hard Cap
             </p>
-            <p className="font-bold">{formatEther(presale.hardCap)} ABEY</p>
+            <p className="font-bold">{formatEther(presale.hardCap)} $ABEY</p>
+            <AbeyUsdValue value={presale.hardCap} unit="wei" />
           </div>
           <div>
             <p className="text-gray-500 text-xs uppercase font-bold">
@@ -143,8 +145,9 @@ function PresaleCard({
               {Math.round(
                 Number(formatEther(presale.totalRaised)),
               ).toLocaleString()}{" "}
-              ABEY
+              $ABEY
             </p>
+            <AbeyUsdValue value={presale.totalRaised} unit="wei" />
           </div>
           <div>
             <p className="text-gray-500 text-xs uppercase font-bold">

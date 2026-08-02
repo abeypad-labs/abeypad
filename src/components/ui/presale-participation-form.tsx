@@ -21,6 +21,7 @@ import {
   type PresaleWithStatus,
 } from "@/lib/hooks/useLaunchpadPresales";
 import { usePresaleApproval } from "@/lib/hooks/usePresaleApproval";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 interface PresaleParticipationFormProps {
   presale: PresaleWithStatus;
@@ -71,6 +72,8 @@ export function PresaleParticipationForm({
 
   const paymentTokenDecimals = presaleData.paymentTokenDecimals || 18;
   const saleTokenDecimals = presaleData.saleTokenDecimals || 18;
+  const isAbeyPayment =
+    presaleData.isPaymentETH || presaleData.paymentTokenSymbol === "ABEY";
 
   const amountAsBigInt = useMemo(() => {
     try {
@@ -337,8 +340,11 @@ export function PresaleParticipationForm({
               <p className="text-gray-500 text-xs">Contributed</p>
               <p className="font-semibold">
                 {formatUnits(currentContribution, paymentTokenDecimals)}{" "}
-                {presaleData.paymentTokenSymbol}
+                {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
               </p>
+              {isAbeyPayment && (
+                <AbeyUsdValue value={currentContribution} unit="wei" />
+              )}
             </div>
             <div>
               <p className="text-gray-500 text-xs">Tokens to Receive</p>
@@ -456,15 +462,21 @@ export function PresaleParticipationForm({
                 <span className="text-gray-500">Min:</span>{" "}
                 <span className="font-semibold">
                   {formatUnits(minContribution, paymentTokenDecimals)}{" "}
-                  {presaleData.paymentTokenSymbol}
+                  {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
                 </span>
+                {isAbeyPayment && (
+                  <AbeyUsdValue value={minContribution} unit="wei" />
+                )}
               </div>
               <div>
                 <span className="text-gray-500">Max:</span>{" "}
                 <span className="font-semibold">
                   {formatUnits(maxContribution, paymentTokenDecimals)}{" "}
-                  {presaleData.paymentTokenSymbol}
+                  {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
                 </span>
+                {isAbeyPayment && (
+                  <AbeyUsdValue value={maxContribution} unit="wei" />
+                )}
               </div>
             </div>
           </div>
@@ -482,6 +494,12 @@ export function PresaleParticipationForm({
               placeholder="0.0"
               className="w-full"
             />
+            {isAbeyPayment && Number(amount) > 0 && (
+              <AbeyUsdValue
+                value={amount}
+                className="mt-1.5 block text-xs font-black text-black/50"
+              />
+            )}
           </div>
 
           {/* Expected Tokens */}

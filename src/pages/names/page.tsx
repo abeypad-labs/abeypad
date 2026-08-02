@@ -14,6 +14,8 @@ import {
   type AnsSuggestion,
 } from "@/features/ans/api";
 import { resolveAddressOrAns } from "@/features/ans/address";
+import { NamesTestnetGate } from "@/features/ans/NamesTestnetGate";
+import { PrimaryNameControl } from "@/features/ans/PrimaryNameControl";
 import {
   useAnsOwnedNames,
   useAnsPricing,
@@ -377,7 +379,8 @@ export default function NamesPage() {
   }, [chainId, suggestions.data, typedLabel]);
 
   return (
-    <div className="min-h-full bg-[#F7F1E1] px-4 py-8 text-black sm:px-7 lg:px-10">
+    <NamesTestnetGate>
+      <div className="min-h-full bg-[#F7F1E1] px-4 py-8 text-black sm:px-7 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-5 border-b-[3px] border-black pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -666,9 +669,15 @@ export default function NamesPage() {
                       ? shortAddress(name.resolvedAddress)
                       : "No address record"}
                   </p>
-                  <p className="mt-4 text-xs font-bold text-black/60">
-                    Expires {formatExpiry(name.expiry)}
-                  </p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-xs font-bold text-black/60">
+                      Expires {formatExpiry(name.expiry)}
+                    </p>
+                    <PrimaryNameControl
+                      name={name}
+                      className="h-8 rounded-none border-0 bg-transparent px-2 text-[10px] shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-white/70"
+                    />
+                  </div>
                   <div className="mt-5 grid grid-cols-3 items-center border-t border-black/20 pt-2">
                     <Button
                       size="sm"
@@ -742,6 +751,7 @@ export default function NamesPage() {
           </section>
         )}
       </div>
-    </div>
+      </div>
+    </NamesTestnetGate>
   );
 }
