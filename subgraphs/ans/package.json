@@ -1,0 +1,16 @@
+{
+  "name": "@abeypad/ans-subgraph",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "codegen:testnet": "graph codegen subgraph.testnet.yaml",
+    "codegen:mainnet": "graph codegen subgraph.mainnet.yaml",
+    "build:testnet": "graph build subgraph.testnet.yaml",
+    "build:mainnet": "graph build subgraph.mainnet.yaml",
+    "build": "npm run codegen:testnet && npm run build:testnet && npm run codegen:mainnet && npm run build:mainnet"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2"
+  }
+}

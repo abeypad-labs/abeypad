@@ -1,0 +1,175 @@
+specVersion: 0.0.5
+description: AbeyPad .abey names and marketplace index for Abey Mainnet
+repository: https://github.com/abeypad-labs/abeypad
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Registry
+    network: abey-mainnet
+    source:
+      address: "0x96accaf440d4d4b2ae83a5b59d47fd90e46230b0"
+      abi: ANSRegistryV2
+      startBlock: 33122564
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - RegistryApproval
+        - Activity
+      abis:
+        - name: ANSRegistryV2
+          file: ./abis/ANSRegistryV2.json
+      eventHandlers:
+        - event: NewOwner(indexed bytes32,indexed bytes32,address)
+          handler: handleNewOwner
+        - event: Transfer(indexed bytes32,address)
+          handler: handleTransfer
+        - event: NewResolver(indexed bytes32,address)
+          handler: handleNewResolver
+        - event: NewTTL(indexed bytes32,uint64)
+          handler: handleNewTTL
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+      file: ./src/registry.ts
+  - kind: ethereum/contract
+    name: Resolver
+    network: abey-mainnet
+    source:
+      address: "0xb4c31237e396dd2872a366030f07a323023e61e4"
+      abi: ANSResolverV2
+      startBlock: 33122566
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - TextRecord
+        - Activity
+      abis:
+        - name: ANSResolverV2
+          file: ./abis/ANSResolverV2.json
+      eventHandlers:
+        - event: AddrChanged(indexed bytes32,address)
+          handler: handleAddrChanged
+        - event: AddrCleared(indexed bytes32)
+          handler: handleAddrCleared
+        - event: NameChanged(indexed bytes32,string)
+          handler: handleNameChanged
+        - event: TextChanged(indexed bytes32,indexed string,string)
+          handler: handleTextChanged
+        - event: ContenthashChanged(indexed bytes32,bytes)
+          handler: handleContenthashChanged
+      file: ./src/resolver.ts
+  - kind: ethereum/contract
+    name: Registrar
+    network: abey-mainnet
+    source:
+      address: "0x6f69f39d097f5132bf8bda7d9fe273cd2893c288"
+      abi: ANSRegistrarV2
+      startBlock: 33122568
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - LabelPolicy
+        - Activity
+      abis:
+        - name: ANSRegistrarV2
+          file: ./abis/ANSRegistrarV2.json
+      eventHandlers:
+        - event: NameRegistered(indexed string,indexed bytes32,indexed address,uint256)
+          handler: handleNameRegistered
+        - event: NameRenewed(indexed string,indexed bytes32,uint256)
+          handler: handleNameRenewed
+        - event: NameReleased(indexed string,indexed bytes32)
+          handler: handleNameReleased
+        - event: LabelPolicyUpdated(indexed bytes32,uint8)
+          handler: handleLabelPolicyUpdated
+      file: ./src/registrar.ts
+  - kind: ethereum/contract
+    name: AuctionHouse
+    network: abey-mainnet
+    source:
+      address: "0xe5d3c1d4b5b2e1906bdcb0bd292f2f1f411d60b6"
+      abi: ANSAuctionHouse
+      startBlock: 33122572
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - PrimaryAuction
+        - Bid
+        - Refund
+        - AccountBalance
+        - Activity
+      abis:
+        - name: ANSAuctionHouse
+          file: ./abis/ANSAuctionHouse.json
+      eventHandlers:
+        - event: AuctionCreated(indexed uint256,string,uint256,uint64,uint64,uint256)
+          handler: handleAuctionCreated
+        - event: BidPlaced(indexed uint256,indexed address,uint256,uint64,uint64)
+          handler: handleBidPlaced
+        - event: BidRefundAvailable(indexed uint256,indexed address,uint256)
+          handler: handleBidRefundAvailable
+        - event: AuctionCancelled(indexed uint256)
+          handler: handleAuctionCancelled
+        - event: AuctionSettled(indexed uint256,indexed address,uint256)
+          handler: handleAuctionSettled
+        - event: Withdrawal(indexed address,uint256)
+          handler: handleWithdrawal
+      file: ./src/auction-house.ts
+  - kind: ethereum/contract
+    name: Marketplace
+    network: abey-mainnet
+    source:
+      address: "0x6d61766a4268f42ab438bca0ddf0284e47317c64"
+      abi: ANSMarketplaceEscrow
+      startBlock: 33122573
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Domain
+        - MarketplaceListing
+        - MarketplaceAuction
+        - Bid
+        - Refund
+        - ProceedsCredit
+        - AccountBalance
+        - Activity
+      abis:
+        - name: ANSMarketplaceEscrow
+          file: ./abis/ANSMarketplaceEscrow.json
+      eventHandlers:
+        - event: Listed(indexed uint256,indexed bytes32,string,indexed address,uint256)
+          handler: handleListed
+        - event: ListingCancelled(indexed uint256)
+          handler: handleListingCancelled
+        - event: ListingPurchased(indexed uint256,indexed address,uint256)
+          handler: handleListingPurchased
+        - event: SecondaryAuctionCreated(indexed uint256,indexed bytes32,string,indexed address,uint256,uint64,uint64)
+          handler: handleSecondaryAuctionCreated
+        - event: BidPlaced(indexed uint256,indexed address,uint256,uint64,uint64)
+          handler: handleBidPlaced
+        - event: BidRefundAvailable(indexed uint256,indexed address,uint256)
+          handler: handleBidRefundAvailable
+        - event: SecondaryAuctionCancelled(indexed uint256)
+          handler: handleSecondaryAuctionCancelled
+        - event: SecondaryAuctionSettled(indexed uint256,indexed address,uint256)
+          handler: handleSecondaryAuctionSettled
+        - event: ProceedsAvailable(indexed uint256,indexed bool,indexed address,uint256)
+          handler: handleProceedsAvailable
+        - event: ProceedsWithdrawal(indexed address,uint256)
+          handler: handleProceedsWithdrawal
+        - event: Withdrawal(indexed address,uint256)
+          handler: handleWithdrawal
+      file: ./src/marketplace.ts

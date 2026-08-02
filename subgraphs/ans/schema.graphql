@@ -1,0 +1,194 @@
+type Domain @entity(immutable: false) {
+  id: ID!
+  node: Bytes!
+  labelHash: Bytes
+  label: String
+  name: String
+  registrant: Bytes
+  owner: Bytes
+  resolver: Bytes
+  resolvedAddress: Bytes
+  primaryName: String
+  contenthash: Bytes
+  ttl: BigInt
+  expiry: BigInt
+  released: Boolean!
+  registeredAt: BigInt
+  registeredBlock: BigInt
+  registeredTx: Bytes
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+  textRecords: [TextRecord!]! @derivedFrom(field: "domain")
+  listings: [MarketplaceListing!]! @derivedFrom(field: "domain")
+  marketplaceAuctions: [MarketplaceAuction!]! @derivedFrom(field: "domain")
+}
+
+type TextRecord @entity(immutable: false) {
+  id: ID!
+  domain: Domain!
+  node: Bytes!
+  keyHash: Bytes!
+  value: String!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+}
+
+type RegistryApproval @entity(immutable: false) {
+  id: ID!
+  owner: Bytes!
+  operator: Bytes!
+  approved: Boolean!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+}
+
+type LabelPolicy @entity(immutable: false) {
+  id: ID!
+  labelHash: Bytes!
+  policy: Int!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+}
+
+type PrimaryAuction @entity(immutable: false) {
+  id: ID!
+  auctionId: BigInt!
+  label: String!
+  name: String!
+  reservePrice: BigInt!
+  duration: BigInt!
+  startTime: BigInt!
+  endTime: BigInt!
+  currentExtensionWindow: BigInt
+  bidCount: Int!
+  highestBidder: Bytes
+  highestBid: BigInt!
+  settled: Boolean!
+  cancelled: Boolean!
+  winner: Bytes
+  settledAmount: BigInt
+  createdAt: BigInt!
+  createdBlock: BigInt!
+  createdTx: Bytes!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+  bids: [Bid!]! @derivedFrom(field: "primaryAuction")
+}
+
+type MarketplaceListing @entity(immutable: false) {
+  id: ID!
+  listingId: BigInt!
+  domain: Domain!
+  node: Bytes!
+  label: String!
+  name: String!
+  seller: Bytes!
+  price: BigInt!
+  active: Boolean!
+  buyer: Bytes
+  purchasedPrice: BigInt
+  createdAt: BigInt!
+  createdBlock: BigInt!
+  createdTx: Bytes!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+}
+
+type MarketplaceAuction @entity(immutable: false) {
+  id: ID!
+  auctionId: BigInt!
+  domain: Domain!
+  node: Bytes!
+  label: String!
+  name: String!
+  seller: Bytes!
+  reservePrice: BigInt!
+  startTime: BigInt!
+  endTime: BigInt!
+  currentExtensionWindow: BigInt
+  bidCount: Int!
+  highestBidder: Bytes
+  highestBid: BigInt!
+  settled: Boolean!
+  cancelled: Boolean!
+  winner: Bytes
+  settledAmount: BigInt
+  createdAt: BigInt!
+  createdBlock: BigInt!
+  createdTx: Bytes!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+  bids: [Bid!]! @derivedFrom(field: "marketplaceAuction")
+}
+
+type Bid @entity(immutable: true) {
+  id: ID!
+  source: String!
+  auctionId: BigInt!
+  primaryAuction: PrimaryAuction
+  marketplaceAuction: MarketplaceAuction
+  bidder: Bytes!
+  amount: BigInt!
+  endTime: BigInt!
+  nextExtensionWindow: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
+type Refund @entity(immutable: true) {
+  id: ID!
+  source: String!
+  auctionId: BigInt!
+  account: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
+type ProceedsCredit @entity(immutable: true) {
+  id: ID!
+  entityId: BigInt!
+  isAuction: Boolean!
+  account: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
+type AccountBalance @entity(immutable: false) {
+  id: ID!
+  account: Bytes!
+  primaryRefunds: BigInt!
+  marketplaceRefunds: BigInt!
+  marketplaceProceeds: BigInt!
+  updatedAt: BigInt!
+  updatedBlock: BigInt!
+  updatedTx: Bytes!
+}
+
+type Activity @entity(immutable: true) {
+  id: ID!
+  source: String!
+  eventType: String!
+  entityId: String
+  node: Bytes
+  account: Bytes
+  amount: BigInt
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}

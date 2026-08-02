@@ -1,0 +1,64 @@
+# Resolve an active .abey name by label.
+query DomainByLabel($label: String!, $now: BigInt!) {
+  domains(where: { label: $label, released: false, expiry_gt: $now }) {
+    node
+    name
+    owner
+    resolvedAddress
+    primaryName
+    expiry
+  }
+}
+
+# Names currently associated with a wallet.
+query NamesByOwner($owner: Bytes!, $now: BigInt!) {
+  domains(where: { owner: $owner, released: false, expiry_gt: $now }) {
+    node
+    label
+    name
+    resolvedAddress
+    primaryName
+    expiry
+  }
+}
+
+# Marketplace inventory. Consumers derive scheduled, active, or ended from
+# startTime/endTime and use settled/cancelled as terminal onchain states.
+query MarketplaceInventory {
+  marketplaceListings(where: { active: true }) {
+    listingId
+    name
+    seller
+    price
+  }
+  marketplaceAuctions(where: { settled: false, cancelled: false }) {
+    auctionId
+    name
+    seller
+    reservePrice
+    startTime
+    endTime
+    highestBidder
+    highestBid
+    bidCount
+  }
+  primaryAuctions(where: { settled: false, cancelled: false }) {
+    auctionId
+    name
+    reservePrice
+    startTime
+    endTime
+    highestBidder
+    highestBid
+    bidCount
+  }
+}
+
+# Pull-payment balances displayed by the marketplace.
+query ClaimableBalances($account: ID!) {
+  accountBalance(id: $account) {
+    primaryRefunds
+    marketplaceRefunds
+    marketplaceProceeds
+  }
+}
