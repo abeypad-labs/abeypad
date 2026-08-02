@@ -1,0 +1,62 @@
+name: abeypad-backend
+
+services:
+  api-testnet:
+    build:
+      context: /opt/apps/abeypad
+      dockerfile: backend-deploy/Dockerfile
+    container_name: abeypad-api-testnet
+    restart: unless-stopped
+    env_file:
+      - /opt/apps/abeypad/source/backend/.env
+    environment:
+      NODE_ENV: production
+      ABEY_NETWORK: testnet
+      PORT: "8788"
+      CORS_ORIGIN: https://abeypad.xyz,https://www.abeypad.xyz
+    expose:
+      - "8788"
+    networks:
+      - proxy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:8788/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  api-mainnet:
+    build:
+      context: /opt/apps/abeypad
+      dockerfile: backend-deploy/Dockerfile
+    container_name: abeypad-api-mainnet
+    restart: unless-stopped
+    env_file:
+      - /opt/apps/abeypad/source/backend/.env
+    environment:
+      NODE_ENV: production
+      ABEY_NETWORK: mainnet
+      PORT: "8789"
+      CORS_ORIGIN: https://abeypad.xyz,https://www.abeypad.xyz
+    expose:
+      - "8789"
+    networks:
+      - proxy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:8789/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  proxy:
+    external: true

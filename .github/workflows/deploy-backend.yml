@@ -1,0 +1,162 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "backend/**"
+      - "backend-deploy/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: abeypad-backend-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DEPLOY_PATH: ${{ vars.VPS_DEPLOY_PATH != '' && vars.VPS_DEPLOY_PATH || '/opt/apps/abeypad' }}
+      VPS_PORT: ${{ vars.VPS_SSH_PORT != '' && vars.VPS_SSH_PORT || '22' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Typecheck backend
+        working-directory: backend
+        run: npm run typecheck
+
+      - name: Configure SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${VPS_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${VPS_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Ensure remote backend directories exist
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -p "${VPS_PORT}" "${VPS_USER}@${VPS_HOST}" \
+            "mkdir -p '${DEPLOY_PATH}/source/backend' '${DEPLOY_PATH}/backend-deploy'"
+
+      - name: Upload backend source
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          rsync -az --delete \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            -e "ssh -p ${VPS_PORT}" \
+            backend/ "${VPS_USER}@${VPS_HOST}:${DEPLOY_PATH}/source/backend/"
+
+      - name: Upload backend runtime configuration
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          rsync -az --delete \
+            -e "ssh -p ${VPS_PORT}" \
+            backend-deploy/ "${VPS_USER}@${VPS_HOST}:${DEPLOY_PATH}/backend-deploy/"
+
+      - name: Build, migrate, and reload backend
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -p "${VPS_PORT}" "${VPS_USER}@${VPS_HOST}" "DEPLOY_PATH='${DEPLOY_PATH}' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          cd "${DEPLOY_PATH}/backend-deploy"
+
+          if [ ! -f "${DEPLOY_PATH}/source/backend/.env" ]; then
+            echo "Missing ${DEPLOY_PATH}/source/backend/.env; refusing backend deploy." >&2
+            exit 1
+          fi
+
+          rollback_tag="$(date +%Y%m%d%H%M%S)"
+          testnet_rollback="abeypad-backend-api-testnet:rollback-${rollback_tag}"
+          mainnet_rollback="abeypad-backend-api-mainnet:rollback-${rollback_tag}"
+
+          docker image inspect abeypad-backend-api-testnet:latest >/dev/null 2>&1 &&
+            docker image tag abeypad-backend-api-testnet:latest "${testnet_rollback}" || true
+          docker image inspect abeypad-backend-api-mainnet:latest >/dev/null 2>&1 &&
+            docker image tag abeypad-backend-api-mainnet:latest "${mainnet_rollback}" || true
+
+          rollback() {
+            trap - ERR
+            set +e
+            echo "Backend deploy failed; attempting rollback to previous backend images." >&2
+            docker image inspect "${testnet_rollback}" >/dev/null 2>&1 &&
+              docker image tag "${testnet_rollback}" abeypad-backend-api-testnet:latest || true
+            docker image inspect "${mainnet_rollback}" >/dev/null 2>&1 &&
+              docker image tag "${mainnet_rollback}" abeypad-backend-api-mainnet:latest || true
+            docker compose up -d --remove-orphans || true
+          }
+
+          trap rollback ERR
+
+          wait_for_health() {
+            container="$1"
+            for _ in $(seq 1 30); do
+              status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container}" 2>/dev/null || true)"
+              if [ "${status}" = "healthy" ]; then
+                return 0
+              fi
+              if [ "${status}" = "unhealthy" ] || [ "${status}" = "exited" ] || [ "${status}" = "dead" ]; then
+                return 1
+              fi
+              sleep 5
+            done
+            return 1
+          }
+
+          docker compose build --pull
+          docker compose run --rm api-testnet node dist/migrate.js
+
+          docker compose up -d --remove-orphans
+
+          if ! wait_for_health abeypad-api-testnet; then
+            docker compose logs --tail=100 api-testnet api-mainnet >&2 || true
+            false
+          fi
+
+          if ! wait_for_health abeypad-api-mainnet; then
+            docker compose logs --tail=100 api-testnet api-mainnet >&2 || true
+            false
+          fi
+
+          trap - ERR
+          docker compose ps
+          REMOTE
+
+      - name: Verify public backend endpoints
+        run: |
+          curl -fsS https://api.abeypad.xyz/health
+          curl -fsS https://testnet-api.abeypad.xyz/health
+          curl -fsS https://api.abeypad.xyz/api/config | grep '"activeChainId":179'
+          curl -fsS https://testnet-api.abeypad.xyz/api/config | grep '"activeChainId":178'
