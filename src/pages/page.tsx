@@ -1,10 +1,22 @@
 import { TelegramIcon } from "@/components/ui/icons/telegram-icon";
 import { XIcon as XSocialIcon } from "@/components/ui/icons/x-icon";
+import { WalletIdenticon } from "@/components/WalletIdenticon";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 import { useConnectModal } from "@/lib/hooks";
 import { useCountUp } from "@/lib/hooks/useCountUp";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
-import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
-import { BookOpen, Menu, X } from "lucide-react";
+import { useAbeyPriceUsd } from "@/lib/hooks/useAbeyPriceUsd";
+import {
+  ArrowRight,
+  AtSign,
+  BookOpen,
+  CalendarClock,
+  Menu,
+  ShieldCheck,
+  ShoppingBag,
+  WalletMinimal,
+  X,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { formatEther } from "viem";
@@ -25,6 +37,7 @@ export default function Home() {
 
   const navLinks = [
     { label: "Projects", href: "/projects" },
+    { label: "Names", href: "/names" },
     { label: "Staking", href: "/dashboard/staking" },
     { label: "Create", href: "/dashboard/create" },
   ];
@@ -53,12 +66,12 @@ export default function Home() {
     useCountUp(totalRaisedValue);
   const { count: activePresales, ref: activePresalesRef } =
     useCountUp(livePresaleCount);
-  const qfPriceUsd = useReactPriceUsd();
+  const abeyPriceUsd = useAbeyPriceUsd();
 
   const totalRaisedUsd = useMemo(() => {
-    if (qfPriceUsd === null) return null;
-    return totalRaised * qfPriceUsd;
-  }, [qfPriceUsd, totalRaised]);
+    if (abeyPriceUsd === null) return null;
+    return totalRaised * abeyPriceUsd;
+  }, [abeyPriceUsd, totalRaised]);
 
   return (
     <main className="min-h-screen text-black">
@@ -86,12 +99,22 @@ export default function Home() {
                   {link.label}
                 </Link>
               ))}
-              {!address && (
+              {address ? (
+                <Link
+                  to="/dashboard/user"
+                  title={address}
+                  className="inline-flex items-center gap-2 border-[3px] border-black bg-[#B8EF53] px-4 py-2 text-xs font-black uppercase tracking-[0.1em] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] transition-all hover:-translate-x-1 hover:-translate-y-1 hover:[box-shadow:0_0_0_1px_#000,9px_9px_0_0_#000]"
+                >
+                  <WalletIdenticon address={address} className="h-5 w-5" />
+                  <AddressIdentity address={address} className="font-mono" />
+                </Link>
+              ) : (
                 <button
                   type="button"
                   onClick={() => openConnectModal?.()}
-                  className="border-[3px] border-black bg-[#42C9FF] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] transition-all hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
+                  className="inline-flex items-center gap-2 border-[3px] border-black bg-[#42C9FF] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] transition-all hover:-translate-x-1 hover:-translate-y-1 hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000]"
                 >
+                  <WalletMinimal className="h-4 w-4" strokeWidth={2.7} />
                   Connect Wallet
                 </button>
               )}
@@ -128,15 +151,32 @@ export default function Home() {
                   {link.label}
                 </Link>
               ))}
-              {!address && (
+              {address ? (
+                <Link
+                  to="/dashboard/user"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  title={address}
+                  className="flex items-center justify-between border-[3px] border-black bg-[#B8EF53] px-4 py-3 text-xs font-black uppercase tracking-[0.12em]"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <WalletIdenticon address={address} className="h-5 w-5" />
+                    Connected
+                  </span>
+                  <AddressIdentity
+                    address={address}
+                    className="font-mono tracking-normal"
+                  />
+                </Link>
+              ) : (
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     openConnectModal?.();
                   }}
-                  className="border-[3px] border-black bg-[#42C9FF] px-4 py-3 text-xs font-black uppercase tracking-[0.14em]"
+                  className="inline-flex items-center justify-center gap-2 border-[3px] border-black bg-[#42C9FF] px-4 py-3 text-xs font-black uppercase tracking-[0.14em]"
                 >
+                  <WalletMinimal className="h-4 w-4" strokeWidth={2.7} />
                   Connect Wallet
                 </button>
               )}
@@ -152,8 +192,8 @@ export default function Home() {
               for Abey.
             </h1>
             <p className="mt-6 max-w-2xl text-lg font-bold sm:text-xl">
-              Fundraise, create tokens & NFTs, secure liquidity, distribute
-              airdrops — all from one platform.
+              Fundraise, create tokens, claim .abey names, secure liquidity,
+              and distribute airdrops — all from one platform.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -196,7 +236,7 @@ export default function Home() {
                       })}`}
                 </p>
                 <p className="mt-2 text-sm font-black uppercase tracking-[0.14em]">
-                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} ABEY
+                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} $ABEY
                 </p>
               </div>
             </div>
@@ -232,6 +272,34 @@ export default function Home() {
                   <span className="text-[#F95D9B]">•</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="neo-frame mb-16 overflow-hidden bg-white animate-fade-in-up">
+          <div className="grid lg:grid-cols-[1fr_0.85fr]">
+            <div className="p-7 sm:p-10">
+              <h2 className="max-w-2xl text-4xl font-black leading-[0.95] tracking-tight sm:text-6xl">
+                Make <span className="font-mono text-[#1E5BFF]">0x…</span> feel like you.
+              </h2>
+              <p className="mt-5 max-w-xl text-base font-bold text-black/65 sm:text-lg">
+                One .abey name for your wallet—everywhere on AbeyPad.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/names" className="inline-flex items-center gap-2 border-[3px] border-black bg-[#B8EF53] px-5 py-3 text-xs font-black uppercase tracking-[0.12em] [box-shadow:6px_6px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1">Claim yours <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/names/marketplace" className="inline-flex items-center gap-2 border-[3px] border-black bg-[#F95D9B] px-5 py-3 text-xs font-black uppercase tracking-[0.12em] [box-shadow:6px_6px_0_#000] transition-transform hover:-translate-x-1 hover:-translate-y-1">Browse names <ShoppingBag className="h-4 w-4" /></Link>
+              </div>
+            </div>
+
+            <div className="border-t-[3px] border-black bg-[#42C9FF] p-7 lg:border-l-[3px] lg:border-t-0 sm:p-10">
+              <div className="-rotate-[1deg] border-[3px] border-black bg-[#FFF2D5] p-5 [box-shadow:8px_8px_0_#000]">
+                <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center border-[3px] border-black bg-white"><AtSign className="h-6 w-6" strokeWidth={3} /></span><div><p className="text-2xl font-black">you.abey</p><p className="font-mono text-xs font-bold text-black/50">0x71f4…9b20</p></div></div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  <div className="border-2 border-black bg-white p-3"><ShieldCheck className="h-4 w-4" /><p className="mt-2 text-xs font-black">Yours to hold</p><p className="mt-1 text-[11px] font-bold text-black/55">Self-custodied in your wallet.</p></div>
+                  <div className="border-2 border-black bg-white p-3"><CalendarClock className="h-4 w-4" /><p className="mt-2 text-xs font-black">Room to renew</p><p className="mt-1 text-[11px] font-bold text-black/55">30-day renewal grace period.</p></div>
+                  <div className="border-2 border-black bg-white p-3"><ShoppingBag className="h-4 w-4" /><p className="mt-2 text-xs font-black">Built to trade</p><p className="mt-1 text-[11px] font-bold text-black/55">List or auction it natively.</p></div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -290,8 +358,8 @@ export default function Home() {
             Fund Smarter
           </h2>
           <p className="mt-5 max-w-2xl text-lg font-bold">
-            Turn your concept into a live on-chain raise with built-in token and
-            NFT tooling on Abey.
+            Turn your concept into a live on-chain raise with built-in token
+            tooling and native .abey identity. NFT tooling is coming soon.
           </p>
           <Link
             to="/dashboard/create"

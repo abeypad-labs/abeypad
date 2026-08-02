@@ -1,64 +1,21 @@
 import {
-  CONTRACT_ADDRESSES,
   LaunchpadPresaleContract,
   PresaleFactory,
 } from "@/config";
 import { useWaitForTransactionReceipt, useWriteContract } from "@/lib/hooks";
 import { useEffect } from "react";
 import type { Address } from "viem";
-
-/**
- * Hook for factory owner to manage whitelisted creators
- */
-export function useSetWhitelistedCreator() {
-  const { presaleFactory } = CONTRACT_ADDRESSES;
-  const {
-    writeContract,
-    data: hash,
-    isPending,
-    isError,
-    error,
-    reset,
-  } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const setWhitelistedCreator = (
-    creatorAddress: Address,
-    whitelisted: boolean,
-  ) => {
-    writeContract({
-      address: presaleFactory,
-      abi: PresaleFactory.abi,
-      functionName: "setWhitelistedCreators",
-      args: [[creatorAddress], whitelisted],
-    });
-  };
-
-  return {
-    setWhitelistedCreator,
-    hash,
-    isPending,
-    isConfirming,
-    isSuccess,
-    isError,
-    error,
-    reset,
-    isBusy: isPending || isConfirming,
-  };
-}
+import { useContractAddresses } from "./useContractAddresses";
 
 type SetFeeRecipientOptions = {
   onConfirmed?: () => void;
 };
 
 /**
- * Hook for factory owner to transfer the fee recipient/owner role.
+ * Hook for the immutable factory owner to update the launchpad fee recipient.
  */
 export function useSetFeeRecipient(options?: SetFeeRecipientOptions) {
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
   const onConfirmed = options?.onConfirmed;
   const {
     writeContract,
@@ -84,7 +41,7 @@ export function useSetFeeRecipient(options?: SetFeeRecipientOptions) {
     writeContract({
       address: presaleFactory,
       abi: PresaleFactory.abi,
-      functionName: "transferOwnership",
+      functionName: "setFeeRecipient",
       args: [newRecipient],
     });
   };

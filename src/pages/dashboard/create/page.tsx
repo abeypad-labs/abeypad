@@ -28,6 +28,7 @@ const getCreationOptions = () => [
     title: "Create an NFT Collection",
     description: "Deploy an NFT collection with a configurable public sale.",
     icon: ImageIcon,
+    comingSoon: true,
   },
   {
     to: "/dashboard/create/project",
@@ -84,6 +85,11 @@ export default function CreateHubPage() {
               >
                 <item.icon className="w-8 h-8 mb-4 text-black group-hover:text-white" />
                 <h3 className="font-bold text-xl mb-2">{item.title}</h3>
+                {item.comingSoon && (
+                  <span className="mb-3 inline-block border-2 border-black bg-[#F5CF85] px-2 py-1 text-[10px] font-black uppercase tracking-wider">
+                    Coming soon
+                  </span>
+                )}
                 <p className="text-sm opacity-70 mb-4">{item.description}</p>
                 <div className="flex justify-end">
                   <ArrowRight className="w-6 h-6 transform transition-transform group-hover:translate-x-1" />

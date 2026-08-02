@@ -1,33 +1,32 @@
 import { AdminRoute } from "@/components/admin/AdminRoute";
+import { ReservedNamesAdmin } from "@/components/admin/ReservedNamesAdmin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAccount } from "@/lib/hooks";
 import { useSetFeeRecipient } from "@/lib/hooks/useAdminActions";
 import { useLaunchpadPresales } from "@/lib/hooks/useLaunchpadPresales";
-import { useStakingAdmin } from "@/lib/hooks/useStakingAdmin";
 import { useFactoryOwner, useFeeRecipient } from "@/lib/utils/admin";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { resolveAddressOrAns } from "@/features/ans/address";
 import {
   ArrowRight,
+  AtSign,
   BarChart3,
   Coins,
   CoinsIcon,
-  Lock,
   PlusCircle,
   Settings,
   Shield,
-  UserPlus,
-  Users,
-  Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { isAddress, type Address } from "viem";
+import { useChainId } from "wagmi";
 
 function AdminDashboardContent() {
   const { address } = useAccount();
+  const chainId = useChainId();
   const { factoryOwner, isLoading: isLoadingOwner } = useFactoryOwner();
   const {
     feeRecipient,
@@ -63,12 +62,9 @@ function AdminDashboardContent() {
     }
   }, [isFeeRecipientError, feeRecipientError, resetFeeRecipient]);
 
-  const handleSetFeeRecipient = () => {
-    if (!newFeeRecipient || !isAddress(newFeeRecipient)) {
-      toast.error("Please enter a valid address");
-      return;
-    }
-    setFeeRecipient(newFeeRecipient as Address);
+  const handleSetFeeRecipient = async () => {
+    try { setFeeRecipient(await resolveAddressOrAns(newFeeRecipient, chainId)); }
+    catch { toast.error("Please enter a valid address or .abey name"); }
   };
 
   // Presale stats
@@ -83,94 +79,6 @@ function AdminDashboardContent() {
         p.status === "finalized" ||
         p.status === "cancelled",
     ).length ?? 0;
-
-  // Staking Admin State
-  const [rewardAPY, setRewardAPY] = useState("");
-  const [rewardAmount, setRewardAmount] = useState("");
-  const [userToWhitelist, setUserToWhitelist] = useState("");
-
-  // Staking Admin Hook
-  const {
-    isStakingOwner,
-    stakingOwner,
-    setRewardApy,
-    addToWhitelist,
-    supplyRewards,
-    releaseRewards,
-    isSetApySuccess,
-    isSetApyError,
-    isAddToWhitelistSuccess,
-    isAddToWhitelistError,
-    isSupplyRewardsSuccess,
-    isSupplyRewardsError,
-    isReleaseRewardsSuccess,
-    isReleaseRewardsError,
-  } = useStakingAdmin();
-
-  // Handle staking transaction results
-  useEffect(() => {
-    if (isSetApySuccess) {
-      toast.success("APY set successfully!");
-    }
-    if (isSetApyError) {
-      toast.error("Failed to set APY");
-    }
-  }, [isSetApySuccess, isSetApyError]);
-
-  useEffect(() => {
-    if (isAddToWhitelistSuccess) {
-      toast.success("User added to whitelist!");
-      setUserToWhitelist("");
-    }
-    if (isAddToWhitelistError) {
-      toast.error("Failed to add user to whitelist");
-    }
-  }, [isAddToWhitelistSuccess, isAddToWhitelistError]);
-
-  useEffect(() => {
-    if (isSupplyRewardsSuccess) {
-      toast.success("Rewards supplied successfully!");
-      setRewardAmount("");
-    }
-    if (isSupplyRewardsError) {
-      toast.error("Failed to supply rewards");
-    }
-  }, [isSupplyRewardsSuccess, isSupplyRewardsError]);
-
-  useEffect(() => {
-    if (isReleaseRewardsSuccess) {
-      toast.success("Rewards released successfully!");
-    }
-    if (isReleaseRewardsError) {
-      toast.error("Failed to release rewards");
-    }
-  }, [isReleaseRewardsSuccess, isReleaseRewardsError]);
-
-  // Admin Actions
-  const handleSetRewardApy = async () => {
-    const result = await setRewardApy(rewardAPY);
-    if (result.success) {
-      setRewardAPY("");
-    }
-  };
-
-  const handleAddToWhitelist = async () => {
-    const result = await addToWhitelist(userToWhitelist);
-    if (result.success) {
-      setUserToWhitelist("");
-    }
-  };
-
-  const handleSupplyRewards = async () => {
-    const result = await supplyRewards(rewardAmount);
-    if (result.success) {
-      setRewardAmount("");
-    }
-  };
-
-  const handleReleaseRewards = async () => {
-    await releaseRewards();
-  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -330,23 +238,6 @@ function AdminDashboardContent() {
           </Card>
         </Link>
 
-        <Link to="/admin/whitelist">
-          <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-purple-100 rounded">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-medium">Whitelist</p>
-                  <p className="text-xs text-gray-600">Creator config</p>
-                </div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-            </CardContent>
-          </Card>
-        </Link>
-
         <Link to="/dashboard/staking">
           <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 flex items-center justify-between">
@@ -363,162 +254,26 @@ function AdminDashboardContent() {
             </CardContent>
           </Card>
         </Link>
-      </div>
 
-      {/* Staking Admin Section */}
-      <div className="mb-8">
-        <Card className="border border-gray-300 shadow-sm">
-          <CardHeader className="border-b border-gray-200 bg-gray-50">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Settings className="w-5 h-5 text-gray-600" />
-              Staking Admin Panel
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Set Reward APY */}
-              <Card className="border border-gray-200">
-                <CardHeader className="border-b border-gray-200 bg-gray-50 p-4">
-                  <CardTitle className="font-medium text-sm flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-blue-500" />
-                    Set Reward APY
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      APY Percentage
-                    </label>
-                    <Input
-                      placeholder="e.g., 12 for 12%"
-                      value={rewardAPY}
-                      onChange={(e) => setRewardAPY(e.target.value)}
-                      className="font-mono border-gray-300"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Call: setRewardYieldForYear(uint256 rewardApy)
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleSetRewardApy}
-                    size="sm"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Set APY
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Add to Whitelist */}
-              <Card className="border border-gray-200">
-                <CardHeader className="border-b border-gray-200 bg-gray-50 p-4">
-                  <CardTitle className="font-medium text-sm flex items-center gap-2">
-                    <UserPlus className="w-4 h-4 text-green-500" />
-                    Add to Whitelist
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      User Address
-                    </label>
-                    <Input
-                      placeholder="0x..."
-                      value={userToWhitelist}
-                      onChange={(e) => setUserToWhitelist(e.target.value)}
-                      className="font-mono border-gray-300"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Call: addToWhitelist(address account)
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleAddToWhitelist}
-                    size="sm"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Add to Whitelist
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Supply Rewards */}
-              <Card className="border border-gray-200">
-                <CardHeader className="border-b border-gray-200 bg-gray-50 p-4">
-                  <CardTitle className="font-medium text-sm flex items-center gap-2">
-                    <CoinsIcon className="w-4 h-4 text-orange-500" />
-                    Supply Rewards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Reward Amount
-                    </label>
-                    <Input
-                      placeholder="Amount in tokens"
-                      value={rewardAmount}
-                      onChange={(e) => setRewardAmount(e.target.value)}
-                      className="font-mono border-gray-300"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Call: supplyRewards(uint256 reward)
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleSupplyRewards}
-                    size="sm"
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                  >
-                    Supply Rewards
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Release Rewards */}
-              <Card className="border border-gray-200">
-                <CardHeader className="border-b border-gray-200 bg-gray-50 p-4">
-                  <CardTitle className="font-medium text-sm flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-yellow-500" />
-                    Release Rewards
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-700">
-                      Unlock rewards for immediate withdrawal.
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Call: releaseRewards() - overrides 365-day timelock
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleReleaseRewards}
-                    size="sm"
-                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    Release Rewards
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {!isStakingOwner && (
-              <div className="mt-6 p-4 border border-red-200 bg-red-50 rounded-sm text-sm">
-                <p className="font-medium text-red-800">
-                  ⚠️ Warning: You are not the staking contract owner.
-                </p>
-                <p className="text-red-700 mt-1">
-                  Current owner: {stakingOwner?.toString() || "Loading..."}
-                </p>
-                <p className="text-red-600 mt-2 text-xs">
-                  Some admin functions may fail if executed by non-owner.
-                </p>
+        <a href="#reserved-names">
+          <Card className="border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-cyan-100 rounded">
+                  <AtSign className="w-5 h-5 text-cyan-700" />
+                </div>
+                <div>
+                  <p className="font-medium">Reserved Names</p>
+                  <p className="text-xs text-gray-600">Assign 1-3 characters</p>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <ArrowRight className="w-5 h-5 text-gray-400" />
+            </CardContent>
+          </Card>
+        </a>
       </div>
+
+      <ReservedNamesAdmin />
 
       {/* Update Fee Recipient */}
       <Card className="border border-gray-300 shadow-sm">
@@ -535,13 +290,15 @@ function AdminDashboardContent() {
             </label>
             <div className="flex gap-2">
               <Input
-                placeholder="0x..."
+                placeholder="0x... or name.abey"
                 value={newFeeRecipient}
                 onChange={(e) => setNewFeeRecipient(e.target.value)}
                 className="font-mono border-gray-300 flex-1"
               />
               <Button
                 onClick={handleSetFeeRecipient}
+                loading={isSettingFeeRecipient}
+                loadingText="Updating"
                 disabled={isSettingFeeRecipient || !newFeeRecipient}
                 className="bg-gray-800 hover:bg-gray-900 text-white"
               >

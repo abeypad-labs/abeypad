@@ -56,12 +56,23 @@ Paste the private key file contents into the `VPS_SSH_KEY` secret.
 
 ## GitHub repository variables
 
-These are optional because the workflow has defaults:
+Deployment-path variables are optional because the workflow has defaults:
 
 - `VPS_DEPLOY_PATH=/opt/apps/abeypad`
 - `VPS_SSH_PORT=22`
 
-No app env variables are required for the first production deployment.
+The frontend build also needs both public backend origins so one bundle can
+follow the wallet between ABEY testnet and mainnet:
+
+- `VITE_ABEY_TESTNET_API_URL` (required)
+- `VITE_ABEY_MAINNET_API_URL` (required)
+- `VITE_NETWORK=mainnet` (optional disconnected default)
+- `VITE_ABEY_TESTNET_RPC_URL=https://testrpc.abeychain.com` (optional)
+- `VITE_ABEY_MAINNET_RPC_URL=https://rpc.abeychain.com` (optional)
+- `VITE_WALLETCONNECT_PROJECT_ID` (optional while the source fallback remains)
+
+These are public browser settings. Database credentials, price-source config,
+and ANS signer keys belong only in each backend service environment.
 
 ## Nginx Proxy Manager setup
 

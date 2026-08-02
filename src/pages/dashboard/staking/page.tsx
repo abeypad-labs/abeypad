@@ -650,6 +650,8 @@ export default function StakingPage() {
                 <CardContent className="p-0">
                   <Button
                     onClick={handleClaim}
+                    loading={isClaiming}
+                    loadingText="Claiming"
                     disabled={isClaiming}
                     className="rotate-[0.25deg] w-full h-full py-6 rounded-none border-0 bg-[#FF7F41] text-black font-black uppercase tracking-wider text-lg hover:bg-[#F06A56] disabled:opacity-50"
                   >
@@ -734,6 +736,8 @@ export default function StakingPage() {
 
                     <Button
                       onClick={handleFixedStake}
+                      loading={isApproving || isStaking}
+                      loadingText={isApproving ? "Approving" : "Staking"}
                       disabled={
                         isApproving ||
                         isStaking ||
@@ -804,6 +808,8 @@ export default function StakingPage() {
 
                     <Button
                       onClick={handleUnstake}
+                      loading={isUnstaking}
+                      loadingText="Withdrawing"
                       disabled={
                         isUnstaking ||
                         !unstakeAmount ||

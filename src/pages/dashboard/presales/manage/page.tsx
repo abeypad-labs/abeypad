@@ -16,6 +16,7 @@ import {
   type PresaleWithStatus,
 } from "@/lib/hooks/useLaunchpadPresales";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { resolveAddressOrAns, resolveAddressesOrAns } from "@/features/ans/address";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -499,24 +500,23 @@ function ManagePresaleView({
     writeWhitelist(config);
   };
 
-  const handleAddSingleWhitelist = () => {
+  const handleAddSingleWhitelist = async () => {
     if (!singleWhitelist) {
       toast.error("Enter a wallet address to whitelist.");
       return;
     }
-    if (!isAddress(singleWhitelist)) {
-      toast.error("Invalid wallet address.");
-      return;
-    }
+    let target: Address;
+    try { target = await resolveAddressOrAns(singleWhitelist, chainId); }
+    catch { toast.error("Invalid wallet address or .abey name."); return; }
     runWhitelistAction("addOne", {
       abi: LaunchpadPresaleContract.abi,
       address: presaleAddress,
       functionName: "addToWhitelist",
-      args: [singleWhitelist as Address],
+      args: [target],
     });
   };
 
-  const handleBulkWhitelist = () => {
+  const handleBulkWhitelist = async () => {
     const entries = bulkWhitelist
       .split(/[\s,]+/)
       .map((addr) => addr.trim())
@@ -527,33 +527,30 @@ function ManagePresaleView({
       );
       return;
     }
-    const invalid = entries.find((addr) => !isAddress(addr));
-    if (invalid) {
-      toast.error(`Invalid wallet: ${invalid}`);
-      return;
-    }
+    let targets: Address[];
+    try { targets = await resolveAddressesOrAns(entries, chainId); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Could not resolve whitelist entries"); return; }
     runWhitelistAction("bulkAdd", {
       abi: LaunchpadPresaleContract.abi,
       address: presaleAddress,
       functionName: "addManyToWhitelist",
-      args: [entries as Address[]],
+      args: [targets],
     });
   };
 
-  const handleRemoveWhitelist = () => {
+  const handleRemoveWhitelist = async () => {
     if (!removeAddress) {
       toast.error("Enter a wallet address to remove.");
       return;
     }
-    if (!isAddress(removeAddress)) {
-      toast.error("Invalid wallet address.");
-      return;
-    }
+    let target: Address;
+    try { target = await resolveAddressOrAns(removeAddress, chainId); }
+    catch { toast.error("Invalid wallet address or .abey name."); return; }
     runWhitelistAction("remove", {
       abi: LaunchpadPresaleContract.abi,
       address: presaleAddress,
       functionName: "removeFromWhitelist",
-      args: [removeAddress as Address],
+      args: [target],
     });
   };
 
@@ -629,6 +626,8 @@ function ManagePresaleView({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-center">
           <Button
             onClick={handleApproveTokens}
+            loading={approveBusy}
+            loadingText="Approving"
             disabled={
               approveBusy ||
               totalRequiredAmount === 0n ||
@@ -654,6 +653,8 @@ function ManagePresaleView({
           </Button>
           <Button
             onClick={handleDepositTokens}
+            loading={depositBusy}
+            loadingText="Depositing"
             disabled={
               depositBusy ||
               saleAmount === 0n ||
@@ -712,13 +713,17 @@ function ManagePresaleView({
               </Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="0x..."
+                  placeholder="0x... or name.abey"
                   value={singleWhitelist}
                   onChange={(e) => setSingleWhitelist(e.target.value)}
                 />
                 <Button
                   type="button"
                   onClick={handleAddSingleWhitelist}
+                  loading={
+                    whitelistBusy && activeWhitelistAction === "addOne"
+                  }
+                  loadingText="Adding"
                   disabled={whitelistBusy || !singleWhitelist}
                   className="border-4 border-black bg-[#C4F1BE] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"
                 >
@@ -734,13 +739,17 @@ function ManagePresaleView({
               </Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="0x..."
+                  placeholder="0x... or name.abey"
                   value={removeAddress}
                   onChange={(e) => setRemoveAddress(e.target.value)}
                 />
                 <Button
                   type="button"
                   onClick={handleRemoveWhitelist}
+                  loading={
+                    whitelistBusy && activeWhitelistAction === "remove"
+                  }
+                  loadingText="Removing"
                   disabled={whitelistBusy || !removeAddress}
                   className="border-4 border-black bg-[#FFD1DC] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"
                 >
@@ -757,14 +766,17 @@ function ManagePresaleView({
             </Label>
             <Textarea
               rows={3}
-              placeholder="0xabc...
-0xdef..."
+              placeholder="0xabc...\nhobbit.abey"
               value={bulkWhitelist}
               onChange={(e) => setBulkWhitelist(e.target.value)}
             />
             <Button
               type="button"
               onClick={handleBulkWhitelist}
+              loading={
+                whitelistBusy && activeWhitelistAction === "bulkAdd"
+              }
+              loadingText="Uploading"
               disabled={whitelistBusy || !bulkWhitelist}
               className="border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"
             >
@@ -803,6 +815,10 @@ function ManagePresaleView({
         <div className="grid gap-3 md:grid-cols-2">
           <Button
             onClick={handleFinalize}
+            loading={
+              ownerActionBusy && activeOwnerAction === "finalize"
+            }
+            loadingText="Finalizing"
             disabled={
               ownerActionBusy || presale.claimEnabled || presale.refundsEnabled
             }
@@ -818,6 +834,8 @@ function ManagePresaleView({
           </Button>
           <Button
             onClick={handleCancel}
+            loading={ownerActionBusy && activeOwnerAction === "cancel"}
+            loadingText="Cancelling"
             disabled={ownerActionBusy}
             className="border-4 border-black bg-[#FFD1DC] text-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)]"
           >
@@ -829,6 +847,10 @@ function ManagePresaleView({
         <div className="grid gap-3 md:grid-cols-2">
           <Button
             onClick={handleWithdrawProceeds}
+            loading={
+              ownerActionBusy && activeOwnerAction === "withdrawProceeds"
+            }
+            loadingText="Withdrawing"
             disabled={ownerActionBusy || !presale.claimEnabled}
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
               !presale.claimEnabled
@@ -842,6 +864,10 @@ function ManagePresaleView({
           </Button>
           <Button
             onClick={handleWithdrawTokens}
+            loading={
+              ownerActionBusy && activeOwnerAction === "withdrawTokens"
+            }
+            loadingText="Withdrawing"
             disabled={ownerActionBusy || !presale.claimEnabled}
             className={`border-4 border-black font-black uppercase tracking-wider shadow-[3px_3px_0_rgba(0,0,0,1)] ${
               !presale.claimEnabled

@@ -1,0 +1,33 @@
+{
+  "name": "abeypad-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Backend for the AbeyPad domains marketplace",
+  "scripts": {
+    "db:test": "tsx src/test-connection.ts",
+    "db:migrate": "tsx src/migrate.ts",
+    "dev": "tsx watch src/index.ts",
+    "dev:testnet": "ABEY_NETWORK=testnet PORT=8788 tsx watch src/index.ts",
+    "dev:mainnet": "ABEY_NETWORK=mainnet PORT=8789 tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js",
+    "start:testnet": "ABEY_NETWORK=testnet PORT=8788 node dist/index.js",
+    "start:mainnet": "ABEY_NETWORK=mainnet PORT=8789 node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.6.1",
+    "pg": "^8.13.1",
+    "viem": "^2.52.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.3"
+  }
+}

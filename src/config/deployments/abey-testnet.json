@@ -1,0 +1,73 @@
+{
+  "network": "Abey Testnet",
+  "chainId": 178,
+  "deployedAt": "2026-07-30",
+  "deployer": "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED",
+  "configuration": {
+    "ansTld": "abey",
+    "ansNode": "0x718b38b24b371815afa395a9ed641766bf7cf11fb5843cb970d7ef780ac07fb8",
+    "ansPriceSigner": "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED",
+    "ansTreasury": "0xeCAF669670Eae6c94a711521FaBD743bCdFA3DED",
+    "ansMarketplaceFeeBps": 250,
+    "nftProceedsFeeBps": 200
+  },
+  "contracts": {
+    "ANSRegistryV2": {
+      "address": "0x436d3eb15f3556796b02a3f13dd00599f92b00ba",
+      "transactionHash": "0x5c6b1be851c83fbcbd852f13c93da2de7848c95d0e4305b081b89bf18d4a9754"
+    },
+    "ANSResolverV2": {
+      "address": "0xfd5242067c3b84b74a09671669c0be2b2fd1a09b",
+      "transactionHash": "0xf3f15499c12688d4476e3387ca43162a2dd406095a3374de0c532ccaefd12038"
+    },
+    "ANSRegistrarV2": {
+      "address": "0x181ecfaada05368754bf199bbc25111605e266f6",
+      "transactionHash": "0xfc1d051f9c60c2e6a87f65643c143ae5277dee843b22d7c95d25863de23dff2c"
+    },
+    "ANSAuctionHouse": {
+      "address": "0x4aa5f6907094474afd56d243dbdc27f7cf09b381",
+      "transactionHash": "0x81bb0068327a191e651134002d7d54e3baae8d713e8172826c1de2f02791c648"
+    },
+    "ANSMarketplaceEscrow": {
+      "address": "0xfb3340c63e20ef0bc9865ebc927b60bfaf83b568",
+      "transactionHash": "0x696a6f8fbed3f414447b7fe12358e31bdf1d5fd86ddc33a608062afb3eeb33fe"
+    },
+    "TokenFactory": {
+      "address": "0x89EC55d8C7A3C6A1e8bF9b9E570CcB3B27eC3e0F",
+      "transactionHash": "0x29394de16a1507137791196e2150c39806895f0b42c99192843021e51394877b"
+    },
+    "TokenLocker": {
+      "address": "0xD807e6f0f00eB3334193017B735d2fca00573d57",
+      "transactionHash": "0x96c19a3b52e4bce6ddc1139f8099b61e0c0c42f66f0248533213a4d559218feb"
+    },
+    "PresaleFactory": {
+      "address": "0xBa289b92051eB4f649eBF6396b564474835e9015",
+      "transactionHash": "0x0618cb67363e6481471a0e91526021a3c856f98798293b20c5009ec61a6913aa"
+    },
+    "AbeyNFTFactory": {
+      "address": "0xE5DD5e7a79B4d0071D2d5313D15F4fB240d52378",
+      "transactionHash": "0x32d424b2e87fdcbce3bc547c1e09effcf9f3dd9a64b4fcc43e9d67e4b1c0ac95"
+    },
+    "NFTEthDeployer": {
+      "address": "0x56A781c8d045AeaC7b6Add6D4c164F82c4D45328",
+      "transactionHash": "0xc63647409c6718d27f13cdb1dc73bc8a64da8ef56f41064703a6f810b9a6e6fa"
+    },
+    "NFT721AEthDeployer": {
+      "address": "0xcfc5a9E9d6156b3215AaFf2441720784AC0ad488",
+      "transactionHash": "0x0ffe734d1ec25978254e730a6200658eb810884772e61232575c76d449ed2f88"
+    },
+    "NFTFactoryLens": {
+      "address": "0x991698C777a45588f3dd628d7783cb4FD69F0326",
+      "transactionHash": "0x813df36d1dc0bac5324dada27181c94edf1b2c14f50ca63b06fa8132c4705d8f"
+    },
+    "AirdropMultisender": {
+      "address": "0x623a156154a3d9726090700745CbB8223D2b5Cd6",
+      "transactionHash": "0x98b63f9bb2c1a19a075d9bbbbc6703a1e06af59ba3008e6724369c159f785841"
+    }
+  },
+  "configurationTransactions": {
+    "assignAbeyRoot": "0xb6b2dab833508e6c758f829269f0e6ac752422155baae285bf4449b0c160a142",
+    "authorizeAuctionHouse": "0xeaf2c5ccafde60c27faceb1895e0e84aaaf72f512f702a547516b307e7be40c3",
+    "initializeNftDeployers": "0xeeff652155e18204155e64e5b892a989ec5cb1c50287db7008327e606934006e"
+  }
+}

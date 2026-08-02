@@ -9,14 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CONTRACT_ADDRESSES, TokenFactory } from "@/config";
+import { TokenFactory } from "@/config";
 import {
   useAccount,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useContractAddresses,
 } from "@/lib/hooks";
 import { useUserAssetsStore } from "@/lib/store/user-assets-store";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { resolveAddressOrAns } from "@/features/ans/address";
 import {
   CheckCircle2,
   Coins,
@@ -45,7 +47,7 @@ export default function CreateTokenPage() {
   const config = useConfig();
   const chainId = useChainId();
   const chain = config.chains.find((c) => c.id === chainId);
-  const { tokenFactory } = CONTRACT_ADDRESSES;
+  const { tokenFactory } = useContractAddresses();
   const explorerUrl = chain?.blockExplorers?.default.url;
   const {
     data: hash,
@@ -80,7 +82,7 @@ export default function CreateTokenPage() {
     if (address) setInitialRecipient(address);
   }, [address]);
 
-  const handleCreateToken = () => {
+  const handleCreateToken = async () => {
     console.log("[CreateToken] Starting token creation...");
     console.log("[CreateToken] Current state:", {
       tokenType,
@@ -101,6 +103,18 @@ export default function CreateTokenPage() {
       return;
     }
 
+    let resolvedInitialRecipient: `0x${string}`;
+    let resolvedTaxWallet: `0x${string}` | null = null;
+    try {
+      resolvedInitialRecipient = await resolveAddressOrAns(initialRecipient, chainId);
+      if (tokenType === TokenType.Taxable) {
+        resolvedTaxWallet = await resolveAddressOrAns(taxWallet, chainId);
+      }
+    } catch {
+      toast.error("Recipient and tax wallet must be valid addresses or .abey names");
+      return;
+    }
+
     setCreatedTokenAddress(null);
     processedHash.current = null;
     setTxStatus("pending");
@@ -112,7 +126,7 @@ export default function CreateTokenPage() {
       symbol,
       decimals: parseInt(decimals),
       initialSupply: parseUnits(initialSupply, parseInt(decimals)),
-      initialRecipient: initialRecipient as `0x${string}`,
+      initialRecipient: resolvedInitialRecipient,
     };
 
     console.log("[CreateToken] Token params:", tokenParams);
@@ -148,7 +162,7 @@ export default function CreateTokenPage() {
         break;
       case TokenType.Taxable: {
         const taxParams = {
-          taxWallet: taxWallet as `0x${string}`,
+          taxWallet: resolvedTaxWallet!,
           taxBps: BigInt(taxBps), // Use BigInt to match ABI's uint96
         };
         console.log(
@@ -621,7 +635,7 @@ export default function CreateTokenPage() {
               </Label>
               <Input
                 id="initial-recipient"
-                placeholder="e.g. 0x..."
+                placeholder="0x... or name.abey"
                 value={initialRecipient}
                 onChange={(e) => setInitialRecipient(e.target.value)}
                 className="border-2 border-black font-mono text-sm"
@@ -645,7 +659,7 @@ export default function CreateTokenPage() {
                   </Label>
                   <Input
                     id="tax-wallet"
-                    placeholder="e.g. 0x..."
+                    placeholder="0x... or name.abey"
                     value={taxWallet}
                     onChange={(e) => setTaxWallet(e.target.value)}
                     className="border-2 border-black font-mono text-sm"
@@ -672,22 +686,12 @@ export default function CreateTokenPage() {
 
             <Button
               onClick={handleCreateToken}
+              loading={isBusy}
+              loadingText={isPending ? "Confirm in Wallet" : "Deploying"}
               disabled={isBusy || !name || !symbol}
               className="-rotate-[0.35deg] w-full border-4 border-black bg-[#22C55E] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#E45845] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isPending && (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Confirm in Wallet…
-                </>
-              )}
-              {isConfirming && (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deploying…
-                </>
-              )}
-              {!isBusy && "Create Token"}
+              Create Token
             </Button>
           </CardContent>
         </Card>

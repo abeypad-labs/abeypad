@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 import { Progress } from "@/components/ui/progress";
-import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
-import { useChainId, useReadContract } from "@/lib/hooks";
+import { TokenLocker } from "@/config";
+import { useChainId, useContractAddresses, useReadContract } from "@/lib/hooks";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
@@ -117,7 +118,7 @@ function LockProgressBar({
 
 export default function LockDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { tokenLocker } = CONTRACT_ADDRESSES;
+  const { tokenLocker } = useContractAddresses();
   const config = useConfig();
   const chainId = useChainId();
   const chain = config.chains.find((c) => c.id === chainId);
@@ -381,10 +382,7 @@ export default function LockDetailPage() {
                   rel="noopener noreferrer"
                   className="font-mono text-xs sm:text-sm hover:underline flex items-center gap-2 break-all"
                 >
-                  <span className="hidden sm:inline">{lock.owner}</span>
-                  <span className="sm:hidden">
-                    {lock.owner.slice(0, 10)}...{lock.owner.slice(-8)}
-                  </span>
+                  <AddressIdentity address={lock.owner} className="font-black" />
                   <ExternalLink className="w-4 h-4 flex-shrink-0" />
                 </a>
               ) : (

@@ -4,15 +4,22 @@ import {
   useConnectModal,
   useDisconnect,
 } from "@/lib/hooks";
-import { useReactPriceUsd } from "@/lib/hooks/useReactPriceUsd";
+import {
+  ActiveNetworkBadge,
+  NetworkSwitcher,
+} from "@/components/NetworkSwitcher";
+import { useAbeyPriceUsd } from "@/lib/hooks/useAbeyPriceUsd";
+import { AddressIdentity } from "@/features/ans/AddressIdentity";
 import { useIsAdmin } from "@/lib/utils/admin";
 import {
   Layers,
   LayoutDashboard,
+  AtSign,
   Menu,
   Plus,
   Rocket,
   Shield,
+  ShoppingBag,
   WalletMinimal,
   type LucideIcon,
 } from "lucide-react";
@@ -29,6 +36,8 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { name: "Dashboard", href: "/dashboard/user", icon: LayoutDashboard },
+  { name: "Names", href: "/names", icon: AtSign },
+  { name: "Marketplace", href: "/names/marketplace", icon: ShoppingBag },
   { name: "Launchpad", href: "/projects", icon: Rocket },
   { name: "Staking", href: "/dashboard/staking", icon: Layers },
 ];
@@ -41,61 +50,73 @@ const SidebarContent = () => {
   const { openConnectModal } = useConnectModal();
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const qfPriceUsd = useReactPriceUsd();
+  const abeyPriceUsd = useAbeyPriceUsd();
   const { isAdmin } = useIsAdmin(address as Address | undefined);
 
   const isConnected = !!address;
 
   const { data: balanceData } = useBalance({ address });
   const balance = balanceData ? parseFloat(balanceData.formatted) : 0;
-  const valueUsd = balance * (qfPriceUsd ?? 0);
+  const valueUsd = balance * (abeyPriceUsd ?? 0);
 
   return (
     <div className="flex min-h-full flex-col bg-[#F7F1E1] text-black">
-      <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black"></div>
+      <div className="border-b-[3px] border-black bg-[#F5CF85] px-4 py-4 text-black">
+        <Link
+          to="/"
+          className="mb-3 flex items-center gap-2.5 text-black transition-transform hover:translate-x-0.5"
+        >
+          <img
+            src="/abeypad.png"
+            alt="AbeyPad logo"
+            className="h-9 w-9 rounded-[11px] border-[2px] border-black object-cover"
+          />
+          <span className="text-sm font-black uppercase tracking-[0.18em]">
+            AbeyPad
+          </span>
+        </Link>
+        <NetworkSwitcher />
+        {!isConnected && (
+          <button
+            onClick={openConnectModal}
+            type="button"
+            className="mt-3 w-full border-[2px] border-black bg-[#B8EF53] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-black [box-shadow:3px_3px_0_0_#000] transition-colors hover:bg-[#A6DD4A]"
+          >
+            Connect Wallet
+          </button>
+        )}
+      </div>
 
       {isConnected && (
         <div className="mx-4 mt-4 -rotate-[0.45deg] border-[2px] border-black bg-[#FFF2D5] p-4 text-black [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000]">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-mono font-black uppercase">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
+              {address && <AddressIdentity address={address} />}
             </span>
             <WalletMinimal size={18} strokeWidth={2.5} />
           </div>
 
           <div className="mb-4">
-            {qfPriceUsd !== null && qfPriceUsd > 0 ? (
-              <>
-                <p className="text-3xl font-black leading-none">
-                  $
-                  {valueUsd < 0.01 && valueUsd > 0
-                    ? valueUsd.toLocaleString(undefined, {
-                        minimumFractionDigits: 4,
-                        maximumFractionDigits: 4,
-                      })
-                    : valueUsd.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                </p>
-                <p className="mt-2 text-xs font-bold font-mono">
-                  {balance.toLocaleString(undefined, {
-                    maximumFractionDigits: 4,
-                  })}{" "}
-                  ABEY
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-3xl font-black leading-none">
-                  {balance.toLocaleString(undefined, {
-                    maximumFractionDigits: 4,
-                  })}
-                </p>
-                <p className="mt-1 text-xs font-black uppercase tracking-[0.2em]">
-                  ABEY
-                </p>
-              </>
+            <p className="text-3xl font-black leading-none">
+              {balance.toLocaleString(undefined, {
+                maximumFractionDigits: 4,
+              })}{" "}
+              <span className="text-sm uppercase tracking-[0.16em]">ABEY</span>
+            </p>
+            {abeyPriceUsd !== null && abeyPriceUsd > 0 && (
+              <p className="mt-2 text-[11px] font-black text-black/55">
+                $
+                {valueUsd < 0.01 && valueUsd > 0
+                  ? valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 4,
+                      maximumFractionDigits: 4,
+                    })
+                  : valueUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                USD
+              </p>
             )}
           </div>
 
@@ -171,15 +192,6 @@ const SidebarContent = () => {
             Create
           </Link>
 
-          {!isConnected && (
-            <button
-              onClick={openConnectModal}
-              type="button"
-              className={`${actionButtonClass} bg-[#B8EF53] text-black`}
-            >
-              Connect Wallet
-            </button>
-          )}
         </div>
       </nav>
     </div>
@@ -239,14 +251,17 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                 AbeyPad
               </span>
             </Link>
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="border-[2px] border-black bg-white p-2 text-black"
-              type="button"
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Menu className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <ActiveNetworkBadge />
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="border-[2px] border-black bg-white p-2 text-black transition-colors hover:bg-[#42C9FF]"
+                type="button"
+              >
+                <span className="sr-only">Open sidebar and network settings</span>
+                <Menu className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           <main className="relative flex-1 overflow-y-auto px-0 py-0 focus:outline-none">

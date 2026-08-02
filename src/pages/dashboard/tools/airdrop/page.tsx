@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CONTRACT_ADDRESSES } from "@/config";
 import { AirdropMultiSender } from "@/config/abis/airdrop";
 import {
   useAccount,
@@ -11,8 +10,10 @@ import {
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useContractAddresses,
 } from "@/lib/hooks";
 import { getFriendlyTxErrorMessage } from "@/lib/utils/tx-errors";
+import { isAnsName, resolveAddressesOrAns } from "@/features/ans/address";
 import {
   AlertCircle,
   CheckCircle2,
@@ -26,11 +27,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { erc20Abi, formatUnits, maxUint256, parseUnits } from "viem";
+import { isAddress } from "viem";
+import { useChainId } from "wagmi";
+import { useQuery } from "@tanstack/react-query";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 
 export default function AirdropPage() {
   const [searchParams] = useSearchParams();
   const { address } = useAccount();
-  const { airdropMultisender } = CONTRACT_ADDRESSES;
+  const chainId = useChainId();
+  const { airdropMultisender } = useContractAddresses();
 
   const {
     data: sendHash,
@@ -106,9 +112,9 @@ export default function AirdropPage() {
   });
 
   // Parse recipients data
-  const parsedRecipients = useMemo(() => {
+  const parsedRecipientInputs = useMemo(() => {
     if (!recipientsData) {
-      return { recipients: [], amounts: [], errors: [] as string[] };
+      return { inputs: [], amounts: [], errors: [] as string[] };
     }
 
     const decimals = sendType === "erc20" ? (tokenDecimals ?? 18) : 18;
@@ -131,8 +137,8 @@ export default function AirdropPage() {
         const amountStr = parts[1].trim();
 
         // Validate address
-        if (!recipient.startsWith("0x") || recipient.length !== 42) {
-          errors.push(`Line ${index + 1}: Invalid address`);
+        if (!isAddress(recipient) && !isAnsName(recipient)) {
+          errors.push(`Line ${index + 1}: Invalid address or .abey name`);
           return acc;
         }
 
@@ -144,7 +150,7 @@ export default function AirdropPage() {
 
         try {
           const amount = parseUnits(amountStr, decimals);
-          acc.recipients.push(recipient as `0x${string}`);
+          acc.inputs.push(recipient);
           acc.amounts.push(amount);
         } catch {
           errors.push(
@@ -154,12 +160,30 @@ export default function AirdropPage() {
 
         return acc;
       },
-      { recipients: [] as `0x${string}`[], amounts: [] as bigint[], errors },
+      { inputs: [] as string[], amounts: [] as bigint[], errors },
     );
 
     result.errors = errors;
     return result;
   }, [recipientsData, tokenDecimals, sendType]);
+
+  const recipientResolution = useQuery({
+    queryKey: ["ans", chainId, "airdrop-recipients", parsedRecipientInputs.inputs],
+    queryFn: () => resolveAddressesOrAns(parsedRecipientInputs.inputs, chainId),
+    enabled: parsedRecipientInputs.inputs.length > 0 && parsedRecipientInputs.errors.length === 0,
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const parsedRecipients = useMemo(() => ({
+    recipients: recipientResolution.data ?? [],
+    amounts: recipientResolution.data ? parsedRecipientInputs.amounts : [],
+    errors: [
+      ...parsedRecipientInputs.errors,
+      ...(recipientResolution.error
+        ? [recipientResolution.error instanceof Error ? recipientResolution.error.message : "Could not resolve recipients"]
+        : []),
+    ],
+  }), [parsedRecipientInputs, recipientResolution.data, recipientResolution.error]);
 
   const totalAmount = useMemo(() => {
     return parsedRecipients.amounts.reduce(
@@ -300,9 +324,10 @@ export default function AirdropPage() {
   const isFormValid = useMemo(() => {
     if (parsedRecipients.recipients.length === 0) return false;
     if (parsedRecipients.errors.length > 0) return false;
+    if (recipientResolution.isLoading) return false;
     if (sendType === "erc20" && !isValidTokenAddress) return false;
     return true;
-  }, [parsedRecipients, sendType, isValidTokenAddress]);
+  }, [parsedRecipients, recipientResolution.isLoading, sendType, isValidTokenAddress]);
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
@@ -449,8 +474,9 @@ export default function AirdropPage() {
                       {Number(
                         formatUnits(reactBalance.value, 18),
                       ).toLocaleString()}{" "}
-                      ABEY
+                      $ABEY
                     </p>
+                    <AbeyUsdValue value={reactBalance.value} unit="wei" />
                   </div>
                   <Coins className="w-8 h-8 text-[#42C9FF]" />
                 </div>
@@ -477,18 +503,19 @@ export default function AirdropPage() {
               </Label>
               <Textarea
                 id="recipients"
-                placeholder={`0x1234...abcd,100\n0x5678...efgh,200\n0x9012...ijkl,50`}
+                placeholder={`hobbit.abey,100\n0x5678...efgh,200\nwallet.abey,50`}
                 value={recipientsData}
                 onChange={(e) => setRecipientsData(e.target.value)}
                 className="min-h-[200px] border-2 border-black font-mono text-sm"
               />
               <p className="text-xs text-gray-500">
-                Enter one address and amount per line, separated by a comma.
-                Example: <code className="bg-gray-100 px-1">0x123...,100</code>
+                Enter one address or .abey name and amount per line, separated by a comma.
+                Example: <code className="bg-gray-100 px-1">hobbit.abey,100</code>
               </p>
             </div>
 
             {/* Parsing Errors */}
+            {recipientResolution.isLoading && <p className="text-xs font-bold text-black/55">Resolving .abey recipients…</p>}
             {parsedRecipients.errors.length > 0 && (
               <div className="p-3 bg-red-50 border-2 border-red-500 space-y-1">
                 <p className="font-bold text-red-600 text-sm flex items-center gap-1">
@@ -529,8 +556,15 @@ export default function AirdropPage() {
                       ).toLocaleString()}
                     </p>
                     <p className="text-xs font-bold text-gray-600">
-                      {displaySymbol}
+                      {sendType === "react" ? "$ABEY" : displaySymbol}
                     </p>
+                    {sendType === "react" && (
+                      <AbeyUsdValue
+                        value={totalAmount}
+                        unit="wei"
+                        className="mt-1 block text-[10px] font-black text-black/45"
+                      />
+                    )}
                   </div>
                 </div>
                 {!hasSufficientBalance && totalAmount > 0n && (
@@ -555,13 +589,13 @@ export default function AirdropPage() {
                 </p>
                 <Button
                   onClick={handleApprove}
+                  loading={isApproving || isApproveConfirming}
+                  loadingText="Approving"
                   disabled={isApproving || isApproveConfirming || !isFormValid}
                   className="-rotate-[0.35deg] w-full border-4 border-black bg-[#FFE38A] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#F6CF62] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all py-6 text-lg"
                 >
                   <Upload className="w-5 h-5 mr-2" />
-                  {isApproving || isApproveConfirming
-                    ? "Approving..."
-                    : "Approve Tokens"}
+                  Approve Tokens
                 </Button>
               </div>
             ) : (
@@ -573,6 +607,8 @@ export default function AirdropPage() {
                 )}
                 <Button
                   onClick={handleSend}
+                  loading={isSending || isSendConfirming}
+                  loadingText="Sending"
                   disabled={
                     isSending ||
                     isSendConfirming ||
@@ -582,9 +618,7 @@ export default function AirdropPage() {
                   className="rotate-[0.35deg] w-full border-4 border-black bg-[#90EE90] text-black font-black uppercase tracking-wider shadow-[4px_4px_0_rgba(0,0,0,1)] hover:bg-[#7DE07D] hover:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all py-6 text-lg"
                 >
                   <Send className="w-5 h-5 mr-2" />
-                  {isSending || isSendConfirming
-                    ? "Sending..."
-                    : `Send Airdrop`}
+                  Send Airdrop
                 </Button>
               </div>
             )}

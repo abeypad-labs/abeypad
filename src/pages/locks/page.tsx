@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { CONTRACT_ADDRESSES, TokenLocker } from "@/config";
-import { useChainId, useReadContract } from "@/lib/hooks";
+import { TokenLocker } from "@/config";
+import { useChainId, useContractAddresses, useReadContract } from "@/lib/hooks";
 import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
@@ -222,7 +222,7 @@ function RecentLockCard({
 }
 
 export default function LocksPage() {
-  const { tokenLocker } = CONTRACT_ADDRESSES;
+  const { tokenLocker } = useContractAddresses();
   const config = useConfig();
   const chainId = useChainId();
   const chain = config.chains.find((c) => c.id === chainId);

@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { PresaleFactoryContract, CONTRACT_ADDRESSES } from "@/config";
+import { PresaleFactoryContract } from "@/config";
 import { useReadContract, useReadContracts } from "@/lib/hooks";
 import { useBlockchainStore } from "@/lib/store/blockchain-store";
 import type { Address } from "viem";
+import { useContractAddresses } from "./useContractAddresses";
 
 export function usePresales(forceRefetch = false) {
   const { getPresales, setPresales, setPresalesLoading, isPresalesStale } =
@@ -11,7 +12,7 @@ export function usePresales(forceRefetch = false) {
   const cachedPresales = getPresales();
   const isStale = isPresalesStale();
   const shouldFetch = isStale || forceRefetch || !cachedPresales;
-  const { presaleFactory } = CONTRACT_ADDRESSES;
+  const { presaleFactory } = useContractAddresses();
 
   // First get total count of presales
   const {

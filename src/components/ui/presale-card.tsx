@@ -3,6 +3,7 @@ import type { Project } from "@/components/ui/project-card";
 import { Link } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import { formatEther } from "viem";
+import { AbeyUsdValue } from "@/components/AbeyUsdValue";
 import type { PresaleWithStatus } from "@/lib/hooks/useLaunchpadPresales";
 import type { PresaleCategory } from "@/lib/store/launchpad-presale-store";
 import { Twitter, Send, Globe, MessageCircle } from "lucide-react";
@@ -291,12 +292,14 @@ export function PresaleCard({ presale }: { presale: PresaleWithStatus }) {
               style={{ width: `${project.progress}%` }}
             ></div>
           </div>
-          <div className="flex justify-between items-center mt-2">
+          <div className="mt-2 flex items-start justify-between gap-3">
             <span className="text-xs font-bold">
-              {project.raised.toLocaleString()} {project.currency}
+              <span className="block">{project.raised.toLocaleString()} {project.currency === "ABEY" ? "$ABEY" : project.currency}</span>
+              {project.currency === "ABEY" && <AbeyUsdValue value={project.raised} className="mt-0.5 block text-[10px] font-black text-black/45" />}
             </span>
-            <span className="text-xs font-bold">
-              {project.goal.toLocaleString()} {project.currency}
+            <span className="text-right text-xs font-bold">
+              <span className="block">{project.goal.toLocaleString()} {project.currency === "ABEY" ? "$ABEY" : project.currency}</span>
+              {project.currency === "ABEY" && <AbeyUsdValue value={project.goal} className="mt-0.5 block text-[10px] font-black text-black/45" />}
             </span>
           </div>
         </div>

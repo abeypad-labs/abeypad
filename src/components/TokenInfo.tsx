@@ -1,10 +1,10 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { useAccount, useChainId, useReadContract } from "@/lib/hooks";
-import { ExternalLink, Coins } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { formatUnits } from "viem";
+import { erc20Abi, formatUnits } from "viem";
 import { useConfig } from "wagmi";
-import { erc20Abi } from "viem";
 
 interface TokenInfoProps {
   tokenAddress: `0x${string}`;
@@ -36,102 +36,105 @@ export function TokenInfo({ tokenAddress }: TokenInfoProps) {
     functionName: "decimals",
   });
 
-  const { data: totalSupply, isLoading: isLoadingSupply } = useReadContract({
-    abi: erc20Abi,
-    address: tokenAddress,
-    functionName: "totalSupply",
-  });
-
   const { data: balance, isLoading: isLoadingBalance } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
+    query: {
+      enabled: Boolean(address),
+    },
   });
 
   const isLoading =
     isLoadingName ||
     isLoadingSymbol ||
     isLoadingDecimals ||
-    isLoadingSupply ||
     isLoadingBalance;
 
   if (isLoading) {
     return (
-      <div className="border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)]">
-        <div className="animate-pulse space-y-3">
-          <div className="h-5 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="w-full border-2 border-black bg-[#FFF8E8] p-4 shadow-[3px_3px_0_#000] sm:p-5">
+        <div className="grid animate-pulse gap-5 lg:grid-cols-[minmax(0,1fr)_180px_180px] lg:items-center">
+          <div className="space-y-2">
+            <div className="h-7 w-32 bg-black/10" />
+            <div className="h-3 w-full max-w-sm bg-black/10" />
+          </div>
+          <div className="border-y border-black/10 py-3 lg:border-x lg:border-y-0 lg:px-6 lg:py-0">
+            <div className="h-10 bg-black/10" />
+          </div>
+          <div className="h-9 bg-black/10" />
         </div>
       </div>
     );
   }
 
-  const formattedSupply =
-    totalSupply && decimals !== undefined
-      ? formatUnits(totalSupply, decimals)
-      : "0";
-
   const formattedBalance =
     balance && decimals !== undefined ? formatUnits(balance, decimals) : "0";
 
   return (
-    <div className="border-2 border-black bg-[#FFFDF7] p-4 shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] transition-shadow">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Coins className="w-4 h-4 text-gray-600" />
-            <h3 className="font-black text-lg uppercase truncate">
+    <article className="relative w-full overflow-hidden border-2 border-black bg-[#FFF8E8] shadow-[3px_3px_0_#000]">
+      <div
+        aria-hidden="true"
+        className="absolute right-0 top-0 h-14 w-14 -translate-y-8 translate-x-8 rotate-12 border-2 border-black bg-[#42C9FF]"
+      />
+      <div className="relative grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h3 className="truncate text-xl font-black tracking-tight sm:text-2xl">
               {name || "Unknown Token"}
             </h3>
-            <span className="px-2 py-0.5 text-xs font-bold uppercase bg-gray-200 text-gray-700">
+            <span className="bg-[#FFE38A] px-2 py-1 text-[9px] font-black uppercase tracking-wider">
               {symbol || "N/A"}
             </span>
           </div>
-
-          <div className="space-y-1 text-sm">
-            <p className="text-xs text-gray-500 break-all font-mono">
-              {tokenAddress}
-            </p>
-            <div className="flex flex-wrap gap-4 text-xs">
-              <span className="font-bold">
-                Supply:{" "}
-                <span className="text-gray-600">
-                  {parseFloat(formattedSupply).toLocaleString()}
-                </span>
-              </span>
-              <span className="font-bold">
-                Your Balance:{" "}
-                <span className="text-gray-600">
-                  {parseFloat(formattedBalance).toLocaleString()}
-                </span>
-              </span>
-            </div>
-          </div>
+          <p className="mt-1 break-all font-mono text-[11px] font-bold text-black/45 sm:text-xs">
+            {tokenAddress}
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 flex-shrink-0">
+        <dl className="border-y border-black/15 py-3 lg:min-w-[180px] lg:border-x lg:border-y-0 lg:px-6 lg:py-0">
+          <div>
+            <dt className="text-[9px] font-black uppercase tracking-[0.16em] text-black/45">
+              Your balance
+            </dt>
+            <dd className="mt-1 truncate text-base font-black sm:text-lg">
+              {parseFloat(formattedBalance).toLocaleString()}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="flex shrink-0 items-center gap-1">
           {explorerUrl && (
-            <a
-              href={`${explorerUrl}/address/${tokenAddress}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button
+              asChild
+              size="sm"
+              variant="ghost"
+              className="rounded-none border-0 bg-transparent px-2 shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-white/70"
             >
-              <button className="border-2 border-black bg-white px-3 py-1.5 text-xs font-bold uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] transition-shadow flex items-center gap-1">
-                <ExternalLink className="w-3 h-3" />
+              <a
+                href={`${explorerUrl}/address/${tokenAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Explorer
-              </button>
-            </a>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </Button>
           )}
 
-          <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
-            <button className="border-2 border-black bg-[#FFE38A] px-3 py-1.5 text-xs font-bold uppercase shadow-[2px_2px_0_rgba(0,0,0,1)] hover:shadow-[3px_3px_0_rgba(0,0,0,1)] transition-shadow">
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="rounded-none border-0 bg-[#FFE38A] px-3 shadow-none [box-shadow:none] hover:translate-x-0 hover:translate-y-0 hover:bg-[#F6CF62]"
+          >
+            <Link to={`/dashboard/tools/token-locker?token=${tokenAddress}`}>
               Lock Tokens
-            </button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
