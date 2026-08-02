@@ -351,23 +351,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="neo-frame -rotate-[0.75deg] mb-12 bg-white p-8 sm:p-12 animate-fade-in-up animation-delay-200">
-          <h2 className="text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-6xl">
-            Launch Faster,
-            <br />
-            Fund Smarter
-          </h2>
-          <p className="mt-5 max-w-2xl text-lg font-bold">
-            Turn your concept into a live on-chain raise with built-in token
-            tooling and native .abey identity. NFT tooling is coming soon.
-          </p>
-          <Link
-            to="/dashboard/create"
-            className="mt-8 inline-flex rotate-[0.35deg] border-[2px] border-black bg-[#B8EF53] px-7 py-3 text-sm font-black uppercase tracking-[0.16em] [box-shadow:0_0_0_1px_#000,6px_6px_0_0_#000] transition-all hover:[box-shadow:0_0_0_1px_#000,10px_10px_0_0_#000] hover:-translate-x-1 hover:-translate-y-1"
-          >
-            Create a Project
-          </Link>
-        </section>
       </div>
 
       <footer className="border-t-[3px] border-black bg-[#111111] text-white">

@@ -33,7 +33,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Tag,
-  Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -302,6 +301,10 @@ export default function NamesMarketplacePage() {
 
   const buyListing = async (item: MarketplaceListing) => {
     if (!requireWallet()) return;
+    if (!item.active || item.status !== "active") {
+      toast.error("This listing is no longer available");
+      return;
+    }
     await runAction(`listing:buy:${item.listingId}`, () =>
       execute(
         { address: contracts.marketplace, abi: ANSMarketplace.abi, functionName: "buy", args: [BigInt(item.listingId)], value: BigInt(item.price) },
@@ -311,6 +314,10 @@ export default function NamesMarketplacePage() {
   };
 
   const cancelListing = async (item: MarketplaceListing) => {
+    if (!item.active || item.status !== "active") {
+      toast.error("This listing is already closed");
+      return;
+    }
     await runAction(`listing:cancel:${item.listingId}`, () =>
       execute(
         { address: contracts.marketplace, abi: ANSMarketplace.abi, functionName: "cancelListing", args: [BigInt(item.listingId)] },
@@ -321,6 +328,18 @@ export default function NamesMarketplacePage() {
 
   const bid = async (source: "primary" | "marketplace", item: PrimaryAuction | MarketplaceAuction) => {
     if (!requireWallet()) return;
+    if (item.status !== "active") {
+      toast.error(
+        item.status === "scheduled"
+          ? "This auction has not started yet"
+          : item.status === "settled"
+            ? "This auction is already settled"
+            : item.status === "cancelled"
+              ? "This auction was cancelled"
+              : "This auction has ended",
+      );
+      return;
+    }
     const key = `${source}-${item.auctionId}`;
     const value = bidValues[key];
     if (!value || Number(value) <= 0) {
@@ -355,6 +374,16 @@ export default function NamesMarketplacePage() {
   };
 
   const settle = async (source: "primary" | "marketplace", item: PrimaryAuction | MarketplaceAuction) => {
+    if (item.status !== "ended") {
+      toast.error(
+        item.status === "settled"
+          ? "This auction is already settled"
+          : item.status === "cancelled"
+            ? "This auction was cancelled"
+            : "This auction has not ended yet",
+      );
+      return;
+    }
     const contract = source === "primary"
       ? { address: contracts.auctionHouse, abi: ANSAuctionHouse.abi }
       : { address: contracts.marketplace, abi: ANSMarketplace.abi };
@@ -367,6 +396,16 @@ export default function NamesMarketplacePage() {
   };
 
   const cancelAuction = async (item: MarketplaceAuction) => {
+    if (!["active", "scheduled"].includes(item.status)) {
+      toast.error(
+        item.status === "settled"
+          ? "This auction is already settled"
+          : item.status === "cancelled"
+            ? "This auction was already cancelled"
+            : "This auction has ended",
+      );
+      return;
+    }
     await runAction(`auction:marketplace:cancel:${item.auctionId}`, () =>
       execute(
         { address: contracts.marketplace, abi: ANSMarketplace.abi, functionName: "cancelAuction", args: [BigInt(item.auctionId)] },
@@ -477,7 +516,19 @@ export default function NamesMarketplacePage() {
                     </div>
                     <h3 className="mt-5 text-2xl font-black">{item.fqdn}</h3><p className="mt-1 text-xs font-bold text-black/50">Seller <AddressIdentity address={item.seller} /></p>
                     <div className="mt-5 border-y-2 border-black py-3"><p className="text-2xl font-black">{formatAbey(item.price)}</p><p className="mt-0.5 text-xs font-black text-black/45">{formatUsd(item.price, abeyPriceUsd)}</p></div>
-                    <div className="mt-auto pt-5">{item.active && (mine ? <Button loading={activeAction === `listing:cancel:${item.listingId}`} loadingText="Cancelling" disabled={activeAction !== null} variant="destructive" className="w-full" onClick={() => cancelListing(item)}>Cancel listing</Button> : <Button loading={activeAction === `listing:buy:${item.listingId}`} loadingText="Buying" disabled={activeAction !== null} className="w-full" onClick={() => buyListing(item)}>Buy now</Button>)}</div>
+                    <div className="mt-auto pt-5">
+                      {item.active ? (
+                        mine ? (
+                          <Button loading={activeAction === `listing:cancel:${item.listingId}`} loadingText="Cancelling" disabled={activeAction !== null} variant="destructive" className="w-full" onClick={() => cancelListing(item)}>Cancel listing</Button>
+                        ) : (
+                          <Button loading={activeAction === `listing:buy:${item.listingId}`} loadingText="Buying" disabled={activeAction !== null} className="w-full" onClick={() => buyListing(item)}>Buy now</Button>
+                        )
+                      ) : (
+                        <Button disabled variant="outline" className="w-full shadow-none [box-shadow:none]">
+                          {item.status === "sold" ? "Sold" : "Listing closed"}
+                        </Button>
+                      )}
+                    </div>
                   </article>
                 );
               })}
@@ -508,9 +559,9 @@ export default function NamesMarketplacePage() {
                 </p>
               </div>
               {!address ? (
-                <Button className="mt-5 w-full" onClick={openConnectModal}>
-                  <Wallet /> Connect wallet
-                </Button>
+                <p className="mt-5 text-sm font-bold text-black/65">
+                  Connect your wallet to list a .abey name.
+                </p>
               ) : (
                 <div className="mt-5 space-y-4">
                   <label className="block">
@@ -858,6 +909,8 @@ function AuctionCard({
         </div>
       )}
       {item.status === 'ended' && <Button loading={activeAction === settleAction} loadingText="Settling" disabled={activeAction !== null} className="mt-4 w-full" variant="secondary" onClick={onSettle}>Settle auction</Button>}
+      {item.status === 'settled' && <Button disabled className="mt-4 w-full shadow-none [box-shadow:none]" variant="outline">Auction settled</Button>}
+      {item.status === 'cancelled' && <Button disabled className="mt-4 w-full shadow-none [box-shadow:none]" variant="outline">Auction cancelled</Button>}
       {source === 'marketplace' && mine && ['active','scheduled'].includes(item.status) && onCancel && <Button loading={activeAction === cancelAction} loadingText="Cancelling" disabled={activeAction !== null} className="mt-4 w-full" variant="destructive" onClick={onCancel}>Cancel auction</Button>}
     </article>
   );

@@ -34,7 +34,6 @@ import {
   ShieldCheck,
   Tag,
   Trash2,
-  Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -644,8 +643,12 @@ export default function NamesPage() {
         <section className="mt-12">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-3xl font-black uppercase">My .abey names</h2>
-            {!address && <Button variant="secondary" onClick={openConnectModal}><Wallet /> Connect wallet</Button>}
           </div>
+          {!address && (
+            <div className="border-[3px] border-black bg-[#FFF8E8] p-6 font-bold text-black/65">
+              Connect your wallet to see the .abey names you own.
+            </div>
+          )}
           {address && owned.isLoading && <div className="border-[3px] border-black bg-white p-6 font-black">Loading names from the AbeyPad index…</div>}
           {address && !owned.isLoading && (owned.data?.length ?? 0) === 0 && (
             <div className="border-[3px] border-dashed border-black bg-white p-8 text-center">
