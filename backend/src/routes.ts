@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getAddress, isAddress } from "viem";
 import { z } from "zod";
 import { config } from "./config.js";
-import { isDatabaseReady } from "./db.js";
+import { checkDatabaseReady, isDatabaseReady } from "./db.js";
 import {
   ensureAnsIndexFresh,
   getAnsIndexHealth,
@@ -72,6 +72,10 @@ function assertActiveChain(chainId?: number) {
 
 function refreshAnsIndexInBackground() {
   void ensureAnsIndexFresh().catch(() => undefined);
+}
+
+async function canReadDatabase() {
+  return isDatabaseReady() || (await checkDatabaseReady());
 }
 
 function buildSuggestionLabels(input: string, limit: number) {
@@ -172,7 +176,7 @@ export async function registerRoutes(app: FastifyInstance) {
     ok: true,
     service: "abeypad-api",
     chainId: config.deployment.chainId,
-    database: isDatabaseReady() ? "ready" : "degraded",
+    database: await canReadDatabase() ? "ready" : "degraded",
   }));
 
   app.get("/api/config", async () => ({
@@ -356,7 +360,7 @@ export async function registerRoutes(app: FastifyInstance) {
     if (!params.success || !query.success) return reply.code(400).send({ error: "invalid_address" });
     try {
       const chainId = assertActiveChain(query.data.chainId);
-      if (!isDatabaseReady()) {
+      if (!await canReadDatabase()) {
         return {
           chainId,
           address: getAddress(params.data.address),
@@ -385,7 +389,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = chainQuery.safeParse(request.query);
     if (!params.success || !query.success) return reply.code(400).send({ error: "invalid_address" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) {
+    if (!await canReadDatabase()) {
       return {
         chainId,
         owner: getAddress(params.data.address),
@@ -413,7 +417,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = listQuery.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "invalid_query" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) return { chainId, auctions: [], degraded: true };
+    if (!await canReadDatabase()) return { chainId, auctions: [], degraded: true };
     refreshAnsIndexInBackground();
     return { chainId, auctions: (await listPrimaryAuctions(chainId, query.data.limit)).map(serializePrimary) };
   });
@@ -422,7 +426,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = listQuery.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "invalid_query" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) return { chainId, listings: [], degraded: true };
+    if (!await canReadDatabase()) return { chainId, listings: [], degraded: true };
     refreshAnsIndexInBackground();
     return { chainId, listings: (await listMarketplaceListings(chainId, query.data.limit)).map(serializeListing) };
   });
@@ -431,7 +435,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = listQuery.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "invalid_query" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) return { chainId, auctions: [], degraded: true };
+    if (!await canReadDatabase()) return { chainId, auctions: [], degraded: true };
     refreshAnsIndexInBackground();
     return { chainId, auctions: (await listMarketplaceAuctions(chainId, query.data.limit)).map(serializeMarketplaceAuction) };
   });
@@ -440,7 +444,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = listQuery.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "invalid_query" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) return { chainId, activity: [], degraded: true };
+    if (!await canReadDatabase()) return { chainId, activity: [], degraded: true };
     refreshAnsIndexInBackground();
     return { chainId, activity: await listMarketplaceActivity(chainId, query.data.limit) };
   });
@@ -449,7 +453,7 @@ export async function registerRoutes(app: FastifyInstance) {
     const query = listQuery.safeParse(request.query);
     if (!query.success) return reply.code(400).send({ error: "invalid_query" });
     const chainId = assertActiveChain(query.data.chainId);
-    if (!isDatabaseReady()) return { chainId, names: [], degraded: true };
+    if (!await canReadDatabase()) return { chainId, names: [], degraded: true };
     return { chainId, names: (await listReservedNames(chainId, true)).slice(0, query.data.limit).map(serializeReserved) };
   });
 

@@ -24,6 +24,17 @@ export function isDatabaseReady() {
   return databaseReady;
 }
 
+export async function checkDatabaseReady() {
+  try {
+    await pool.query("select 1");
+    databaseReady = true;
+    return true;
+  } catch (error) {
+    databaseReady = false;
+    return false;
+  }
+}
+
 export async function closeDb() {
   await pool.end();
 }
