@@ -28,10 +28,10 @@ export function useAbeyPriceUsd(
       const response = await fetch(
         `${getBackendApiUrl(chainId)}/api/public/price/abey?chainId=${chainId}`,
       );
-      if (!response.ok) throw new Error("ABEY price is unavailable");
+      if (!response.ok) throw new Error("Abey price is unavailable");
       const data = (await response.json()) as PriceResponse;
       if (typeof data.priceUsd !== "number" || !Number.isFinite(data.priceUsd)) {
-        throw new Error("ABEY price response is invalid");
+        throw new Error("Abey price response is invalid");
       }
       return data.priceUsd;
     },

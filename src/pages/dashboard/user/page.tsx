@@ -106,7 +106,7 @@ function PresaleInfo({ presaleAddress }: { presaleAddress: Address }) {
               {Math.round(
                 Number(formatUnits(presaleData.hardCap, 18)),
               ).toLocaleString()}{" "}
-              $ABEY
+              $Abey
               </span>
               <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] font-black text-black/45">
                 <AbeyUsdValue value={presaleData.totalRaised} unit="wei" className="inline" />
@@ -333,7 +333,7 @@ export default function UserDashboardPage() {
               </p>
               <p className="text-xs text-red-600">
                 The TokenFactory contract is not deployed at the configured
-                address. Contact the team to deploy contracts on Abeychain.
+                address. Contact the team to deploy contracts on Abey.
               </p>
             </div>
           ) : tokenList.length > 0 ? (

@@ -84,7 +84,7 @@ export default function Home() {
                 alt="AbeyPad logo"
                 className="h-11 w-11 rounded-[14px] border-[3px] border-black object-cover"
               />
-              <p className="text-xl font-black uppercase leading-none tracking-[0.18em]">
+              <p className="text-xl font-black leading-none tracking-[0.18em]">
                 AbeyPad
               </p>
             </Link>
@@ -235,8 +235,8 @@ export default function Home() {
                         maximumFractionDigits: 2,
                       })}`}
                 </p>
-                <p className="mt-2 text-sm font-black uppercase tracking-[0.14em]">
-                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} $ABEY
+                <p className="mt-2 text-sm font-black tracking-[0.14em]">
+                  {totalRaised < 0.01 ? "0" : totalRaised.toFixed(2)} $Abey
                 </p>
               </div>
             </div>
@@ -355,8 +355,8 @@ export default function Home() {
 
       <footer className="border-t-[3px] border-black bg-[#111111] text-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-7 md:flex-row">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-center md:text-left">
-            &copy; {new Date().getFullYear()} ABEYPAD
+          <p className="text-xs font-black tracking-[0.16em] text-center md:text-left">
+            &copy; {new Date().getFullYear()} AbeyPad
           </p>
           <div className="flex gap-4">
             <a

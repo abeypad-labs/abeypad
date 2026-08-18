@@ -194,7 +194,7 @@ export default function AirdropPage() {
 
   const displayDecimals = sendType === "erc20" ? (tokenDecimals ?? 18) : 18;
   const displaySymbol =
-    sendType === "erc20" ? (tokenSymbol ?? "tokens") : "ABEY";
+    sendType === "erc20" ? (tokenSymbol ?? "tokens") : "Abey";
 
   // Allowance check for ERC-20
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -397,7 +397,7 @@ export default function AirdropPage() {
                   />
                   <div>
                     <p className="font-black uppercase text-sm sm:text-base">
-                      ABEY
+                      <span className="normal-case">Abey</span>
                     </p>
                     <p className="text-xs text-gray-600">Native currency</p>
                   </div>
@@ -467,14 +467,14 @@ export default function AirdropPage() {
               <div className="p-3 bg-gray-100 border-2 border-black">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-gray-500 text-xs uppercase font-bold">
-                      Your ABEY Balance
+                    <p className="text-gray-500 text-xs font-bold">
+                      Your Abey Balance
                     </p>
                     <p className="font-black text-lg">
                       {Number(
                         formatUnits(reactBalance.value, 18),
                       ).toLocaleString()}{" "}
-                      $ABEY
+                      $Abey
                     </p>
                     <AbeyUsdValue value={reactBalance.value} unit="wei" />
                   </div>
@@ -556,7 +556,7 @@ export default function AirdropPage() {
                       ).toLocaleString()}
                     </p>
                     <p className="text-xs font-bold text-gray-600">
-                      {sendType === "react" ? "$ABEY" : displaySymbol}
+                      {sendType === "react" ? "$Abey" : displaySymbol}
                     </p>
                     {sendType === "react" && (
                       <AbeyUsdValue

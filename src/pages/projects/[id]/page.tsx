@@ -63,7 +63,7 @@ export default function ProjectDetailPage() {
                         ),
                       ),
                     ).toLocaleString()}{" "}
-                    {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
+                    {presale.paymentTokenSymbol === "ABEY" ? "$Abey" : presale.paymentTokenSymbol}
                   </p>
                   {presale.paymentTokenSymbol === "ABEY" && (
                     <AbeyUsdValue
@@ -79,7 +79,7 @@ export default function ProjectDetailPage() {
                       presale.hardCap,
                       presale.paymentTokenDecimals || 18,
                     )}{" "}
-                    {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
+                    {presale.paymentTokenSymbol === "ABEY" ? "$Abey" : presale.paymentTokenSymbol}
                   </p>
                   {presale.paymentTokenSymbol === "ABEY" && (
                     <AbeyUsdValue value={presale.hardCap} unit="wei" />
@@ -119,7 +119,7 @@ export default function ProjectDetailPage() {
             <div>
               <p className="font-bold">Rate</p>
               <p>
-                1 {presale.paymentTokenSymbol} = {Number(presale.rate) / 100}{" "}
+                1 {presale.paymentTokenSymbol === "ABEY" ? "Abey" : presale.paymentTokenSymbol} = {Number(presale.rate) / 100}{" "}
                 {presale.saleTokenSymbol}
               </p>
             </div>
@@ -130,7 +130,7 @@ export default function ProjectDetailPage() {
                   presale.softCap,
                   presale.paymentTokenDecimals || 18,
                 )}{" "}
-                {presale.paymentTokenSymbol === "ABEY" ? "$ABEY" : presale.paymentTokenSymbol}
+                {presale.paymentTokenSymbol === "ABEY" ? "$Abey" : presale.paymentTokenSymbol}
               </p>
               {presale.paymentTokenSymbol === "ABEY" && (
                 <AbeyUsdValue value={presale.softCap} unit="wei" />

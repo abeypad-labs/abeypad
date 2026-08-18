@@ -55,7 +55,7 @@ export function NetworkSwitcher() {
   return (
     <div
       className="grid w-full grid-cols-2 gap-2 border-[2px] border-black bg-white p-2 text-black [box-shadow:3px_3px_0_0_#000]"
-      aria-label="ABEY network selector"
+      aria-label="Abey network selector"
     >
       {networks.map((network) => {
         const selected = chainId === network.id;

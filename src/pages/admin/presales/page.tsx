@@ -134,7 +134,7 @@ function PresaleCard({
             <p className="text-gray-500 text-xs uppercase font-bold">
               Hard Cap
             </p>
-            <p className="font-bold">{formatEther(presale.hardCap)} $ABEY</p>
+            <p className="font-bold">{formatEther(presale.hardCap)} $Abey</p>
             <AbeyUsdValue value={presale.hardCap} unit="wei" />
           </div>
           <div>
@@ -145,7 +145,7 @@ function PresaleCard({
               {Math.round(
                 Number(formatEther(presale.totalRaised)),
               ).toLocaleString()}{" "}
-              $ABEY
+              $Abey
             </p>
             <AbeyUsdValue value={presale.totalRaised} unit="wei" />
           </div>

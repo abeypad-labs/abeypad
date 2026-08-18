@@ -85,7 +85,7 @@ function PresaleRow({
               {Math.round(
                 Number(formatUnits(presale.hardCap, 18)),
               ).toLocaleString()}{" "}
-              $ABEY
+              $Abey
               </span>
               <span className="mt-0.5 flex items-center justify-end gap-1 text-[10px] font-black text-black/45">
                 <AbeyUsdValue value={presale.totalRaised} unit="wei" className="inline" />

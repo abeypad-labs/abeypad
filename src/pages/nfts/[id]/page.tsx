@@ -124,7 +124,7 @@ export default function NFTDetailPage() {
                 <span>Price</span>
                 <span className="text-right font-bold">
                   <span className="block">
-                    {formatEther((mintPrice?.result as bigint) ?? BigInt(0))} $ABEY
+                    {formatEther((mintPrice?.result as bigint) ?? BigInt(0))} $Abey
                   </span>
                   <AbeyUsdValue
                     value={(mintPrice?.result as bigint) ?? 0n}

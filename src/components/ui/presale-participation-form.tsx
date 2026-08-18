@@ -74,6 +74,9 @@ export function PresaleParticipationForm({
   const saleTokenDecimals = presaleData.saleTokenDecimals || 18;
   const isAbeyPayment =
     presaleData.isPaymentETH || presaleData.paymentTokenSymbol === "ABEY";
+  const paymentTokenDisplaySymbol = isAbeyPayment
+    ? "Abey"
+    : presaleData.paymentTokenSymbol;
 
   const amountAsBigInt = useMemo(() => {
     try {
@@ -296,7 +299,7 @@ export function PresaleParticipationForm({
     if (isApproving) return "Approving...";
     if (isPending) return "Confirming...";
     if (isConfirming) return "Waiting for transaction...";
-    if (needsApproval) return `Approve ${presaleData.paymentTokenSymbol}`;
+    if (needsApproval) return `Approve ${paymentTokenDisplaySymbol}`;
     return "Contribute";
   };
 
@@ -340,7 +343,7 @@ export function PresaleParticipationForm({
               <p className="text-gray-500 text-xs">Contributed</p>
               <p className="font-semibold">
                 {formatUnits(currentContribution, paymentTokenDecimals)}{" "}
-                {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
+                {isAbeyPayment ? "$Abey" : presaleData.paymentTokenSymbol}
               </p>
               {isAbeyPayment && (
                 <AbeyUsdValue value={currentContribution} unit="wei" />
@@ -410,7 +413,7 @@ export function PresaleParticipationForm({
                 ? `Claim Refund: ${formatUnits(
                     currentContribution,
                     paymentTokenDecimals,
-                  )} ${presaleData.paymentTokenSymbol}`
+                  )} ${paymentTokenDisplaySymbol}`
                 : currentContribution === 0n
                   ? "No refund available"
                   : "✓ Already Refunded"}
@@ -462,7 +465,7 @@ export function PresaleParticipationForm({
                 <span className="text-gray-500">Min:</span>{" "}
                 <span className="font-semibold">
                   {formatUnits(minContribution, paymentTokenDecimals)}{" "}
-                  {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
+                  {isAbeyPayment ? "$Abey" : presaleData.paymentTokenSymbol}
                 </span>
                 {isAbeyPayment && (
                   <AbeyUsdValue value={minContribution} unit="wei" />
@@ -472,7 +475,7 @@ export function PresaleParticipationForm({
                 <span className="text-gray-500">Max:</span>{" "}
                 <span className="font-semibold">
                   {formatUnits(maxContribution, paymentTokenDecimals)}{" "}
-                  {isAbeyPayment ? "$ABEY" : presaleData.paymentTokenSymbol}
+                  {isAbeyPayment ? "$Abey" : presaleData.paymentTokenSymbol}
                 </span>
                 {isAbeyPayment && (
                   <AbeyUsdValue value={maxContribution} unit="wei" />
@@ -484,7 +487,7 @@ export function PresaleParticipationForm({
           {/* Amount Input */}
           <div>
             <label htmlFor="amount" className="mb-1 block font-medium">
-              Amount to Contribute ({presaleData.paymentTokenSymbol})
+              Amount to Contribute ({paymentTokenDisplaySymbol})
             </label>
             <Input
               id="amount"
@@ -515,7 +518,7 @@ export function PresaleParticipationForm({
               <p className="text-xs text-gray-500 mt-1">
                 Rate: {Number(presaleData.rate) / 100}{" "}
                 {presaleData.saleTokenSymbol} per{" "}
-                {presaleData.paymentTokenSymbol}
+                {paymentTokenDisplaySymbol}
               </p>
             </div>
           )}

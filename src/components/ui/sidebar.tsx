@@ -71,7 +71,7 @@ const SidebarContent = () => {
             alt="AbeyPad logo"
             className="h-9 w-9 rounded-[11px] border-[2px] border-black object-cover"
           />
-          <span className="text-sm font-black uppercase tracking-[0.18em]">
+          <span className="text-sm font-black tracking-[0.18em]">
             AbeyPad
           </span>
         </Link>
@@ -101,7 +101,7 @@ const SidebarContent = () => {
               {balance.toLocaleString(undefined, {
                 maximumFractionDigits: 4,
               })}{" "}
-              <span className="text-sm uppercase tracking-[0.16em]">ABEY</span>
+              <span className="text-sm tracking-[0.16em]">Abey</span>
             </p>
             {abeyPriceUsd !== null && abeyPriceUsd > 0 && (
               <p className="mt-2 text-[11px] font-black text-black/55">
@@ -247,7 +247,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
                 alt="AbeyPad logo"
                 className="h-8 w-8 rounded-[10px] border-[2px] border-black object-cover"
               />
-              <span className="text-sm font-black uppercase tracking-[0.18em]">
+              <span className="text-sm font-black tracking-[0.18em]">
                 AbeyPad
               </span>
             </Link>

@@ -54,7 +54,7 @@ type SaleProgress = {
 
 function formatAbey(value: string | bigint) {
   const number = Number(formatEther(BigInt(value)));
-  return `${number.toLocaleString(undefined, { maximumFractionDigits: number >= 1 ? 3 : 6 })} $ABEY`;
+  return `${number.toLocaleString(undefined, { maximumFractionDigits: number >= 1 ? 3 : 6 })} $Abey`;
 }
 
 function formatUsd(value: string | bigint, abeyPriceUsd: number | null) {
@@ -237,7 +237,7 @@ export default function NamesMarketplacePage() {
 
   const createSale = async () => {
     if (!requireWallet() || !sellName || !price || Number(price) <= 0) {
-      toast.error("Choose a name and enter a valid $ABEY price");
+      toast.error("Choose a name and enter a valid $Abey price");
       return;
     }
     if (!approved) {
@@ -613,9 +613,11 @@ export default function NamesMarketplacePage() {
 
                   <label className="block">
                     <span className="text-xs font-black uppercase tracking-wider">
-                      {saleMode === "listing"
-                        ? "Price in $ABEY"
-                        : "Reserve price in $ABEY"}
+                      {saleMode === "listing" ? (
+                        <>Price in <span className="normal-case">$Abey</span></>
+                      ) : (
+                        <>Reserve price in <span className="normal-case">$Abey</span></>
+                      )}
                     </span>
                     <Input
                       className="mt-2"
@@ -896,7 +898,7 @@ function AuctionCard({
           </div>
           <div className="relative mt-2">
             <Input id={`bid-${source}-${item.auctionId}`} className="pr-20" type="number" min={liveMinimumBid === null ? "0" : formatEther(liveMinimumBid)} step="any" value={bidValue} onChange={(event) => setBidValue(event.target.value)} placeholder="Enter amount" aria-invalid={bidIsTooLow} />
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black">$ABEY</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black">$Abey</span>
           </div>
           {bidIsTooLow && liveMinimumBid !== null ? (
             <p className="mt-1.5 text-xs font-black text-red-700">Enter at least {formatAbey(liveMinimumBid)}{minimumBidUsd ? ` (${minimumBidUsd})` : ""}.</p>

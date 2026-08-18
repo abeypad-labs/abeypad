@@ -87,7 +87,7 @@ export function NFTCard({ nftAddress }: { nftAddress: `0x${string}` }) {
         <div className="mt-auto pt-6 border-t-2 border-black">
           <div>
             Price: {formatEther((mintPrice?.result as bigint) ?? BigInt(0))}{" "}
-            $ABEY
+            $Abey
             <AbeyUsdValue
               value={(mintPrice?.result as bigint) ?? 0n}
               unit="wei"

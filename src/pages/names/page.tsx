@@ -384,7 +384,7 @@ export default function NamesPage() {
         <div className="mb-8 flex flex-col gap-5 border-b-[3px] border-black pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-4xl font-black uppercase tracking-[-0.04em] sm:text-6xl">
-              Your name on <span className="text-[#FF7F41]">Abey.</span>
+              Your name on <span className="normal-case text-[#FF7F41]">Abey.</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base font-bold text-black/65">
               Register, manage, renew, and trade your <span className="text-black">.abey</span> names.
@@ -472,7 +472,7 @@ export default function NamesPage() {
                         {suggestion.price && (
                           <span className="hidden text-right sm:block">
                             <span className="block text-sm font-black">
-                              {formatAbey(suggestion.price.priceAbey, 2)} $ABEY
+                              {formatAbey(suggestion.price.priceAbey, 2)} $Abey
                             </span>
                             <span className="block text-[10px] font-bold text-black/50">
                               ${suggestion.price.totalUsd} / year
@@ -594,7 +594,7 @@ export default function NamesPage() {
                               Total for {years} year{years > 1 ? 's' : ''}
                             </p>
                             <p className="mt-2 text-3xl font-black leading-none tracking-tight">
-                              {formatAbey(estimate.priceAbey)} <span className="text-lg">$ABEY</span>
+                              {formatAbey(estimate.priceAbey)} <span className="text-lg">$Abey</span>
                             </p>
                             <div className="mt-2 flex items-center gap-2 text-sm font-bold text-black/55">
                               <span>${estimate.totalUsd}</span>

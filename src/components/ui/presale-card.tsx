@@ -294,11 +294,11 @@ export function PresaleCard({ presale }: { presale: PresaleWithStatus }) {
           </div>
           <div className="mt-2 flex items-start justify-between gap-3">
             <span className="text-xs font-bold">
-              <span className="block">{project.raised.toLocaleString()} {project.currency === "ABEY" ? "$ABEY" : project.currency}</span>
+              <span className="block">{project.raised.toLocaleString()} {project.currency === "ABEY" ? "$Abey" : project.currency}</span>
               {project.currency === "ABEY" && <AbeyUsdValue value={project.raised} className="mt-0.5 block text-[10px] font-black text-black/45" />}
             </span>
             <span className="text-right text-xs font-bold">
-              <span className="block">{project.goal.toLocaleString()} {project.currency === "ABEY" ? "$ABEY" : project.currency}</span>
+              <span className="block">{project.goal.toLocaleString()} {project.currency === "ABEY" ? "$Abey" : project.currency}</span>
               {project.currency === "ABEY" && <AbeyUsdValue value={project.goal} className="mt-0.5 block text-[10px] font-black text-black/45" />}
             </span>
           </div>

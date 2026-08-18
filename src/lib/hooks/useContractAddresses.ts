@@ -5,7 +5,7 @@ import {
 } from "@/config";
 import { useChainId } from "wagmi";
 
-/** Returns the deployment map for the wallet's current ABEY network. */
+/** Returns the deployment map for the wallet's current Abey network. */
 export function useContractAddresses() {
   const chainId = useChainId();
   return getContractAddresses(

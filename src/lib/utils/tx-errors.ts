@@ -88,7 +88,7 @@ export const getFriendlyTxErrorMessage = (
     text.includes("checkmetadatahash") ||
     text.includes("badspecversion")
   ) {
-    return "Wallet metadata for ABEY looks stale. Disconnect and reconnect the wallet, then retry.";
+    return "Wallet metadata for Abey looks stale. Disconnect and reconnect the wallet, then retry.";
   }
   if (text.includes("badproof") || text.includes("badsigner")) {
     return "The signed payload did not match the selected wallet account. Re-select the same SS58 account in Talisman/SubWallet and retry.";

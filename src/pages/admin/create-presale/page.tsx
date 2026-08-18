@@ -236,7 +236,7 @@ function AdminCreatePresaleForm({
           <Label htmlFor="paymentToken">Payment Token Address</Label>
           <Input
             id="paymentToken"
-            placeholder="0x... (leave blank for ABEY)"
+            placeholder="0x... (leave blank for Abey)"
             value={paymentToken}
             onChange={handleChange}
           />
@@ -285,7 +285,7 @@ function AdminCreatePresaleForm({
               </p>
               <p>
                 {(Number(saleAmount) / Number(hardCap)).toFixed(2)} tokens per{" "}
-                {paymentToken ? "payment token" : "ABEY"}
+                {paymentToken ? "payment token" : "Abey"}
               </p>
             </div>
           )}
